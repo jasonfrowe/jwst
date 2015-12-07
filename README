@@ -1,0 +1,4 @@
+Source code for JWST/NIRISS
+
+This code base contains tool for generating synthetic data and extracting
+stellar spectrum for the slitless spectrometer (NIRISS) for JWST.
