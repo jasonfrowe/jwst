@@ -2,3 +2,41 @@ Source code for JWST/NIRISS
 
 This code base contains tool for generating synthetic data and extracting
 stellar spectrum for the slitless spectrometer (NIRISS) for JWST.
+
+The easiest way to compile the code is:
+
+./configure
+make all
+
+To compile everything you need:  X11, PGPlot and CFITSIO.  If you don't 
+have this requirements 'configure' will fail.  I have been using the 
+Intel compiler (ifort) but gfortran should work fine.
+
+There are currently 3 Projects in 3 seperate directories.
+
+*limbdark*
+
+   calcldco.f90: uses ATLAS-9 synethetic spectrum to generate limb-darkening
+   co-efficients on a line-by-line basis.  The model output is then 
+   used by the synthetic image generator to produce realistic time-
+   series data for transit spectroscopy.
+   
+   
+*specextrac*
+
+   specextracf.90: currently uses synthetic spectrum as input.  Generates
+   a trace for each order and performs a simple aperture extraction.
+   This code code is under rapid development:
+     -will measure dispersion angle
+     -add drizzle extraction
+     -add PSF modeling for overlapping orders
+     
+*spgen*
+
+   spgen.f90: generates synthetic images based on convolution of a model
+   spectrum with model PSF.  Currently generates 3-orders.
+   This code is also under development
+      -add n=0 order 
+      -add tools for noise models
+      -make tool for generating time-series data 
+ 
