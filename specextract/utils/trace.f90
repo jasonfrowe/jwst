@@ -1,4 +1,5 @@
 subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf)
+!generates trace
 use precision
 implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
