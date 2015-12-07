@@ -82,3 +82,4 @@ ovrwrt.o: $(UTILS)ovrwrt.f
 .PHONY : clean
 clean :
 	rm *.o
+	rm *.mod

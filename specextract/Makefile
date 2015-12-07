@@ -80,3 +80,4 @@ getfits.o: $(UTILS)getfits.f90
 .PHONY : clean
 clean :
 	rm *.o
+	rm *.mod
