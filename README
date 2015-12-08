@@ -22,9 +22,9 @@ There are currently 3 Projects in 3 seperate directories.
    series data for transit spectroscopy.
    
    
-*specextrac*
+*specextract*
 
-   specextracf.90: currently uses synthetic spectrum as input.  Generates
+   specextract.90: currently uses synthetic spectrum as input.  Generates
    a trace for each order and performs a simple aperture extraction.
    This code code is under rapid development:
      -will measure dispersion angle
