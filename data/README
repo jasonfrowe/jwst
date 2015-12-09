@@ -1,3 +1,5 @@
 This directory contains data-products that are used by the supplied codes
 
-Kernels10 - contains PSFs that oversample at 10 times native resolution
+Kernels10/ - contains PSFs that oversample at 10 times native resolution
+Kernels1/ through Kernels8/ contain resampling.  To generate the files for
+these directories use the program genoskernel

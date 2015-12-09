@@ -13,7 +13,7 @@ real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
    opixels,wKernel,wpixels,wcpixels
 real(double), allocatable, dimension(:,:,:) :: rKernel
-character(80) :: modelfile,fileout
+character(80) :: modelfile,fileout,cline
 
 interface
    subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
@@ -51,24 +51,34 @@ interface
    end subroutine
 end interface
 
-if(iargc().lt.1)then
-   write(0,*) "Usage: spgen specmodel"
+if(iargc().lt.2)then
+   write(0,*) "Usage: spgen specmodel noversample"
    write(0,*) "  specmodel - BT-Stell.7 stellar model"
+   write(0,*) " noversample - is new sampling for Kernel (must be > 0)"
    stop
 endif
 
 !Can probably reduce x-out size to 512.
 xout=2048
 yout=2048
-noversample=4 !should make this a commandline-parameter
+
+noversample=1 !now a commandline-parameter
+!get oversampling from commandline
+call getarg(2,cline)
+read(cline,*) noversample !read in noversample
+if(noversample.le.0)then
+   write(0,*) "noversample must be greater than zero"
+   stop
+endif
+
 if(noversample.lt.1)then
    write(0,*) "noversample must be at least 1"
    stop
 endif
 
 !read in Kernels
-nrK=26 !number of Kernels to readin
-nKs=256*noversample !native size of Kernels
+nrK=30 !number of Kernels to readin
+nKs=64*noversample !natural size of Kernels times oversampling
 allocate(rKernel(nrK,nKs,nKs))
 call readKernels(nrK,nKs,rKernel,noversample)
 
