@@ -1,1 +1,3 @@
 This directory contains data-products that are used by the supplied codes
+
+Kernels10 - contains PSFs that oversample at 10 times native resolution
