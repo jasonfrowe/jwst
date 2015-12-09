@@ -1,12 +1,13 @@
 program genoskernel
 use precision
 implicit none
-integer noversample,nrK,nKs,i,j,k,ii,jj,l,m,nK
+integer noversample,nrK,nKs,i,j,k,ii,jj,l,m,nK,nnative,iargc,nsample
 real(double) :: dnover,x1,x2,y
 real(double), allocatable, dimension(:) :: x1a,x2a
 real(double), allocatable, dimension(:,:) :: wKernel,Kernel,y2a
 real(double), allocatable, dimension(:,:,:) :: rKernel
 character(80), allocatable, dimension(:) :: filenames
+character(80) :: cline
 
 interface
    subroutine readKernels(nrK,nK,rKernel,noversample)
@@ -27,15 +28,28 @@ interface
    end subroutine
 end interface
 
+if(iargc().lt.1)then
+   write(0,*) "Usage: genoskernel noversample"
+   write(0,*) " noversample - is new sampling for Kernel (must be > 0)"
+   stop
+endif
+
 !oversampling
-noversample=8
-dnover=dble(noversample) !double int -> double
+call getarg(1,cline)
+read(cline,*) noversample !read in noversample
+if(noversample.le.0)then
+   write(0,*) "noversample must be greater than zero"
+   stop
+endif
+
+nnative=10 !native size of Kernels
+dnover=dble(nnative)/dble(noversample) !double int -> double
 
 !read in Kernels
-nrK=26 !number of Kernels to readin
-nKs=256 !native size of Kernels
+nrK=30 !number of Kernels to readin
+nKs=640 !native size of Kernels
 allocate(rKernel(nrK,nKs,nKs))
-call readKernels(nrK,nKs,rKernel,1) !read in native size Kernels
+call readKernels(nrK,nKs,rKernel,nnative) !read in native size Kernels
 
 !get filenames for output
 allocate(filenames(nrK))
@@ -43,8 +57,12 @@ call getfilenames(noversample,nrK,filenames)
 
 !allocate space for oversample Kernels
 allocate(wKernel(nKs,nKs))
-nK=nKs*noversample
+nK=nKs*noversample/nnative
 allocate(Kernel(nK,nK))
+
+!write(0,*) "nK: ",nk
+!read(5,*)
+
 
 !set up arrays for spline calculations
 allocate(x1a(nKs),x2a(nKs)) !allocate array for spline X,Y co-ordinates
@@ -62,22 +80,33 @@ do k=1,nrK
    wKernel=rKernel(k,:,:)
 !  use a cubic spline to oversample the Kernel
    call splie2(x1a,x2a,wKernel,nKs,nKs,y2a)  !calculate derivatives
-   do i=1,nKs
-      do j=1,nKs
-         ii=i*noversample-noversample+1
-         jj=j*noversample-noversample+1
-         do l=1,noversample
-            do m=1,noversample
-               x1=dble(ii+l-1)/dnover
-               x2=dble(jj+m-1)/dnover
-               call splin2(x1a,x2a,wKernel,y2a,nKs,nKs,x1,x2,y)
-               Kernel(ii+l-1,jj+m-1)=y
-!            write(0,*) i,j,wKernel(i,j),Kernel(ii+l-1,jj+m-1)
-!            read(5,*)
-            enddo
-         enddo
+
+!   do i=1,nKs
+!      do j=1,nKs
+!         ii=i*noversample-noversample+1
+!         jj=j*noversample-noversample+1
+!         do l=1,noversample
+!            do m=1,noversample
+!               x1=dble(ii+l-1)/dnover
+!               x2=dble(jj+m-1)/dnover
+!               call splin2(x1a,x2a,wKernel,y2a,nKs,nKs,x1,x2,y)
+!               Kernel(ii+l-1,jj+m-1)=y
+!!            write(0,*) i,j,wKernel(i,j),Kernel(ii+l-1,jj+m-1)
+!!            read(5,*)
+!            enddo
+!         enddo
+!      enddo
+!   enddo
+
+   do i=1,nK  !loop over new Kernel
+      do j=1,nK
+         x1=dble(i)*dnover
+         x2=dble(j)*dnover
+         call splin2(x1a,x2a,wKernel,y2a,nKs,nKs,x1,x2,y)
+         Kernel(i,j)=y
       enddo
    enddo
+
 !  write the new oversampled Kernel
    call writefits(nK,nK,Kernel,filenames(k))
 enddo
@@ -91,35 +120,45 @@ use precision
 implicit none
 integer noversample,nrK
 character(80), dimension(nrK) :: filenames
+character(80) :: cfs
 !filenames of Kernels
 
-write(filenames(1),500) "Kernels",noversample,"/psf_0.50000_m1_dx0.52_dy0.16_LLNLCoated.fits"
-write(filenames(2),500) "Kernels",noversample,"/psf_0.60000_m1_dx0.11_dy0.08_LLNLCoated.fits"
-write(filenames(3),500) "Kernels",noversample,"/psf_0.70000_m1_dx0.93_dy0.88_LLNLCoated.fits"
-write(filenames(4),500) "Kernels",noversample,"/psf_0.80000_m1_dx0.21_dy0.61_LLNLCoated.fits"
-write(filenames(5),500) "Kernels",noversample,"/psf_0.90000_m1_dx0.10_dy0.84_LLNLCoated.fits"
-write(filenames(6),500) "Kernels",noversample,"/psf_1.00000_m1_dx0.24_dy0.27_LLNLCoated.fits"
-write(filenames(7),500) "Kernels",noversample,"/psf_1.10000_m1_dx0.87_dy0.53_LLNLCoated.fits"
-write(filenames(8),500) "Kernels",noversample,"/psf_1.20000_m1_dx0.12_dy0.79_LLNLCoated.fits"
-write(filenames(9),500) "Kernels",noversample,"/psf_1.30000_m1_dx0.49_dy0.63_LLNLCoated.fits"
-write(filenames(10),500) "Kernels",noversample,"/psf_1.40000_m1_dx0.78_dy0.53_LLNLCoated.fits"
-write(filenames(11),500) "Kernels",noversample,"/psf_1.50000_m1_dx0.44_dy0.38_LLNLCoated.fits"
-write(filenames(12),500) "Kernels",noversample,"/psf_1.60000_m1_dx0.48_dy0.99_LLNLCoated.fits"
-write(filenames(13),500) "Kernels",noversample,"/psf_1.70000_m1_dx0.17_dy0.56_LLNLCoated.fits"
-write(filenames(14),500) "Kernels",noversample,"/psf_1.80000_m1_dx0.77_dy0.23_LLNLCoated.fits"
-write(filenames(15),500) "Kernels",noversample,"/psf_1.90000_m1_dx0.43_dy0.08_LLNLCoated.fits"
-write(filenames(16),500) "Kernels",noversample,"/psf_2.00000_m1_dx0.00_dy0.00_LLNLCoated.fits"
-write(filenames(17),500) "Kernels",noversample,"/psf_2.10000_m1_dx0.69_dy0.32_LLNLCoated.fits"
-write(filenames(18),500) "Kernels",noversample,"/psf_2.20000_m1_dx0.69_dy0.38_LLNLCoated.fits"
-write(filenames(19),500) "Kernels",noversample,"/psf_2.30000_m1_dx0.49_dy0.58_LLNLCoated.fits"
-write(filenames(20),500) "Kernels",noversample,"/psf_2.40000_m1_dx0.16_dy0.97_LLNLCoated.fits"
-write(filenames(21),500) "Kernels",noversample,"/psf_2.50000_m1_dx0.77_dy0.26_LLNLCoated.fits"
-write(filenames(22),500) "Kernels",noversample,"/psf_2.60000_m1_dx0.30_dy0.38_LLNLCoated.fits"
-write(filenames(23),500) "Kernels",noversample,"/psf_2.70000_m1_dx0.76_dy0.36_LLNLCoated.fits"
-write(filenames(24),500) "Kernels",noversample,"/psf_2.80000_m1_dx0.11_dy0.44_LLNLCoated.fits"
-write(filenames(25),500) "Kernels",noversample,"/psf_2.90000_m1_dx0.36_dy0.52_LLNLCoated.fits"
-write(filenames(26),500) "Kernels",noversample,"/psf_3.00000_m1_dx0.60_dy0.50_LLNLCoated.fits"
-500 format(A7,I1,A45)
+if(noversample.lt.10)then
+   cfs='(A7,I1,A31)'
+else
+   cfs='(A7,I2,A31)'
+endif
+
+write(filenames(1),cfs) "Kernels",noversample,"/psf_500nm_x10_oversampled.fits"
+write(filenames(2),cfs) "Kernels",noversample,"/psf_600nm_x10_oversampled.fits"
+write(filenames(3),cfs) "Kernels",noversample,"/psf_700nm_x10_oversampled.fits"
+write(filenames(4),cfs) "Kernels",noversample,"/psf_800nm_x10_oversampled.fits"
+write(filenames(5),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits"
+write(filenames(6),cfs) "Kernels",noversample,"/psf_1000nm_x10_oversampled.fits"
+write(filenames(7),cfs) "Kernels",noversample,"/psf_1100nm_x10_oversampled.fits"
+write(filenames(8),cfs) "Kernels",noversample,"/psf_1200nm_x10_oversampled.fits"
+write(filenames(9),cfs) "Kernels",noversample,"/psf_1300nm_x10_oversampled.fits"
+write(filenames(10),cfs) "Kernels",noversample,"/psf_1400nm_x10_oversampled.fits"
+write(filenames(11),cfs) "Kernels",noversample,"/psf_1500nm_x10_oversampled.fits"
+write(filenames(12),cfs) "Kernels",noversample,"/psf_1600nm_x10_oversampled.fits"
+write(filenames(13),cfs) "Kernels",noversample,"/psf_1700nm_x10_oversampled.fits"
+write(filenames(14),cfs) "Kernels",noversample,"/psf_1800nm_x10_oversampled.fits"
+write(filenames(15),cfs) "Kernels",noversample,"/psf_1900nm_x10_oversampled.fits"
+write(filenames(16),cfs) "Kernels",noversample,"/psf_2000nm_x10_oversampled.fits"
+write(filenames(17),cfs) "Kernels",noversample,"/psf_2100nm_x10_oversampled.fits"
+write(filenames(18),cfs) "Kernels",noversample,"/psf_2200nm_x10_oversampled.fits"
+write(filenames(19),cfs) "Kernels",noversample,"/psf_2300nm_x10_oversampled.fits"
+write(filenames(20),cfs) "Kernels",noversample,"/psf_2400nm_x10_oversampled.fits"
+write(filenames(21),cfs) "Kernels",noversample,"/psf_2500nm_x10_oversampled.fits"
+write(filenames(22),cfs) "Kernels",noversample,"/psf_2600nm_x10_oversampled.fits"
+write(filenames(23),cfs) "Kernels",noversample,"/psf_2700nm_x10_oversampled.fits"
+write(filenames(24),cfs) "Kernels",noversample,"/psf_2800nm_x10_oversampled.fits"
+write(filenames(25),cfs) "Kernels",noversample,"/psf_2900nm_x10_oversampled.fits"
+write(filenames(26),cfs) "Kernels",noversample,"/psf_3000nm_x10_oversampled.fits"
+write(filenames(27),cfs) "Kernels",noversample,"/psf_3100nm_x10_oversampled.fits"
+write(filenames(28),cfs) "Kernels",noversample,"/psf_3200nm_x10_oversampled.fits"
+write(filenames(29),cfs) "Kernels",noversample,"/psf_3300nm_x10_oversampled.fits"
+write(filenames(30),cfs) "Kernels",noversample,"/psf_3400nm_x10_oversampled.fits"
 
 return
 end

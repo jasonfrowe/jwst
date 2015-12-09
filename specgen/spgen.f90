@@ -57,6 +57,7 @@ if(iargc().lt.1)then
    stop
 endif
 
+!Can probably reduce x-out size to 512.
 xout=2048
 yout=2048
 noversample=4 !should make this a commandline-parameter
