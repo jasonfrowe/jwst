@@ -73,7 +73,7 @@ nkeysmax=700
 nxmax=2048
 nymax=2048
 allocate(Image(nxmax,nymax),stat=status)
-if(status) then
+if(status.gt.0) then !fix for gfortran
    write(0,*) "Allocation of Image array failed.."
    write(0,*) "Status: ",status
    stop

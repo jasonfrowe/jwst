@@ -52,7 +52,7 @@ allocate(a(npt),p(npt))
 k=0
 do i=nr(1),nr(2),5
    do j=nr(3),nr(4),5
-      if((parray(i,j).lt.bpix).and.(abs(parray(i,j).lt.50.0)))then
+      if((parray(i,j).lt.bpix).and.(abs(parray(i,j)).lt.50.0))then
          k=k+1
          a(k)=parray(i,j)
 !         write(0,*) k,a(k)
