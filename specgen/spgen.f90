@@ -195,7 +195,8 @@ do ntrace=1,ntracemax !loop over all traces
                      call splint(ld,res3,yres3,nres,awmod,respond)
                end select
             endif
-            fmodres=fmod(i)*respond !flux to add to pixel
+            !the max statement makes sure we don't add negative flux.
+            fmodres=fmod(i)*max(respond,0.0d0) !flux to add to pixel
             call addflux2pix(px,py,xmax,ymax,wpixels,fmodres)
 
 !           j=j+1 !for counting number of wavelength samples
