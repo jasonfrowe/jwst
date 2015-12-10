@@ -41,7 +41,7 @@ allocate(Kernel(nK,nK))
 do i=1,xmax
 
 !  This part is where we generate the wavelength specific Kernel
-   if(mod(i,1).eq.0)then !only need to update Kernel every 10th pixel
+   if(mod(i,1).eq.0)then !only need to update Kernel every pixel
       Kernel=0.0d0
       p=dble(i)
       wl=p2w(p,noversample,ntrace)/10000.0d0 !A -> um

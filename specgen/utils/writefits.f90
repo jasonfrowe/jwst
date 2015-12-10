@@ -21,7 +21,13 @@ call ftgiou(funit,status)
 !Create the new empty FITS file.  The blocksize parameter is a
 !historical artifact and the value is ignored by FITSIO.
 blocksize=1
+status=0
 call ftinit(funit,fileout,blocksize,status)
+if(status.ne.0)then
+   write(0,*) "Status: ",status
+   write(0,*) "Critial Error open FITS for writing"
+   write(0,'(A80)') fileout
+endif
 
 !Initialize parameters about the FITS image.
 !BITPIX = 16 means that the image pixels will consist of 16-bit

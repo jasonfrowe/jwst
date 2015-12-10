@@ -127,11 +127,11 @@ else
    cfs='(A7,I2,A32)'
 endif
 
-write(filenames(1),cfs) "Kernels",noversample,"/psf_500nm_x10_oversampled.fits"
-write(filenames(2),cfs) "Kernels",noversample,"/psf_600nm_x10_oversampled.fits"
-write(filenames(3),cfs) "Kernels",noversample,"/psf_700nm_x10_oversampled.fits"
-write(filenames(4),cfs) "Kernels",noversample,"/psf_800nm_x10_oversampled.fits"
-write(filenames(5),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits"
+write(filenames(1),cfs) "Kernels",noversample,"/psf_500nm_x10_oversampled.fits "
+write(filenames(2),cfs) "Kernels",noversample,"/psf_600nm_x10_oversampled.fits "
+write(filenames(3),cfs) "Kernels",noversample,"/psf_700nm_x10_oversampled.fits "
+write(filenames(4),cfs) "Kernels",noversample,"/psf_800nm_x10_oversampled.fits "
+write(filenames(5),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits "
 write(filenames(6),cfs) "Kernels",noversample,"/psf_1000nm_x10_oversampled.fits"
 write(filenames(7),cfs) "Kernels",noversample,"/psf_1100nm_x10_oversampled.fits"
 write(filenames(8),cfs) "Kernels",noversample,"/psf_1200nm_x10_oversampled.fits"

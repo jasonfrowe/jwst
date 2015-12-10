@@ -58,7 +58,7 @@ if(iargc().lt.2)then
    stop
 endif
 
-xout=2048
+xout=2048  !dimensions for output image.
 yout=512
 
 noversample=1 !now a commandline-parameter
@@ -147,7 +147,7 @@ fmod=fmodbin
 deallocate(wv,fmodbin) !get rid of work arrays
 
 !lets fill in pixel values
-xmax=xout*noversample !size of detector array.
+xmax=xout*noversample !size of over sampled detector array.
 ymax=yout*noversample
 !array to hold detector array values
 allocate(pixels(xmax,ymax),wpixels(xmax,ymax))
@@ -185,6 +185,7 @@ do ntrace=1,ntracemax !loop over all traces
             if((awmod.lt.500.0).or.(awmod.gt.5500.0))then
                respond=0.0d0
             else
+            ! cubic interpolation of response along traces
                select case(ntrace)
                   case(1)
                      call splint(ld,res1,yres1,nres,awmod,respond)

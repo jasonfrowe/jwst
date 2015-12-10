@@ -1,6 +1,6 @@
 subroutine readresponse
 use precision
-use response
+use response !this module returns the trace via pointers
 implicit none
 integer :: fstatus,unitfits,blocksize,readwrite,nhuds,hud,hudtype,nkeys,&
    nrecmax,i,j,nrows,ncols,datacode,width
@@ -62,28 +62,28 @@ do hud=1,nhuds
 !            write(6,*) "cc:",i,datacode,irepeat,width,fstatus
 
             select case(i)
-               case(1)
+               case(1) !read wavelength
                   allocate(lambda(irepeat)) !allocate array space
                   !now we readin the table values for this entry
                   call ftgcvd(unitfits,i,1,1,irepeat," ",lambda,anyf,fstatus)
                   if(fstatus.ne.0)then !check for errors
                      write(0,*) "Error Table Lambda Read: ",fstatus
                   endif
-               case(23)
+               case(23) !read n=1 response
                   allocate(respondo1(irepeat)) !allocate array space
                   !now we readin the table values for this entry
                   call ftgcvd(unitfits,i,1,1,irepeat," ",respondo1,anyf,fstatus)
                   if(fstatus.ne.0)then !check for errors
                      write(0,*) "Error Table Order1 Read: ",fstatus
                   endif
-               case(24)
+               case(24) !read n=2 response
                   allocate(respondo2(irepeat)) !allocate array space
                   !now we readin the table values for this entry
                   call ftgcvd(unitfits,i,1,1,irepeat," ",respondo2,anyf,fstatus)
                   if(fstatus.ne.0)then !check for errors
                      write(0,*) "Error Table Order2 Read: ",fstatus
                   endif
-               case(25)
+               case(25) !read n=3 response
                   allocate(respondo3(irepeat)) !allocate array space
                   !now we readin the table values for this entry
                   call ftgcvd(unitfits,i,1,1,irepeat," ",respondo3,anyf,fstatus)
@@ -101,7 +101,7 @@ enddo
 !write(0,*) "All good..",fstatus
 !read(5,*)
 
-!update pointers
+!update pointers to return values
 nres=>irepeat   !number of measurements
 ld=>lambda      !wavelength (nm)
 res1=>respondo1 !response for first order
