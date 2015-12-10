@@ -58,8 +58,8 @@ if(iargc().lt.2)then
    stop
 endif
 
-xout=512
-yout=2048
+xout=2048
+yout=512
 
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline

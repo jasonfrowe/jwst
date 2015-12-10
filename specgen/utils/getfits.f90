@@ -20,6 +20,13 @@ call ftgiou(unitfits,status)
 readwrite=0
 ! open this fits file
 call ftopen(unitfits,Refname,readwrite,dumi,status)
+if(status.ne.0)then
+   write(0,*) "Status: ",status
+   write(0,*) "Cannot open "
+   write(0,'(A80)') Refname
+   stop
+endif
+
 
 nkeys=0
 ! get number of headers in image

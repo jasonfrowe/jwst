@@ -25,20 +25,20 @@ end interface
 bpix=1000000.0 !marking bad pixels
 
 if(noversample.lt.10)then
-   cfs='(A7,I1,A31)'
+   cfs='(A7,I1,A32)'
 else
-   cfs='(A7,I2,A31)'
+   cfs='(A7,I2,A32)'
 endif
 
 !filenames of Kernels
 allocate(filenames(nrK))
-write(filenames(1),cfs) "Kernels",noversample,"/psf_500nm_x10_oversampled.fits"
-write(filenames(2),cfs) "Kernels",noversample,"/psf_600nm_x10_oversampled.fits"
-write(filenames(3),cfs) "Kernels",noversample,"/psf_700nm_x10_oversampled.fits"
-write(filenames(4),cfs) "Kernels",noversample,"/psf_800nm_x10_oversampled.fits"
-write(filenames(5),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits"
+write(filenames(1),cfs) "Kernels",noversample,"/psf_500nm_x10_oversampled.fits "
+write(filenames(2),cfs) "Kernels",noversample,"/psf_600nm_x10_oversampled.fits "
+write(filenames(3),cfs) "Kernels",noversample,"/psf_700nm_x10_oversampled.fits "
+write(filenames(4),cfs) "Kernels",noversample,"/psf_800nm_x10_oversampled.fits "
+write(filenames(5),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits "
 !1000nm is missing so just read in 900 twice.
-write(filenames(6),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits"
+write(filenames(6),cfs) "Kernels",noversample,"/psf_900nm_x10_oversampled.fits "
 write(filenames(7),cfs) "Kernels",noversample,"/psf_1100nm_x10_oversampled.fits"
 write(filenames(8),cfs) "Kernels",noversample,"/psf_1200nm_x10_oversampled.fits"
 write(filenames(9),cfs) "Kernels",noversample,"/psf_1300nm_x10_oversampled.fits"

@@ -60,9 +60,6 @@ allocate(wKernel(nKs,nKs))
 nK=nKs*noversample/nnative
 allocate(Kernel(nK,nK))
 
-!write(0,*) "nK: ",nk
-!read(5,*)
-
 
 !set up arrays for spline calculations
 allocate(x1a(nKs),x2a(nKs)) !allocate array for spline X,Y co-ordinates
@@ -103,6 +100,7 @@ do k=1,nrK
          x1=dble(i)*dnover
          x2=dble(j)*dnover
          call splin2(x1a,x2a,wKernel,y2a,nKs,nKs,x1,x2,y)
+!         write(0,*) i,j,x1,x2,y
          Kernel(i,j)=y
       enddo
    enddo
@@ -124,9 +122,9 @@ character(80) :: cfs
 !filenames of Kernels
 
 if(noversample.lt.10)then
-   cfs='(A7,I1,A31)'
+   cfs='(A7,I1,A32)'
 else
-   cfs='(A7,I2,A31)'
+   cfs='(A7,I2,A32)'
 endif
 
 write(filenames(1),cfs) "Kernels",noversample,"/psf_500nm_x10_oversampled.fits"
