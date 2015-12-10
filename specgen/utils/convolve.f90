@@ -5,7 +5,7 @@ subroutine convolve(xmax,ymax,pixels,nrK,nKs,rKernel,noversample,       &
 use precision
 implicit none
 integer :: xmax,ymax,nK,i,j,l,m,nKd2,ii,jj,ii1,ii2,jj1,jj2,nrK,nKs,     &
-   noversample,Ks,ntrace
+   noversample,ntrace
 integer, dimension(2) :: ybounds
 real(double) :: mSum,p2w,wl,p
 real(double), dimension(xmax,ymax) :: pixels,cpixels
@@ -25,38 +25,30 @@ end interface
 
 !write(0,*) "Convolution begins"
 
-Ks=50*noversample !this stub allows for a smaller piece of the Kernel to be used
-
 !adjust ybounds for Kernel width for convolution speed up
-nKd2=Ks/2 !half size of kernel
+nKd2=nKs/2 !half size of kernel
 ybounds(1)=max(1,ybounds(1)-nKd2)
 ybounds(2)=min(ymax,ybounds(2)+nKd2)
 write(0,*) 'ybounds: ',ybounds(1),ybounds(2)
 
 cpixels=0.0d0 !initialize convoluted image to zero
-allocate(subIm(Ks,Ks),subIm2(Ks,Ks)) !sub-Image stamps for multiplication
+allocate(subIm(nKs,nKs),subIm2(nKs,nKs)) !sub-Image stamps for multiplication
+
+nK=nKs !Kernel should already match image scale
+if(allocated(Kernel)) deallocate(Kernel)
+allocate(Kernel(nK,nK))
 
 do i=1,xmax
 
 !  This part is where we generate the wavelength specific Kernel
    if(mod(i,1).eq.0)then !only need to update Kernel every 10th pixel
-      nK=nKs !native Kernel should already match image scale
-      if(allocated(Kernel)) deallocate(Kernel)
-      allocate(Kernel(nK,nK))
       Kernel=0.0d0
       p=dble(i)
       wl=p2w(p,noversample,ntrace)/10000.0d0 !A -> um
 !      write(0,*) "new Kernel wl: ",wl
+      !get a wavelength specific Kernel
       call genkernel(nrK,nKs,rKernel,Kernel,wl)
-      allocate(wKernel(Ks,Ks))
-      wKernel=Kernel(nK/2-Ks/2:nK/2-Ks/2+Ks,nK/2-Ks/2:nK/2-Ks/2+Ks)
-!      write(0,*) "Ksize: ",size(wKernel,1),size(wKernel,2)
-      deallocate(Kernel)
-      allocate(Kernel(Ks,Ks))
-      nK=Ks
-      Kernel=wKernel
-      deallocate(wKernel)
-      mSum=Sum(Kernel)
+      mSum=Sum(Kernel)  !make sure Kernel is normalized
       Kernel=Kernel/mSum
    endif
 

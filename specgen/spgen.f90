@@ -58,8 +58,7 @@ if(iargc().lt.2)then
    stop
 endif
 
-!Can probably reduce x-out size to 512.
-xout=2048
+xout=512
 yout=2048
 
 noversample=1 !now a commandline-parameter
@@ -92,7 +91,6 @@ call spline(ld,res2,nres,1.d30,1.d30,yres2)
 call spline(ld,res3,nres,1.d30,1.d30,yres3)
 
 !read in a model spectrum
-!modelfile="bt-settl/lte032-5.0-0.0a+0.0.BT-Settl.spec.7"
 call getarg(1,modelfile)
 nunit=11 !unit number for data spectrum
 open(unit=nunit,file=modelfile,iostat=filestatus,status='old')
@@ -128,7 +126,7 @@ enddo
 close(nunit) !close file.
 !write(0,*) "nmodel: ",nmodel  !report number of data points read.
 
-npt=200000
+npt=200000 !this sets the number of spectral points when resampled
 allocate(wv(npt),fmodbin(npt))
 !resample model spectra on a uniform grid from 1000-30000 A
 dnpt=dble(npt)

@@ -4,21 +4,22 @@ subroutine genkernel(nrK,nKs,rKernel,Kernel,wl)
 use precision
 implicit none
 integer nrK,nKs,nK,nk1,nk2,i,j,noversample,ii,jj,l,m,n,Ks
-real(double) :: wl,wls,wle,rwln,wdif,mSum,dnover,x1,x2,y
+real(double) :: wl,wls,wle,rwln,wdif,mSum,dnover,x1,x2,y,dwl
 real(double), dimension(:,:,:) :: rKernel
 real(double), dimension(:,:) :: Kernel
 
 !write(0,*) "wl:",wl
 
 wls=0.5d0 !starting wavelength of Kernels
-wle=3.0d0 !ending wavelengths of Kernels
+wle=3.4d0 !ending wavelengths of Kernels
+dwl=0.1d0 !wavelength intervals
 
 if(wl.le.wls)then
    Kernel=rKernel(1,:,:) !case for when wavelength is too short
 elseif(wl.ge.wle)then
    Kernel=rKernel(nrK,:,:) !case for when wavelength is too long
 else
-   rwln=(wl-0.5d0)/0.1d0  !starts at 0.5 um then increases in 0.1 increments
+   rwln=(wl-wls)/dwl+1.0d0  !starts at 0.5 um then increases in 0.1 increments
 !   write(0,*) wl,rwln
    nk1=int(rwln) !indices of the closest two Kernels
    nk2=nk1+1
