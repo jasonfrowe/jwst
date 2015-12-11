@@ -7,17 +7,17 @@ implicit none
 integer :: xmax,ymax,nK,i,j,l,m,nKd2,ii,jj,ii1,ii2,jj1,jj2,nrK,nKs,     &
    noversample,ntrace
 integer, dimension(2) :: ybounds
-real(double) :: mSum,p2w,wl,p
+real(double) :: mSum,p2w,wl,p,wls,wle,dwl
 real(double), dimension(xmax,ymax) :: pixels,cpixels
 real(double), allocatable, dimension(:,:) :: subIm,subIm2,Kernel,wKernel
 real(double), dimension(nrK,nKs,nKs) :: rKernel
 character(80) :: line
 
 interface
-   subroutine genkernel(nrK,nKs,rKernel,Kernel,wl)
+   subroutine genkernel(nrK,nKs,rKernel,Kernel,wl,wls,wle,dwl)
       use precision
       integer, intent(inout) :: nrK,nKs
-      real(double), intent(inout) :: wl
+      real(double), intent(inout) :: wl,wls,wle,dwl
       real(double), dimension(:,:),intent(inout) :: Kernel
       real(double), dimension(:,:,:), intent(inout) :: rKernel
    end subroutine
@@ -34,6 +34,9 @@ write(0,*) 'ybounds: ',ybounds(1),ybounds(2)
 cpixels=0.0d0 !initialize convoluted image to zero
 allocate(subIm(nKs,nKs),subIm2(nKs,nKs)) !sub-Image stamps for multiplication
 
+wls=0.5d0 !starting wavelength of Kernels
+wle=3.4d0 !ending wavelengths of Kernels
+dwl=0.1d0 !wavelength intervals
 nK=nKs !Kernel should already match image scale
 if(allocated(Kernel)) deallocate(Kernel)
 allocate(Kernel(nK,nK))
@@ -47,7 +50,7 @@ do i=1,xmax
       wl=p2w(p,noversample,ntrace)/10000.0d0 !A -> um
 !      write(0,*) "new Kernel wl: ",wl
       !get a wavelength specific Kernel
-      call genkernel(nrK,nKs,rKernel,Kernel,wl)
+      call genkernel(nrK,nKs,rKernel,Kernel,wl,wls,wle,dwl)
       mSum=Sum(Kernel)  !make sure Kernel is normalized
       Kernel=Kernel/mSum
    endif

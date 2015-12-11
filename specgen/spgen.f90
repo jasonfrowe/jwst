@@ -208,7 +208,9 @@ do ntrace=1,ntracemax !loop over all traces
    !Now we convolve the narrow spectra with the PSF kernel
    write(0,*) minval(wpixels),maxval(wpixels)
    wcpixels=0.0d0
-   call convolve(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels,&
+!   call convolve(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels,&
+!      ybounds,ntrace)
+   call convolveft(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels, &
       ybounds,ntrace)
    write(0,*) minval(wcpixels),maxval(wcpixels)
 

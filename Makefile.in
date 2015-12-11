@@ -4,6 +4,7 @@ LFLAGS = @LFLAGS@
 XFLAGS = @XFLAGS@
 PFLAGS = @PGPLOTLIB@
 CFLAGS = @CFITSIOLIB@
+FFTFLAGS = @FFTLIB@
 FFLAGS = -O3
 BIN = ./bin/
 UTILS = utils/
@@ -22,9 +23,9 @@ calcldco: $(calcldcosrc)calcldco.f90 $(calcldcoincl)
 
 
 spgensrc = specgen/
-spgenincl = $(spgensrc)precision.o $(spgensrc)response.o $(spgensrc)readmodel.o $(spgensrc)writefits.o $(spgensrc)deletefile.o $(spgensrc)binmodel.o $(spgensrc)rqsort.o $(spgensrc)addflux2pix.o $(spgensrc)readkernels.o $(spgensrc)getfits.o $(spgensrc)genkernel.o $(spgensrc)spline.o $(spgensrc)convolve.o $(spgensrc)ovrwrt.o $(spgensrc)readresponse.o $(spgensrc)readheader.o
+spgenincl = $(spgensrc)precision.o $(spgensrc)response.o $(spgensrc)readmodel.o $(spgensrc)writefits.o $(spgensrc)deletefile.o $(spgensrc)binmodel.o $(spgensrc)rqsort.o $(spgensrc)addflux2pix.o $(spgensrc)readkernels.o $(spgensrc)getfits.o $(spgensrc)genkernel.o $(spgensrc)spline.o $(spgensrc)convolveft.o $(spgensrc)ovrwrt.o $(spgensrc)readresponse.o $(spgensrc)readheader.o
 spgen: $(spgensrc)spgen.f90 $(spgenincl)
-	$(F90) $(FFLAGS) -o $(BIN)$@ $(spgensrc)spgen.f90 $(spgenincl) $(LFLAGS) $(CFLAGS)
+	$(F90) $(FFLAGS) -o $(BIN)$@ $(spgensrc)spgen.f90 $(spgenincl) $(LFLAGS) $(CFLAGS) $(FFTFLAGS)
 
 genoskernelincl = $(spgensrc)precision.o $(spgensrc)readkernels.o $(spgensrc)getfits.o $(spgensrc)spline.o $(spgensrc)writefits.o $(spgensrc)deletefile.o
 genoskernel: $(spgensrc)genoskernel.f90 $(genoskernelincl)
@@ -88,6 +89,8 @@ $(spgensrc)spline.o: $(spgensrc)$(UTILS)spline.f
 	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)spline.f
 $(spgensrc)convolve.o: $(spgensrc)$(UTILS)convolve.f90
 	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)convolve.f90
+$(spgensrc)convolveft.o: $(spgensrc)$(UTILS)convolveft.f90
+	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)convolveft.f90
 $(spgensrc)ovrwrt.o: $(spgensrc)$(UTILS)ovrwrt.f
 	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)ovrwrt.f
 	

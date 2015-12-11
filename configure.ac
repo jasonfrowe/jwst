@@ -22,6 +22,8 @@ AC_CHECK_LIB([png],     [png_error], [PGPLOTLIB="-lpng $PGPLOTLIB"],
 #AC_MSG_NOTICE([$LDFLAGS])
 AC_MSG_NOTICE([  -- CFITSIO -- ])
 AC_CHECK_LIB([cfitsio], [ffopen],[CFITSIOLIB="-lcfitsio"],[AC_MSG_ERROR([CFITSIO NOT FOUND])],)
+AC_MSG_NOTICE([  -- FFTW3 -- ])
+AC_CHECK_LIB(fftw3, fftw_execute_dft,[FFTLIB="-lfftw3"], [AC_MSG_ERROR(could not find fftw3 library)], -lm)
 AC_PATH_X
 LFLAGS="$LDFLAGS -L$ac_x_libraries"
 XFLAGS="-lX11"
@@ -30,5 +32,6 @@ AC_SUBST(LFLAGS)
 AC_SUBST(XFLAGS)
 AC_SUBST(PGPLOTLIB)
 AC_SUBST(CFITSIOLIB)
+AC_SUBST(FFTLIB)
 AC_CONFIG_FILES([Makefile]) ## Create Makefile
 AC_OUTPUT

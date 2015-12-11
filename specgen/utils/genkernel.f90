@@ -1,6 +1,6 @@
-subroutine genkernel(nrK,nKs,rKernel,Kernel,wl)
+subroutine genkernel(nrK,nKs,rKernel,Kernel,wl,wls,wle,dwl)
 !get a Kernel given a wavelength
-!wl = wavelength.
+!wl = wavelength in um
 use precision
 implicit none
 integer nrK,nKs,nK,nk1,nk2,i,j,noversample,ii,jj,l,m,n,Ks
@@ -9,10 +9,6 @@ real(double), dimension(:,:,:) :: rKernel
 real(double), dimension(:,:) :: Kernel
 
 !write(0,*) "wl:",wl
-
-wls=0.5d0 !starting wavelength of Kernels
-wle=3.4d0 !ending wavelengths of Kernels
-dwl=0.1d0 !wavelength intervals
 
 if(wl.le.wls)then
    Kernel=rKernel(1,:,:) !case for when wavelength is too short
