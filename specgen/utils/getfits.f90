@@ -38,6 +38,12 @@ do i=1,nkeys
 enddo
 
 call ftgknj(unitfits,'NAXIS',1,2,naxes,nfound,status)
+if((naxes(1).gt.size(ref(:,1))).or.(naxes(2).gt.size(ref(1,:))))then
+   write(0,*) "inadequate space for FITS."
+   write(0,*) "Needed: ", naxes(1),naxes(2)
+   write(0,*) "Available: ", size(ref(:,1)),size(ref(1,:))
+   stop
+endif
 !write(0,*) naxes(1),naxes(2)
 
 !Check that it found both NAXIS1 and NAXIS2 keywords.

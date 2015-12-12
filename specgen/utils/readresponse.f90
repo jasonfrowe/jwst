@@ -27,10 +27,10 @@ readwrite=0 !0-readonly, 1=read/write
 !open the FITS file
 call ftopen(unitfits,filename,readwrite,blocksize,fstatus)
 !get the number of the extensions (huds) in the image
-if(status.ne.0)then
-   write(0,*) "Status: ",status
+if(fstatus.ne.0)then
+   write(0,*) "Status: ",fstatus
    write(0,*) "Cannot open "
-   write(0,'(A80)') Refname
+   write(0,'(A80)') filename
    stop
 endif
 call ftthdu(unitfits,nhuds,fstatus)

@@ -49,6 +49,7 @@ planA=fftw_plan_dft_r2c_2d(YF,XF,A,AC,FFTW_ESTIMATE)
 call fftw_execute_dft_r2c(planA,A,AC)
 call fftw_destroy_plan(planA)
 
+!We can precompute plans..
 planB=fftw_plan_dft_r2c_2d(YF,XF,B,BC,FFTW_ESTIMATE)
 planC=fftw_plan_dft_c2r_2d(YF,XF,CC,C,FFTW_ESTIMATE)
 
@@ -63,9 +64,12 @@ do while(wl.lt.wle)
 !   Kernel=transpose(Kernel)
    B=0.0d0
    C=0.0d0
-!B(1:nKs/2,1:nKs/2)=Kernel(nKs/2:nKs,nKs/2:nKs) !assign Kernel to zero-padded B
-!B(nKs/2:nKs,nKs/2:nKs)=Kernel(1:nKs/2,1:nKs/2)
-   B(1:nKs,1:nKs)=Kernel(1:nKs,1:nKs)
+!  Kernel should be centered around 0,0 on B
+   B(1:nKs/2      ,1:nKs/2)      =Kernel(nKs/2:nKs,nKs/2:nKs)
+   B(XF-nKs/2+1:XF,YF-nKs/2+1:YF)=Kernel(1:nKs/2  ,1:nKs/2)
+   B(XF-nKs/2+1:XF,1:nKs/2)      =Kernel(1:nKs/2  ,nKs/2:nKs)
+   B(1:nKs/2,      YF-nKs/2+1:YF)=Kernel(nKs/2:nKs,1:nKs/2)
+
 !   write(0,*) "Computing FFTs"
 !   planB=fftw_plan_dft_r2c_2d(YF,XF,B,BC,FFTW_ESTIMATE)
    call fftw_execute_dft_r2c(planB,B,BC)
@@ -79,12 +83,17 @@ do while(wl.lt.wle)
    do i=1,xmax
       p=dble(i)
       wlp=p2w(p,noversample,ntrace)/10000.0d0
-      if(abs(wlp-wl).gt.dwl)then
-         cpixels(i,1:ymax)=cpixels(i,1:ymax)+0.0d0
-      else
-         fac=1.0d0-abs(wlp-wl)/dwl
-         cpixels(i,1:ymax)=cpixels(i,1:ymax)+C(i,1:ymax)/dble(xmax*ymax)*fac
-      endif
+!      if(abs(wlp-wl).gt.dwl)then
+!         if((wlp.ge.wle).or.(wlp.lt.wls))then
+!            fac=1.0
+!         else
+!            fac=0.0
+!         endif
+!      else
+!         fac=1.0d0-abs(wlp-wl)/dwl
+!      endif
+      fac=max(0.0,1.0d0-abs(wlp-wl)/dwl)
+      cpixels(i,1:ymax)=cpixels(i,1:ymax)+C(i,1:ymax)/dble(xmax*ymax)*fac
    enddo
    wl=wl+dwl
 enddo
