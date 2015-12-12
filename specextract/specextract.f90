@@ -71,7 +71,7 @@ call getarg(1,Imagename)
 bpix=1.0e30  !mark bad pixels
 nkeysmax=700
 nxmax=2048
-nymax=2048
+nymax=512
 allocate(Image(nxmax,nymax),stat=status)
 if(status.gt.0) then !fix for gfortran
    write(0,*) "Allocation of Image array failed.."
@@ -81,15 +81,7 @@ endif
 allocate(header(nkeysmax))
 Image=bpix !initialize Image array with bad-pixels
 call getfits(Imagename,naxes,Image,Rmin,Rmax,nkeys,header,bpix)
-!we really only need 2048x512 of the image.
-allocate(tImage(nxmax,512))
-tImage=Image(1:nxmax,1:512)
-deallocate(Image)
-nymax=512
-naxes(2)=nymax
-allocate(Image(nxmax,nymax))
-Image=tImage
-deallocate(tImage)
+
 do i=1,naxes(1)
    do j=1,naxes(2)
       Image(i,j)=max(-0.0d0,Image(i,j))
@@ -101,7 +93,7 @@ enddo
 
 !display fits file
 call pgopen('?')
-call PGPAP (10.0 ,1.0) !use a square 8" across
+call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()
 tavg=0.0 !displays a time on the image

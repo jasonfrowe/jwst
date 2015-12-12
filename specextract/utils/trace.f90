@@ -28,15 +28,15 @@ interface
    end subroutine getfits
 end interface
 
-ncut=25          !width of spectrum to zero out
+ncut=35          !width of spectrum to zero out
 bcut=1000.0d0    !threshold for finding a trace
-ncutpsf=50        !width of PSF to fit
+ncutpsf=25       !width of PSF to fit - must be less than nKsize/2
 
 !read in a Kernel to be used as a guess for the PSF
-kfile="Kernels1/psf_2.10000_m1_dx0.69_dy0.32_LLNLCoated.fits"
+kfile="Kernels1/psf_2100nm_x10_oversampled.fits"
 nkeysmax=800 !maximum number of lines in the header we will accept.
 allocate(header(nkeysmax)) !allocate space for header (we really don't need it)
-nKsize=256  !size of Kernel for import (note.. this gets resized)
+nKsize=64  !size of Kernel for import (note.. this gets resized)
 allocate(Kernel(nKsize,nKsize))  !allocate space for Kernel
 call getfits(kfile,knaxes,Kernel,Kmin,Kmax,nkeys,header,bpix) !read in FITS
 write(0,*) "knaxes: ",knaxes

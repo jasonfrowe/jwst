@@ -20,6 +20,12 @@ call ftgiou(unitfits,status)
 readwrite=0
 ! open this fits file
 call ftopen(unitfits,Refname,readwrite,dumi,status)
+if(status.ne.0)then
+   write(0,*) "Status: ",status
+   write(0,*) "Cannot open "
+   write(0,'(A80)') Refname
+   stop
+endif
 
 nkeys=0
 ! get number of headers in image
@@ -31,7 +37,7 @@ do i=1,nkeys
 enddo
 
 call ftgknj(unitfits,'NAXIS',1,2,naxes,nfound,status)
-if((naxes(1).gt.size(ref(:,1))).or.(naxes(1).gt.size(ref(1,:))))then
+if((naxes(1).gt.size(ref(:,1))).or.(naxes(2).gt.size(ref(1,:))))then
    write(0,*) "inadequate space for FITS."
    write(0,*) "Needed: ", naxes(1),naxes(2)
    write(0,*) "Available: ", size(ref(:,1)),size(ref(1,:))
