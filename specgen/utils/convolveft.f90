@@ -83,6 +83,11 @@ do while(wl.lt.wle)
    do i=1,xmax
       p=dble(i)
       wlp=p2w(p,noversample,ntrace)/10000.0d0
+
+      !This part of the code does the linear interpolation.  There is
+      !probably a problem at the edges for parts of the spectrum
+      !beyond wls and wle which should have fac=1 rather than decaying
+
 !      if(abs(wlp-wl).gt.dwl)then
 !         if((wlp.ge.wle).or.(wlp.lt.wls))then
 !            fac=1.0

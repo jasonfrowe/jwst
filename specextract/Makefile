@@ -35,12 +35,14 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract
 
-specextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o
+specextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o
 specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
 
+heatlut.o: $(UTILS)heatlut.f90
+	$(F90) $(FFLAGS) $(UTILS)heatlut.f90
 apflux.o: $(UTILS)apflux.f90
 	$(F90) $(FFLAGS) $(UTILS)apflux.f90
 trace.o: $(UTILS)trace.f90

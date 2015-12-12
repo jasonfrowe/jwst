@@ -12,7 +12,7 @@ UTILS = utils/
 all: specextract calcldco spgen genoskernel
 
 specextractsrc = specextract/
-specextractincl = $(specextractsrc)precision.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o
+specextractincl = $(specextractsrc)precision.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o $(specextractsrc)heatlut.o
 specextract: $(specextractsrc)specextract.f90 $(specextractincl)
 	$(F90) $(FFLAGS) -o $(BIN)$@ $(specextractsrc)specextract.f90 $(specextractincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS)
 	
@@ -37,6 +37,10 @@ genoskernel: $(spgensrc)genoskernel.f90 $(genoskernelincl)
 #%.o: $(src)$(UTILS)%.f
 #	$(F90) -c $(FFLAGS) $< -o $@
 
+#Libs for SPECEXTRACT
+
+$(specextractsrc)heatlut: $(specextractsrc)$(UTILS)heatlut.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)heatlut.f90
 $(specextractsrc)apflux.o: $(specextractsrc)$(UTILS)apflux.f90
 	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)apflux.f90 
 $(specextractsrc)trace.o: $(specextractsrc)$(UTILS)trace.f90

@@ -140,14 +140,20 @@ call pgbox("BCNTS1",0.0,0,"BCNTS1",0.0,0)
 call pglabel("X (pixels)","Y (pixels)","")
 call pgsci(1)
 
+
 !open(unit=31,file="/iraf/iraf/unix/sun/heat.lut",status='old')
-open(unit=31,file="heat.lut",status='old')
-read(31,*) dumi
+!open(unit=31,file="heat.lut",status='old')
+!read(31,*) dumi
 do i=1,ncol
-   read(31,*) r,g,b
-   read(31,*) dumr,dumr,dumr
-   read(31,*) dumr,dumr,dumr
-   read(31,*) dumr,dumr,dumr
+!   read(31,*) r,g,b
+!   read(31,*) dumr,dumr,dumr
+!   read(31,*) dumr,dumr,dumr
+!   read(31,*) dumr,dumr,dumr
+   call heatlut(i*4-3,r,g,b)
+   call heatlut(i*4-2,r,g,b)
+   call heatlut(i*4-1,r,g,b)
+   call heatlut(i*4  ,r,g,b)
+
    CALL PGSCR(I+15, R, G, B)
 !   CALL PGSCR(I+15, sqrt(R), sqrt(G), sqrt(B))
 !   CALL PGSCR(I+15, log10(R*9.0+1.0), log10(G*9.0+1.0), log10(B*9.0+1.0))
@@ -156,7 +162,7 @@ do i=1,ncol
 !   B = 0.2 + 0.4*REAL(NCOL-I)/REAL(NCOL)
 !   CALL PGSCR(ncol-I+16, R, G, B)
 enddo
-close(31)
+!close(31)
 
 !do i=1,ncol
 !   Red = REAL(I-1)/REAL(NCOL-1)*0.8 + 0.2
