@@ -128,10 +128,10 @@ close(nunit) !close file.
 
 npt=200000 !this sets the number of spectral points when resampled
 allocate(wv(npt),fmodbin(npt))
-!resample model spectra on a uniform grid from 1000-30000 A
+!resample model spectra on a uniform grid from 1000-40000 A
 dnpt=dble(npt)
 do i=1,npt
-   wv(i)=1000.0+(30000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
+   wv(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
 !   write(0,*) i,wv(i)
 enddo
 !read(5,*)

@@ -106,6 +106,7 @@ do k=1,nrK
    enddo
 
 !  write the new oversampled Kernel
+   Kernel=transpose(Kernel) !need to flip Kernel
    call writefits(nK,nK,Kernel,filenames(k))
 enddo
 
