@@ -16,7 +16,7 @@ real(double), allocatable, dimension(:,:) :: Kernel,A,B,C
 character(80) :: line
 
 !FFTW3 vars
-type(C_PTR) :: plan
+type(C_PTR) :: planA,planB,planC
 integer ( kind = 4 ) :: nh
 complex(C_DOUBLE_COMPLEX), allocatable, dimension(:,:) :: AC,BC,CC
 
@@ -42,6 +42,16 @@ allocate(A(XF,YF),B(XF,YF),C(XF,YF)) !arrays to apply FFT
 nh=(XF/2)+1 !size for complex array
 allocate(AC(nh,YF),BC(nh,YF),CC(nh,YF)) !allocate complex arrays for FT
 
+!only need to FFT pixels once..
+A=0.0d0 !initalize to zero
+A(1:xmax,1:ymax)=pixels(1:xmax,1:ymax) !assign Image to zero-padded A
+planA=fftw_plan_dft_r2c_2d(YF,XF,A,AC,FFTW_ESTIMATE)
+call fftw_execute_dft_r2c(planA,A,AC)
+call fftw_destroy_plan(planA)
+
+planB=fftw_plan_dft_r2c_2d(YF,XF,B,BC,FFTW_ESTIMATE)
+planC=fftw_plan_dft_c2r_2d(YF,XF,CC,C,FFTW_ESTIMATE)
+
 wl=wls
 do while(wl.lt.wle)
    write(line,502) "Convolution: ",wl,wle
@@ -50,28 +60,22 @@ do while(wl.lt.wle)
 !   write(0,*) "wl: ",wl
 !gets get a Kernel (wl is wavelength in um)
    call genkernel(nrK,nKs,rKernel,Kernel,wl,wls,wle,dwl)
-   Kernel=transpose(Kernel)
-
-   A=0.0d0 !initalize to zero
+!   Kernel=transpose(Kernel)
    B=0.0d0
    C=0.0d0
-   A(1:xmax,1:ymax)=pixels(1:xmax,1:ymax) !assign Image to zero-padded A
 !B(1:nKs/2,1:nKs/2)=Kernel(nKs/2:nKs,nKs/2:nKs) !assign Kernel to zero-padded B
 !B(nKs/2:nKs,nKs/2:nKs)=Kernel(1:nKs/2,1:nKs/2)
    B(1:nKs,1:nKs)=Kernel(1:nKs,1:nKs)
 !   write(0,*) "Computing FFTs"
-   plan=fftw_plan_dft_r2c_2d(YF,XF,A,AC,FFTW_ESTIMATE)
-   call fftw_execute_dft_r2c(plan,A,AC)
-   call fftw_destroy_plan(plan)
-   plan=fftw_plan_dft_r2c_2d(YF,XF,B,BC,FFTW_ESTIMATE)
-   call fftw_execute_dft_r2c(plan,B,BC)
-   call fftw_destroy_plan(plan)
+!   planB=fftw_plan_dft_r2c_2d(YF,XF,B,BC,FFTW_ESTIMATE)
+   call fftw_execute_dft_r2c(planB,B,BC)
+!   call fftw_destroy_plan(planB)
    !multiply
    CC=AC*BC
 !   write(0,*) "Start iFFT"
-   plan=fftw_plan_dft_c2r_2d(YF,XF,CC,C,FFTW_ESTIMATE)
-   call fftw_execute_dft_c2r(plan,CC,C)
-   call fftw_destroy_plan(plan)
+!   planC=fftw_plan_dft_c2r_2d(YF,XF,CC,C,FFTW_ESTIMATE)
+   call fftw_execute_dft_c2r(planC,CC,C)
+!   call fftw_destroy_plan(planC)
    do i=1,xmax
       p=dble(i)
       wlp=p2w(p,noversample,ntrace)/10000.0d0
@@ -84,7 +88,8 @@ do while(wl.lt.wle)
    enddo
    wl=wl+dwl
 enddo
-
+call fftw_destroy_plan(planB)
+call fftw_destroy_plan(planC)
 
 return
 end subroutine convolveft
