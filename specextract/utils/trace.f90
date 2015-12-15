@@ -5,9 +5,9 @@ implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
    nTp,jj,ncut,ncutpsf
 integer, dimension(2) :: naxes,knaxes
-real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut
+real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f
 real(double), dimension(:,:) :: Image,dTrace,bf
-real(double), allocatable, dimension(:) :: line,f,lpsf,lpsftemp
+real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork
 real(double), allocatable, dimension(:,:) :: Kernel,psf
 character(80) :: kfile
 character(80), allocatable, dimension(:) :: header
@@ -28,22 +28,23 @@ interface
    end subroutine getfits
 end interface
 
+nKsize=64        !size of Kernel for import (note.. this gets resized)
 ncut=35          !width of spectrum to zero out
-bcut=1000.0d0    !threshold for finding a trace
+bcut=1.0d0    !threshold for finding a trace
 ncutpsf=25       !width of PSF to fit - must be less than nKsize/2
 
 !read in a Kernel to be used as a guess for the PSF
 kfile="Kernels1/psf_2100nm_x10_oversampled.fits"
 nkeysmax=800 !maximum number of lines in the header we will accept.
 allocate(header(nkeysmax)) !allocate space for header (we really don't need it)
-nKsize=64  !size of Kernel for import (note.. this gets resized)
 allocate(Kernel(nKsize,nKsize))  !allocate space for Kernel
 call getfits(kfile,knaxes,Kernel,Kmin,Kmax,nkeys,header,bpix) !read in FITS
 write(0,*) "knaxes: ",knaxes
 
 !generate 1-D PSF for cross-correlation
-allocate(lpsf(nKsize))
+allocate(lpsf(nKsize),psfwork(nKsize))
 lpsf=Sum(Kernel,2)
+lpsf=lpsf(nKsize:1:-1)
 lpsf=lpsf-minval(lpsf)
 allocate(lpsftemp(size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))))
 lpsftemp=lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf)
@@ -63,8 +64,6 @@ nksd2=nKsize/2 !precompute size of PSF/2
 line=Image(nline,:)    !we start at user-defined 'nline'
 !subtract off minimum value - maybe a true sky value would be better
 line=line-minval(line)
-!f - contains the correlation value for each value in 'line'
-allocate(f(naxes(2))) !could use a scalar, but vector for debugging
 
 do k=1,nTrace !loop over expected number of traces
 
@@ -73,12 +72,12 @@ do k=1,nTrace !loop over expected number of traces
    !xm, xp give position along line to correlate with PSF
       xm=max(1,i-nksd2+1)
       xp=min(naxes(2),i+nksd2)
-      !calculate f = line * PSF
-      f(i)=Sum(line(xm:xp)*lpsf(nksd2-(i-xm):nksd2+(xp-i)))
+      !calculate f = line * PSF centered at desired position
+      f=Sum(line(xm:xp)*lpsf(nksd2-(i-xm):nksd2+(xp-i)))
 
       !when f is maximized we have a best-match to the PSF
-      if(f(i).gt.maxf)then
-         maxf=f(i)
+      if(f.gt.maxf)then
+         maxf=f
          nmaxf=i   !store position of maximum 'f' value
       endif
    enddo
@@ -121,10 +120,25 @@ do k=1,nTrace !loop over expected number of traces
    do j=xm,xp
       line(j)=0.0d0 !zero out value
    enddo
-
 enddo
-deallocate(f)  !don't need 'f' array anymore.
 
+
+!Update the PSF. Start by getting the orignal line from the Image
+line=Image(nline,:)    !we start at user-defined 'nline'
+!subtract off minimum value - maybe a true sky value would be better
+line=line-minval(line)
+psfwork=0.0d0 !initialize work
+do k=1,ntrace !look over k
+   i=dTrace(nline,k)
+   xm=max(1,i-nksd2+1)      !we will now fit the PSF to the line
+   xp=min(naxes(2),i+nksd2)
+   psfwork(nksd2-(i-xm):nksd2+(xp-i))=psfwork(nksd2-(i-xm):nksd2+(xp-i))+ &
+      line(xm:xp)*bf(nline,k)
+enddo
+psfwork=psfwork/sum(bf(nline,1:ntrace))
+do i=1,nTrace    !make a trace for each order.
+   psf(:,i)=psfwork(:)  !our initial guess for each order, now refined
+enddo
 
 do i=nline+1,naxes(1) !forward direction
    line=Image(i,:)

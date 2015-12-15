@@ -128,7 +128,7 @@ call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
 call pgwindow(200.0,350.0,minval(py),maxval(py))
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 call pglabel("X (pixels)","Y (Counts)","")
-call pgline(nxmax,px,py)
+call pgline(nymax,px,py)
 deallocate(px,py)
 
 !generate trace
