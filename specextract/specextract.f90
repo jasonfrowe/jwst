@@ -125,7 +125,7 @@ call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
 !call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-call pgwindow(200.0,350.0,minval(py),maxval(py))
+call pgwindow(100.0,200.0,minval(py),maxval(py(100:200)))
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 call pglabel("X (pixels)","Y (Counts)","")
 call pgline(nymax,px,py)
@@ -135,6 +135,9 @@ deallocate(px,py)
 allocate(dtrace(naxes(1),nTrace),bf(naxes(1),nTrace))
 dTrace=0.0d0
 call trace(naxes,Image,bpix,nline,nTrace,dTrace,bf)
+do i=1,naxes(1)
+   write(6,'(I4,3(1X,F11.3))') i,(dTrace(i,j),j=1,3)
+enddo
 
 !extract aperture
 !nTrace=1
@@ -148,7 +151,7 @@ allocate(px(naxes(1)),py(naxes(1)))
 do i=1,3!nTrace
    nplot=0
    do j=1,naxes(1)
-      if(bf(j,i).gt.1000.0)then
+      if(bf(j,i).gt.10.0)then
          nplot=nplot+1
          px(nplot)=real(j)
          py(nplot)=real(dTrace(nplot,i))

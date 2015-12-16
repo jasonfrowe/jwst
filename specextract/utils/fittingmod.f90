@@ -1,5 +1,7 @@
 module fittingmod
    use precision, only: double
    implicit none
-   real(double), dimension(:), pointer :: mu2,dIn2
+   integer, pointer :: ntrace2,nfit2
+   integer, dimension(:), pointer :: isol2
+   real(double), dimension(:), pointer :: line2,sol2
 end module fittingmod

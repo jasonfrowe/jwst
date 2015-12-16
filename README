@@ -8,9 +8,9 @@ The easiest way to compile the code is:
 ./configure
 make all
 
-To compile everything you need:  X11, PGPlot and CFITSIO.  If you don't 
-have these requirements 'configure' will fail.  I have been using the 
-Intel compiler (ifort) but gfortran should work fine.
+To compile everything you need:  X11, PGPlot, FFTW3 and CFITSIO.  If you 
+don't have these requirements 'configure' will fail.  I have been using 
+the Intel compiler (ifort) but gfortran should work fine.
 
 There are currently 3 Projects in 3 seperate directories.
 

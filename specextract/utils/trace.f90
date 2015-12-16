@@ -5,11 +5,12 @@ implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
    nTp,jj,ncut,ncutpsf,ncutd2
 integer, dimension(2) :: naxes,knaxes
+integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
-   triplegaussian
+   triplegaussian,sq2pi,pi
 real(double), dimension(:,:) :: Image,dTrace,bf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
-   sol,model
+   sol,model,solnew,amp,solfirst
 real(double), allocatable, dimension(:,:) :: Kernel,psf
 character(80) :: kfile
 character(80), allocatable, dimension(:) :: header
@@ -48,11 +49,12 @@ interface
    end subroutine psfmodel1d
 end interface
 interface
-   subroutine modelline(npt,line,ntrace,sol)
+   subroutine modelline(npt,line,ntrace,sol,isol)
       use precision
       implicit none
       integer, intent(in) :: npt,ntrace
-      real(double), dimension(:) :: line,sol
+      integer, dimension(:), intent(inout) :: isol
+      real(double), dimension(:), intent(inout) :: line,sol
    end subroutine modelline
 end interface
 
@@ -60,9 +62,11 @@ end interface
 !constants
 nKsize=64        !size of Kernel for import (note.. this gets resized)
 nksd2=nKsize/2 !precompute size of PSF/2
+Pi=acos(-1.d0)       !define Pi
+sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
-bcut=1.0d0    !threshold for finding a trace
+bcut=10.0d0    !threshold for finding a trace
 ncutpsf=24       !width of PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
    write(0,*) "Error: ncutpsf must be less than nKsize"
@@ -159,10 +163,24 @@ enddo
 
 !Lets model the line with a PSF.
 line=Image(nline,:)    !we start at user-defined 'nline'
-!load initial-Guess
-allocate(sol(ntrace*9+1))
+!load initial-Guess in sol.  The parameter isol controls with variables
+!are fit
+allocate(sol(ntrace*9+1),isol(ntrace*9+1),solnew(ntrace*9+1),amp(ntrace))
 call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
-call modelline(naxes(2),line,ntrace,sol)
+write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,(sol(9+9*(k-1)),k=1,3)
+isol=1  !fit all variables
+isol(1)=0 !do not fit zero line
+call modelline(naxes(2),line,ntrace,sol,isol)
+do k=1,ntrace
+   amp(k)=sq2pi*solnew(2+9*(k-1))*solnew(4+9*(k-1))+                    &
+          sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                    &
+          sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
+   bf(i,k)=amp(k)
+enddo
+do k=1,ntrace
+   dTrace(nline,k)=sol(9+9*(k-1))
+enddo
+write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,(sol(9+9*(k-1)),k=1,3)
 
 allocate(model(size(line)))
 allocate(px(size(line)),py(size(line)))
@@ -179,119 +197,69 @@ call pgsci(1) !change plotting colour back to default
 deallocate(px,py) !de-allocate plotting variables
 deallocate(model)
 
-write(6,*) "Modeling done.  So far.."
-read(5,*)
+allocate(solfirst(ntrace*9+1),isolfirst(ntrace*9+1))
+solfirst=sol !save solution from first line
+isolfirst=isol
 
 !Next part is to use the found positions and develop the trace.
 
 do i=nline+1,naxes(1) !forward direction
    line=Image(i,:)  !get next column from image to use.
    line=line-minval(line) !offset to zero - change to sky-subtraction
-
-   do k=1,nTrace
-      nTp=dTrace(i-1,k)
-!      write(0,*) "*",k,nTp
-      maxf=0.0d0
-      nmaxf=dTrace(i-1,k)
-      dTrace(i,k)=dTrace(i-1,k) !pre-set
-      do j=max(1,nTp-1),min(nTp+1,naxes(2))
-         xm=max(1,j-nksd2+1)
-         xp=min(naxes(2),j+nksd2)
-         df=Sum(line(xm:xp)*lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-         if(df.gt.maxf)then
-            maxf=df
-            nmaxf=j
-         endif
-      enddo
-      nTp=nmaxf
-!      write(0,*) "next."
-      !position of trace
-      j=nmaxf
-      xm=max(1,j-nksd2+1)
-      xp=min(naxes(2),j+nksd2)
-      !calculate best-fit scaling
-      S=1.0d0
-      Sxy=Sum(line(xm:xp)*lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-      Sxx=Sum(lpsf(nksd2-(j-xm):nksd2+(xp-j))*lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-      Sx =Sum(lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-      Sy =Sum(line(xm:xp))
-      bf(i,k)=(S*Sxy-Sx*Sy)/(S*Sxx-Sx*Sx)
-!      write(0,*) "** next",bf
-      if(bf(i,k).gt.bcut)then
-         dTrace(i,k)=nTp !save next entry from trace
-!      write(0,*) "bf: ",k,nTp,bf
-!         do jj=xm,xp
-!            line(jj)=line(jj)-lpsf(nksd2-(i-jj))*bf
-!         enddo
-         line(xm:xp)=line(xm:xp)-lpsf(nksd2-(j-xm):nksd2+(xp-j))*bf(i,k)
-!zero out residuals
-         xm=max(1,j-ncut+1)
-         xp=min(naxes(2),j+ncut)
-         do jj=xm,xp
-            line(jj)=0.0!line(j)-lpsf(nksd2-(i-j))*bf
+   solnew=sol !save current solution
+   call modelline(naxes(2),line,ntrace,solnew,isol) !model
+!  now check the amplitudes and changes in trace
+   do k=1,ntrace
+      amp(k)=sq2pi*solnew(2+9*(k-1))*solnew(4+9*(k-1))+                 &
+             sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                 &
+             sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
+      bf(i,k)=amp(k)
+      if(amp(k).lt.bcut)then
+         do j=2+9*(k-1),10+9*(k-1)
+            solnew(j)=0.0d0
+            isol(j)=0
          enddo
-      else
-         dTrace(i,k)=dTrace(i-1,k)!0.0d0
       endif
-
    enddo
-!   write(0,*) "**",i,(dTrace(i,k),k=1,3)
+!   write(0,*) "amp: ",(amp(k),k=1,3)
+   sol=solnew
+   do k=1,ntrace
+      dTrace(i,k)=sol(9+9*(k-1))
+   enddo
+
+   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
 
 enddo
 
-!nTp=nTstart(k)
+!restore solution from nline.
+sol=solfirst
+isol=isolfirst
 do i=nline-1,1,-1 !negative direction
    line=Image(i,:)
    line=line-minval(line)
-
-   do k=1,nTrace
-      nTp=dTrace(i+1,k)
-!      write(0,*) "k:",k,nTp
-      maxf=0.0d0
-      nmaxf=dTrace(i+1,k)
-      dTrace(i,k)=dTrace(i+1,k) !pre-set
-      do j=max(1,nTp-1),min(nTp+1,naxes(2))
-         xm=max(1,j-nksd2+1)
-         xp=min(naxes(2),j+nksd2)
-         df=Sum(line(xm:xp)*lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-         if(df.gt.maxf)then
-            maxf=df
-            nmaxf=j
-         endif
-      enddo
-      nTp=nmaxf
-
-      !position of trace
-      j=nmaxf
-      xm=max(1,j-nksd2+1)
-      xp=min(naxes(2),j+nksd2)
-      !calculate best-fit scaling
-      S=1.0d0
-      Sxy=Sum(line(xm:xp)*lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-      Sxx=Sum(lpsf(nksd2-(j-xm):nksd2+(xp-j))*lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-      Sx =Sum(lpsf(nksd2-(j-xm):nksd2+(xp-j)))
-      Sy =Sum(line(xm:xp))
-      bf(i,k)=(S*Sxy-Sx*Sy)/(S*Sxx-Sx*Sx)
-
-      if(bf(i,k).gt.bcut)then
-         dTrace(i,k)=nTp !save next entry from trace
-!      write(0,*) "bf: ",k,nTp,bf
-!         do jj=xm,xp
-!            line(jj)=line(jj)-lpsf(nksd2-(i-jj))*bf
-!         enddo
-         line(xm:xp)=line(xm:xp)-lpsf(nksd2-(j-xm):nksd2+(xp-j))*bf(i,k)
-!zero out residuals
-         xm=max(1,j-ncut+1)
-         xp=min(naxes(2),j+ncut)
-         do jj=xm,xp
-            line(jj)=0.0!line(j)-lpsf(nksd2-(i-j))*bf
+   solnew=sol !save current solution
+   call modelline(naxes(2),line,ntrace,solnew,isol) !model
+!  now check the amplitudes and changes in trace
+   do k=1,ntrace
+      amp(k)=sq2pi*solnew(2+9*(k-1))*solnew(4+9*(k-1))+                 &
+             sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                 &
+             sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
+      bf(i,k)=amp(k)
+      if(amp(k).lt.bcut)then
+         do j=2+9*(k-1),10+9*(k-1)
+            solnew(j)=0.0d0
+            isol(j)=0
          enddo
-      else
-         dTrace(i,k)=dTrace(i+1,k)!0.0d0
       endif
-
    enddo
-!   write(0,*) i,(dTrace(i,k),k=1,3)
+!   write(0,*) "amp: ",(amp(k),k=1,3)
+   sol=solnew
+   do k=1,ntrace
+      dTrace(i,k)=sol(9+9*(k-1))
+   enddo
+
+   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
+
 
 enddo
 
