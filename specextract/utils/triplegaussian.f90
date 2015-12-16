@@ -2,7 +2,7 @@ function triplegaussian(nfit,sol,x)
 !returns the sum of three Gaussians and an offset
 use precision
 implicit none
-integer :: nfit,i,np
+integer :: nfit,i,np,nline
 real(double) :: triplegaussian,x
 real(double), dimension(nfit) :: sol
 
@@ -14,4 +14,4 @@ do i=1,3
 enddo
 
 return
-end subroutine triplegaussian
+end function triplegaussian

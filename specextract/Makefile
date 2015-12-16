@@ -35,12 +35,24 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract
 
-specextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o
+specextractincl = precision.o fittingmod.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o loadpsfinit.o triplegaussian.o psfmodel1d.o modelline.o minpack.o 
 specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
 
+fittingmod.o: $(UTILS)fittingmod.f90
+	$(F90) $(FFLAGS) $(UTILS)fittingmod.f90
+modelline.o: $(UTILS)modelline.f90
+	$(F90) $(FFLAGS) $(UTILS)modelline.f90
+minpack.o: $(UTILS)minpack.f
+	$(F90) $(FFLAGS) $(UTILS)minpack.f
+psfmodel1d.o: $(UTILS)psfmodel1d.f90
+	$(F90) $(FFLAGS) $(UTILS)psfmodel1d.f90
+loadpsfinit.o: $(UTILS)loadpsfinit.f90
+	$(F90) $(FFLAGS) $(UTILS)loadpsfinit.f90
+triplegaussian.o: $(UTILS)triplegaussian.f90
+	$(F90) $(FFLAGS) $(UTILS)triplegaussian.f90
 heatlut.o: $(UTILS)heatlut.f90
 	$(F90) $(FFLAGS) $(UTILS)heatlut.f90
 apflux.o: $(UTILS)apflux.f90

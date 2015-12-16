@@ -5,9 +5,11 @@ implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
    nTp,jj,ncut,ncutpsf,ncutd2
 integer, dimension(2) :: naxes,knaxes
-real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f
+real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
+   triplegaussian
 real(double), dimension(:,:) :: Image,dTrace,bf
-real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork
+real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
+   sol,model
 real(double), allocatable, dimension(:,:) :: Kernel,psf
 character(80) :: kfile
 character(80), allocatable, dimension(:) :: header
@@ -27,6 +29,33 @@ interface
       character(80), dimension(:), intent(inout) :: header
    end subroutine getfits
 end interface
+interface
+   subroutine loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
+      use precision
+      implicit none
+      integer, intent(inout) :: ntrace,ncutpsf,nline
+      real(double), dimension(:), intent(inout) :: sol,line
+      real(double), dimension(:,:), intent(inout) :: dtrace
+   end subroutine loadPSFinit
+end interface
+interface
+   subroutine psfmodel1d(npt,model,ntrace,sol)
+      use precision
+      implicit none
+      integer, intent(in) :: npt,ntrace
+      real(double), dimension(:), intent(in) :: sol
+      real(double), dimension(:), intent(inout) :: model
+   end subroutine psfmodel1d
+end interface
+interface
+   subroutine modelline(npt,line,ntrace,sol)
+      use precision
+      implicit none
+      integer, intent(in) :: npt,ntrace
+      real(double), dimension(:) :: line,sol
+   end subroutine modelline
+end interface
+
 
 !constants
 nKsize=64        !size of Kernel for import (note.. this gets resized)
@@ -56,13 +85,6 @@ allocate(lpsf(nKsize),psfwork(nKsize))
 lpsf=Sum(Kernel,2)
 lpsf=lpsf(nKsize:1:-1) !looks like the PSF needs to be flipped to match spgen
 !lpsf=lpsf-minval(lpsf) !remove zero point?
-
-!allocate(lpsftemp(size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))))
-!lpsftemp=lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf)
-!nKsize=size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))
-!deallocate(lpsf)
-!call move_alloc(lpsftemp,lpsf) !move temp to psf and deallocate temp
-!write(0,*) "Size: ",size(lpsf)
 
 allocate(psf(nKsize,ntrace))
 do i=1,nTrace    !make a trace for each order.
@@ -122,11 +144,6 @@ do k=1,nTrace !loop over expected number of traces
    call pgsci(2+k)  !change plotting colour
    call pgline(size(line(xm:xp)),px,py) !plot a line
    call pgsci(1) !change plotting colour back to default
-!   if(k.eq.1)then
-!      do j=1,size(line(xm:xp))
-!         write(6,*) px(j),py(j)
-!      enddo
-!   endif
    deallocate(px,py) !de-allocate plotting variables
 
 
@@ -140,22 +157,30 @@ do k=1,nTrace !loop over expected number of traces
 enddo
 
 
-!Update the PSF. Start by getting the orignal line from the Image
+!Lets model the line with a PSF.
 line=Image(nline,:)    !we start at user-defined 'nline'
-!subtract off minimum value - maybe a true sky value would be better
-line=line-minval(line)
-psfwork=0.0d0 !initialize work
-do k=1,ntrace !look over k
-   i=dTrace(nline,k)
-   xm=max(1,i-nksd2+1)      !we now use the data to update the model PSF
-   xp=min(naxes(2),i+nksd2)
-   psfwork(nksd2-(i-xm):nksd2+(xp-i))=psfwork(nksd2-(i-xm):nksd2+(xp-i))+ &
-      line(xm:xp)*bf(nline,k)
+!load initial-Guess
+allocate(sol(ntrace*9+1))
+call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
+call modelline(naxes(2),line,ntrace,sol)
+
+allocate(model(size(line)))
+allocate(px(size(line)),py(size(line)))
+do j=1,size(line)
+   px(j)=real(j)  !X axis
 enddo
-psfwork=psfwork/sum(bf(nline,1:ntrace))
-do i=1,nTrace    !make a trace for each order.
-   psf(:,i)=psfwork(:)  !our initial guess for each order, now refined
-enddo
+call psfmodel1d(size(line),model,ntrace,sol)
+py=real(model) !Y-axis
+!   pmin=minval(py)
+!   py=log10(py-pmin+1.0d0)
+call pgsci(6)  !change plotting colour
+call pgline(size(line),px,py) !plot a line
+call pgsci(1) !change plotting colour back to default
+deallocate(px,py) !de-allocate plotting variables
+deallocate(model)
+
+write(6,*) "Modeling done.  So far.."
+read(5,*)
 
 !Next part is to use the found positions and develop the trace.
 
