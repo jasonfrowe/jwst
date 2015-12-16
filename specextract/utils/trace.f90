@@ -28,10 +28,19 @@ interface
    end subroutine getfits
 end interface
 
+!constants
 nKsize=64        !size of Kernel for import (note.. this gets resized)
+nksd2=nKsize/2 !precompute size of PSF/2
+!parameters to control trace
 ncut=35          !width of spectrum to zero out
 bcut=1.0d0    !threshold for finding a trace
 ncutpsf=25       !width of PSF to fit - must be less than nKsize/2
+if(ncutpsf.lt.nksd2)then  !check ncutpsf value is valid
+   write(0,*) "Error: ncutpsf must be less than nKsize/2"
+   write(0,*) "ncutpsf : ",ncutpsf
+   write(0,*) "nKsize/2: ",nksd2
+   stop !if ncutpsf is invalid then stop prog.
+endif
 
 !read in a Kernel to be used as a guess for the PSF
 kfile="Kernels1/psf_2100nm_x10_oversampled.fits"
@@ -44,14 +53,16 @@ write(0,*) "knaxes: ",knaxes
 !generate 1-D PSF for cross-correlation
 allocate(lpsf(nKsize),psfwork(nKsize))
 lpsf=Sum(Kernel,2)
-lpsf=lpsf(nKsize:1:-1)
-lpsf=lpsf-minval(lpsf)
-allocate(lpsftemp(size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))))
-lpsftemp=lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf)
-nKsize=size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))
-deallocate(lpsf)
-call move_alloc(lpsftemp,lpsf) !move temp to psf and deallocate temp
-write(0,*) "Size: ",size(lpsf)
+lpsf=lpsf(nKsize:1:-1) !looks like the PSF needs to be flipped to match spgen
+!lpsf=lpsf-minval(lpsf) !remove zero point?
+
+!allocate(lpsftemp(size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))))
+!lpsftemp=lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf)
+!nKsize=size(lpsf(nKsize/2-ncutpsf:nKsize/2+ncutpsf))
+!deallocate(lpsf)
+!call move_alloc(lpsftemp,lpsf) !move temp to psf and deallocate temp
+!write(0,*) "Size: ",size(lpsf)
+
 allocate(psf(nKsize,ntrace))
 do i=1,nTrace    !make a trace for each order.
    psf(:,i)=lpsf(:)  !our initial guess for each order to be refined
@@ -59,7 +70,6 @@ enddo
 
 !allocate space for line-scan
 allocate(line(naxes(2)))  !this will contain each column of data to scan
-nksd2=nKsize/2 !precompute size of PSF/2
 
 line=Image(nline,:)    !we start at user-defined 'nline'
 !subtract off minimum value - maybe a true sky value would be better
@@ -110,6 +120,11 @@ do k=1,nTrace !loop over expected number of traces
    call pgsci(2+k)  !change plotting colour
    call pgline(size(line(xm:xp)),px,py) !plot a line
    call pgsci(1) !change plotting colour back to default
+   if(k.eq.1)then
+      do j=1,size(line(xm:xp))
+         write(6,*) px(j),py(j)
+      enddo
+   endif
    deallocate(px,py) !de-allocate plotting variables
 
 
