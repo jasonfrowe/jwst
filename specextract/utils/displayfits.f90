@@ -99,9 +99,9 @@ write(0,*) "lmin,lmax: ",lmin,lmax
 z1=log10(minlp-minlp+1.0)
 z2=log10(maxp-minlp+1.0)
 
-lparray=sqrt(parray)
-z1=sqrt(minp)
-z2=sqrt(maxp)
+!lparray=sqrt(parray)
+!z1=sqrt(minp)
+!z2=sqrt(maxp)
 
 do i=nr(1),nr(2)
    do j=nr(3),nr(4)
