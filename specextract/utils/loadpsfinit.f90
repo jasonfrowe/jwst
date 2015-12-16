@@ -1,8 +1,8 @@
 subroutine loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
 use precision
 implicit none
-integer :: ntrace,i,ncutpsf,ncutd2,di,nfit,nline,xm,xp,k,j
-real(double) :: Sintsolt,triplegaussian,Sintsol
+integer :: ntrace,i,ncutpsf,ncutd2,nfit,nline,xm,xp,k,j
+real(double) :: Sintsolt,triplegaussian,Sintsol,di
 real(double), allocatable, dimension(:) :: solt !solution template
 real(double), dimension(:) :: sol,line
 real(double), dimension(:,:) :: dtrace
@@ -35,6 +35,7 @@ Sintsolt=0.0d0  !sum up the flux from the PSF - we will scale relative
 do i=-ncutd2+1,ncutd2
    di=dble(i)
    Sintsolt=Sintsolt+triplegaussian(nfit,solt,di)
+!   write(0,*) Sintsolt,di
 enddo
 !write(0,*) "Sintsolt: ",Sintsolt
 

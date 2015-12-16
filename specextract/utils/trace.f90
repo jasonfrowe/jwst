@@ -7,7 +7,7 @@ integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
 integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
-   triplegaussian,sq2pi,pi
+   triplegaussian,sq2pi,pi,tracetest,tcut
 real(double), dimension(:,:) :: Image,dTrace,bf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
    sol,model,solnew,amp,solfirst
@@ -66,7 +66,8 @@ Pi=acos(-1.d0)       !define Pi
 sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
-bcut=10.0d0    !threshold for finding a trace
+bcut=10.0d0      !threshold for finding a trace
+tcut=3.0d0       !threshold for traces to jump
 ncutpsf=24       !width of PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
    write(0,*) "Error: ncutpsf must be less than nKsize"
@@ -150,7 +151,6 @@ do k=1,nTrace !loop over expected number of traces
    call pgsci(1) !change plotting colour back to default
    deallocate(px,py) !de-allocate plotting variables
 
-
 !There can be siginficant differences compare to first pass, so
 !zero out residuals to avoid problems.
    xm=max(1,i-ncut+1)
@@ -167,6 +167,7 @@ line=Image(nline,:)    !we start at user-defined 'nline'
 !are fit
 allocate(sol(ntrace*9+1),isol(ntrace*9+1),solnew(ntrace*9+1),amp(ntrace))
 call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
+!write(0,*) "****",(sol(i),i=1,ntrace*9+1)
 write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,(sol(9+9*(k-1)),k=1,3)
 isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
@@ -178,7 +179,8 @@ do k=1,ntrace
    bf(i,k)=amp(k)
 enddo
 do k=1,ntrace
-   dTrace(nline,k)=sol(9+9*(k-1))
+!   dTrace(nline,k)=sol(9+9*(k-1))
+   dTrace(nline,k)=(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
 enddo
 write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,(sol(9+9*(k-1)),k=1,3)
 
@@ -214,17 +216,27 @@ do i=nline+1,naxes(1) !forward direction
              sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                 &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
       bf(i,k)=amp(k)
-      if(amp(k).lt.bcut)then
+      if(amp(k).lt.bcut)then  !if amplitude is too low - kill trace
          do j=2+9*(k-1),10+9*(k-1)
             solnew(j)=0.0d0
             isol(j)=0
+            bf(i,k)=0.0d0
+         enddo
+      endif
+      tracetest=(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
+      if(abs(dTrace(i-1,k)-tracetest).gt.tcut)then !if trace jumps. kill trace
+         do j=2+9*(k-1),10+9*(k-1)
+            solnew(j)=0.0d0
+            isol(j)=0
+            bf(i,k)=0.0d0
          enddo
       endif
    enddo
 !   write(0,*) "amp: ",(amp(k),k=1,3)
    sol=solnew
    do k=1,ntrace
-      dTrace(i,k)=sol(9+9*(k-1))
+!      dTrace(i,k)=sol(9+9*(k-1))
+      dTrace(i,k)=(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
    enddo
 
    write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
@@ -245,17 +257,27 @@ do i=nline-1,1,-1 !negative direction
              sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                 &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
       bf(i,k)=amp(k)
-      if(amp(k).lt.bcut)then
+      if(amp(k).lt.bcut)then  !amplitude is too low.. kill trace
          do j=2+9*(k-1),10+9*(k-1)
+            solnew(j)=0.0d0   !set PSF model parameter to zero
+            isol(j)=0         !disable variables
+            bf(i,k)=0.0d0
+         enddo
+      endif
+      tracetest=(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
+      if(abs(dTrace(i+1,k)-tracetest).gt.tcut)then !trace jumped alot
+         do j=2+9*(k-1),10+9*(k-1)  !kill trace
             solnew(j)=0.0d0
             isol(j)=0
+            bf(i,k)=0.0d0
          enddo
       endif
    enddo
 !   write(0,*) "amp: ",(amp(k),k=1,3)
    sol=solnew
    do k=1,ntrace
-      dTrace(i,k)=sol(9+9*(k-1))
+!      dTrace(i,k)=sol(9+9*(k-1))
+      dTrace(i,k)=(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
    enddo
 
    write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)

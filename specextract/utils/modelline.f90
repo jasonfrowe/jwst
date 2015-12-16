@@ -88,7 +88,10 @@ do i=1,nfit2
    endif
 enddo
 
+!write(0,*) (sol(i),i=1,nfit2)
+
 call psfmodel1d(m,fvec,ntrace2,sol)
+!read(5,*)
 
 do i=1,m
    fvec(i)=(fvec(i)-line2(i))/1.0d0
