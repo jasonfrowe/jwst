@@ -78,7 +78,7 @@ nreplace=0
 
 allocate(ia(nxmax,nymax))
 
-write(6,*) "yo..",nr
+!write(6,*) "yo..",nr
 minlp=minp
 lmin=1000.0
 lmax=-1000.0
@@ -99,9 +99,10 @@ write(0,*) "lmin,lmax: ",lmin,lmax
 z1=log10(minlp-minlp+1.0)
 z2=log10(maxp-minlp+1.0)
 
-!lparray=sqrt(parray)
-!z1=sqrt(minp)
-!z2=sqrt(maxp)
+!uncommnet for a sqrt scale opposed to log
+lparray=sqrt(parray)
+z1=sqrt(minp)
+z2=sqrt(maxp)
 
 do i=nr(1),nr(2)
    do j=nr(3),nr(4)
@@ -214,7 +215,7 @@ deallocate(ia,lparray)
 !enddo
 
 
-write(11,501) tavg,minp,maxp,med,std,z1,z2
+!write(11,501) tavg,minp,maxp,med,std,z1,z2
 501 format(7(1PE17.10,1X))
 
 return

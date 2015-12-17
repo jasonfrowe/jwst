@@ -174,10 +174,10 @@ isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
 call modelline(naxes(2),line,ntrace,sol,isol)
 do k=1,ntrace
-   amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
-          sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
-          sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
-   bf(i,k)=amp(k)
+   amp(k)=sq2pi*sol(8+9*(k-1))*sol(2+9*(k-1))*sol(4+9*(k-1))+  &
+          sq2pi*sol(8+9*(k-1))*sol(5+9*(k-1))*sol(7+9*(k-1))+  &
+          sq2pi*sol(8+9*(k-1))*sol(10+9*(k-1))
+   bf(nline,k)=amp(k)
 enddo
 do k=1,ntrace
 !   dTrace(nline,k)=sol(9+9*(k-1))

@@ -12,7 +12,7 @@ UTILS = utils/
 all: specextract calcldco spgen genoskernel
 
 specextractsrc = specextract/
-specextractincl = $(specextractsrc)precision.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o $(specextractsrc)heatlut.o
+specextractincl = $(specextractsrc)precision.o $(specextractsrc)fittingmod.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o $(specextractsrc)heatlut.o $(specextractsrc)loadpsfinit.o $(specextractsrc)triplegaussian.o $(specextractsrc)psfmodel1d.o $(specextractsrc)modelline.o $(specextractsrc)minpack.o
 specextract: $(specextractsrc)specextract.f90 $(specextractincl)
 	$(F90) $(FFLAGS) -o $(BIN)$@ $(specextractsrc)specextract.f90 $(specextractincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS)
 	
@@ -39,7 +39,19 @@ genoskernel: $(spgensrc)genoskernel.f90 $(genoskernelincl)
 
 #Libs for SPECEXTRACT
 
-$(specextractsrc)heatlut: $(specextractsrc)$(UTILS)heatlut.f90
+$(specextractsrc)fittingmod.o: $(specextractsrc)$(UTILS)fittingmod.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)fittingmod.f90
+$(specextractsrc)loadpsfinit.o: $(specextractsrc)$(UTILS)loadpsfinit.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)loadpsfinit.f90
+$(specextractsrc)triplegaussian.o: $(specextractsrc)$(UTILS)triplegaussian.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)triplegaussian.f90
+$(specextractsrc)psfmodel1d.o: $(specextractsrc)$(UTILS)psfmodel1d.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)psfmodel1d.f90
+$(specextractsrc)modelline.o: $(specextractsrc)$(UTILS)modelline.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)modelline.f90
+$(specextractsrc)minpack.o: $(specextractsrc)$(UTILS)minpack.f
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)minpack.f
+$(specextractsrc)heatlut.o: $(specextractsrc)$(UTILS)heatlut.f90
 	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)heatlut.f90
 $(specextractsrc)apflux.o: $(specextractsrc)$(UTILS)apflux.f90
 	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)apflux.f90 

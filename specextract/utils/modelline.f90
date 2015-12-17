@@ -36,9 +36,11 @@ do i=1,nfit  !check which variables we are fitting
    endif
 enddo
 
-write(0,*) "Begin Fitting.."
+!write(0,*) "Begin Fitting.."
 call lmdif1(fcn,npt,nfitin,solin,fvec,tol,info,iwa,wa,lwa)
-write(0,*) "info: ",info
+if(info.gt.3)then
+   write(0,*) "info: ",info
+endif
 
 !move solin into sol
 j=0

@@ -92,7 +92,8 @@ enddo
 !write(0,*) "Rmin, Rmax: ",Rmin,Rmax
 
 !display fits file
-call pgopen('?')
+!call pgopen('?')
+call pgopen('/xserve')
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()
@@ -136,7 +137,8 @@ allocate(dtrace(naxes(1),nTrace),bf(naxes(1),nTrace))
 dTrace=0.0d0
 call trace(naxes,Image,bpix,nline,nTrace,dTrace,bf)
 do i=1,naxes(1)
-   write(6,'(I4,3(1X,F11.3))') i,(dTrace(i,j),j=1,3)
+   write(6,'(I4,3(1X,F11.3),3(1X,1PE17.10))') i,(dTrace(i,j),j=1,3),    &
+      (bf(i,j),j=1,3)
 enddo
 
 !extract aperture
