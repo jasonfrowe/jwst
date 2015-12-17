@@ -101,9 +101,10 @@ z1=log10(minlp-minlp+1.0)
 z2=log10(maxp-minlp+1.0)
 
 !uncommnet for a sqrt scale opposed to log
-lparray=sqrt(parray)
-z1=sqrt(minp)
-z2=sqrt(maxp)
+lparray=sqrt(parray-minp)
+z1=sqrt(minp-minp)
+z2=sqrt(maxp-minp)
+
 
 do i=nr(1),nr(2)
    do j=nr(3),nr(4)

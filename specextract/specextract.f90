@@ -9,7 +9,7 @@ integer :: nplot
 real, allocatable, dimension(:) :: px,py
 real(double) :: Rmin,Rmax,bpix,tavg
 real(double), allocatable, dimension(:,:) :: Image,tImage,dTrace,bf,solpsf
-character(80) :: Imagename
+character(80) :: Imagename,cline
 character(80), allocatable, dimension(:) :: header
 
 !Interfaces to subroutines
@@ -59,14 +59,20 @@ end interface
 nline=800  !magic line for trace
 nTrace=3   !number of traces to track
 
-
 !get filename
-if(iargc().lt.1)then
-   write(0,*) "Usage: specextract FITS"
-   write(0,*) "  FITS : FITS file containing SOSS data"
+if(iargc().lt.2)then
+   write(0,*) "Usage: specextract <FITS> <ntrace>"
+   write(0,*) "  <FITS>   : FITS file containing SOSS data"
+   write(0,*) "  <ntrace> : number of orders to trace.  Must be 1 or greater"
    stop
 endif
 call getarg(1,Imagename)
+call getarg(2,cline)
+read(cline,*) ntrace  !read in ntrace
+if(ntrace.lt.1)then   !check that value is valid
+   write(0,*) "<ntrace> must be greater than zero"
+   stop
+endif
 
 !read in FITS file
 bpix=1.0e30  !mark bad pixels
@@ -128,7 +134,7 @@ call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
 !call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-call pgwindow(100.0,200.0,minval(py),maxval(py(100:200)))
+call pgwindow(200.0,350.0,minval(py),maxval(py(200:350)))
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 call pglabel("X (pixels)","Y (Counts)","")
 call pgline(nymax,px,py)

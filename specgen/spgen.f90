@@ -5,10 +5,12 @@ use precision
 use response
 implicit none
 integer xmax,ymax,iargc,nunit,filestatus,nmodelmax,iflag,nmodel,i,j,npx,&
-   npy,nK,xout,yout,noversample,nKd2,npt,nrK,nKs,Ks,ntrace,ntracemax
+   npy,nK,xout,yout,noversample,nKd2,npt,nrK,nKs,Ks,ntrace,ntracemax,   &
+   seed
 integer, dimension(2) :: ybounds
+integer, dimension(3) :: now
 real(double) :: w2p,px,py,ptrace,dxmaxp1,dymaxp1,dnossq,rv,dnpt,wl,mSum,&
-   fmodres,respond,awmod
+   fmodres,respond,awmod,snr,dumr,ran2
 real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
    fmodbin,wv,yres1,yres2,yres3
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
@@ -51,6 +53,15 @@ interface
       real(double), dimension(:,:,:), intent(inout) :: rKernel
    end subroutine
 end interface
+interface
+   subroutine addgnoise(xout,yout,opixels,snr,seed)
+      use precision
+      implicit none
+      integer, intent(inout) :: xout,yout,seed
+      real(double), intent(in) :: snr
+      real(double), dimension(:,:), intent(inout) :: opixels
+   end subroutine
+end interface
 
 if(iargc().lt.2)then
    write(0,*) "Usage: spgen specmodel noversample"
@@ -62,6 +73,8 @@ endif
 xout=2048  !dimensions for output image.
 yout=512
 
+snr=1000  !S/N of spectrum - move to commandline
+
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline
 call getarg(2,cline)
@@ -71,10 +84,10 @@ if(noversample.le.0)then
    stop
 endif
 
-if(noversample.lt.1)then
-   write(0,*) "noversample must be at least 1"
-   stop
-endif
+!Initialization of random number
+call itime(now)
+seed=abs(now(3)+now(1)*now(2)+now(1)*now(3)+now(2)*now(3)*100)
+dumr=ran2(-seed)
 
 !read in Kernels
 nrK=30 !number of Kernels to readin
@@ -245,6 +258,9 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
 !         opixels(i/noversample,j/noversample)/dnossq
    enddo
 enddo
+!Now we can add noise.
+call addgnoise(xout,yout,opixels,snr,seed)
+!Export final image to FITS
 fileout="spgen_c.fits" !write out convolved 2D spectrum
 call writefits(xout,yout,opixels,fileout) !make fits file.
 
