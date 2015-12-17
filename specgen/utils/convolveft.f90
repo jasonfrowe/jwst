@@ -1,5 +1,6 @@
 subroutine convolveft(xmax,ymax,pixels,nrK,nKs,rKernel,noversample,       &
    cpixels,ybounds,ntrace)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 !iso_c_binding is for FFTW3 interface
 use, intrinsic :: iso_c_binding

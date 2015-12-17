@@ -1,4 +1,5 @@
 subroutine getfits(Refname,naxes,Ref,Rmin,Rmax,nkeys,header,bpix)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: nkeys,status,unitfits,readwrite,dumi,i,nspace,nfound,npixels,&

@@ -1,4 +1,5 @@
 subroutine apflux(naxes,Image,bpix,nTrace,dTrace)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: nTrace,i,nap,nsky,k,nm,np

@@ -1,4 +1,5 @@
 subroutine modelline(npt,line,ntrace,sol,isol)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 use fittingmod
 implicit none

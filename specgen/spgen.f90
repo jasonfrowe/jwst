@@ -1,4 +1,5 @@
 program spgen
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 !generates GR700-SOSS spectrum with 3-order traces + PSF + response
 use precision
 use response

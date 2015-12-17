@@ -1,4 +1,5 @@
 subroutine addflux2pix(px,py,xmax,ymax,pixels,fmod)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer xmax,ymax,npx,npy

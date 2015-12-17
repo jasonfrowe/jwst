@@ -1,4 +1,5 @@
 program specextract
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status,nfit

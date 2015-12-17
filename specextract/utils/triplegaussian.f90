@@ -1,4 +1,5 @@
 function triplegaussian(nfit,sol,x)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 !returns the sum of three Gaussians and an offset
 use precision
 implicit none

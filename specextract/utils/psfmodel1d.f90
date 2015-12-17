@@ -1,4 +1,5 @@
 subroutine psfmodel1d(npt,model,ntrace,sol)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: npt,ntrace,k,nfit,i

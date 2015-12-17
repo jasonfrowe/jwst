@@ -1,5 +1,6 @@
 program calcldco
 !calculate limb-darkening coefficients
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 use fittingmod
 implicit none

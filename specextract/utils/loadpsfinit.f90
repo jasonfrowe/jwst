@@ -1,4 +1,5 @@
 subroutine loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: ntrace,i,ncutpsf,ncutd2,nfit,nline,xm,xp,k,j

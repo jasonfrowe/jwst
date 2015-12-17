@@ -1,4 +1,5 @@
 subroutine binmodel(npt,wv,nmodel,wmod,fmod,fmodbin,rv)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: npt,nmodel,i,nbin

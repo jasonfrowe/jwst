@@ -2,6 +2,7 @@
 subroutine convolve(xmax,ymax,pixels,nrK,nKs,rKernel,noversample,       &
    cpixels,ybounds,ntrace)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: xmax,ymax,nK,i,j,l,m,nKd2,ii,jj,ii1,ii2,jj1,jj2,nrK,nKs,     &

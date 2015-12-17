@@ -1,4 +1,5 @@
 program genoskernel
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer noversample,nrK,nKs,i,j,k,ii,jj,l,m,nK,nnative,iargc,nsample

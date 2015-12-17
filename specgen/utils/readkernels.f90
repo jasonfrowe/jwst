@@ -1,4 +1,5 @@
 subroutine readKernels(nrK,nK,rKernel,noversample)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: nrK,nK,nkeys,nkeysmax,i,j,noversample

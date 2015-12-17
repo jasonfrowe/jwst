@@ -1,4 +1,5 @@
 subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 !generates trace
 use precision
 implicit none

@@ -1,4 +1,5 @@
 subroutine readresponse
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 use response !this module returns the trace via pointers
 implicit none

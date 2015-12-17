@@ -1,4 +1,5 @@
 subroutine readmodel(nunit,nmax,npt,wv,flux,iflag)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: npt,iflag,nunit,i,nmax,filestatus

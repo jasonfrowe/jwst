@@ -1,6 +1,7 @@
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       subroutine readheader(unitfits,status,header,nkeys)
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C     Jason Rowe 2015 - jasonfrowe@gmail.com
 C     reads in the fits header
 C     unitsfits is the unit number assigned to the fits file
 C     status is from openfits and is used by cfitsio

@@ -1,4 +1,5 @@
 subroutine heatlut(i,r,g,b)
+!based on heat.lut from IRAF packages
 implicit none
 integer :: i
 real :: r,g,b

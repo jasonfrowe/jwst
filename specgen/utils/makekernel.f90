@@ -13,6 +13,7 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 subroutine makekernel(nK,Kernel,noversample)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 !old analytic function for generating a simple Kernel
 use precision
 implicit none

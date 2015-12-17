@@ -1,4 +1,5 @@
 subroutine writefits(nxmax,nymax,parray,fileout)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: nxmax,nymax,nkeys,nstep,status,blocksize,bitpix,naxis,funit, &

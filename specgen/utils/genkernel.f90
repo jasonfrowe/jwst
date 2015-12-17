@@ -1,4 +1,5 @@
 subroutine genkernel(nrK,nKs,rKernel,Kernel,wl,wls,wle,dwl)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 !get a Kernel given a wavelength
 !wl = wavelength in um
 use precision

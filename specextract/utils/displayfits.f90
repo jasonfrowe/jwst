@@ -1,4 +1,5 @@
 subroutine displayfits(nxmax,nymax,parray,bpix,tavg)
+!Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
 integer :: nxmax,nymax,npt,i,j,ncol,dumi,ndiff,k,nreplace
