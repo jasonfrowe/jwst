@@ -1,13 +1,13 @@
 program specextract
 use precision
 implicit none
-integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status
+integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status,nfit
 integer, dimension(2) :: naxes
 real :: pmin
 integer :: nplot
 real, allocatable, dimension(:) :: px,py
 real(double) :: Rmin,Rmax,bpix,tavg
-real(double), allocatable, dimension(:,:) :: Image,tImage,dTrace,bf
+real(double), allocatable, dimension(:,:) :: Image,tImage,dTrace,bf,solpsf
 character(80) :: Imagename
 character(80), allocatable, dimension(:) :: header
 
@@ -34,13 +34,13 @@ interface
    end subroutine displayfits
 end interface
 interface
-   subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf)
+   subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
       use precision
       implicit none
       integer :: nline,nTrace
       integer, dimension(2), intent(inout) :: naxes
       real(double), intent(inout) :: bpix
-      real(double), dimension(:,:), intent(inout) :: Image,dTrace,bf
+      real(double), dimension(:,:), intent(inout) :: Image,dTrace,bf,solpsf
    end subroutine trace
 end interface
 interface
@@ -133,12 +133,15 @@ call pgline(nymax,px,py)
 deallocate(px,py)
 
 !generate trace
-allocate(dtrace(naxes(1),nTrace),bf(naxes(1),nTrace))
+nfit=1+9*ntrace
+allocate(dtrace(naxes(1),nTrace),bf(naxes(1),nTrace),solpsf(naxes(1),nfit))
 dTrace=0.0d0
-call trace(naxes,Image,bpix,nline,nTrace,dTrace,bf)
+call trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
+write(6,'(I2,1X,I4)') ntrace,naxes(1)
 do i=1,naxes(1)
-   write(6,'(I4,3(1X,F11.3),3(1X,1PE17.10))') i,(dTrace(i,j),j=1,3),    &
-      (bf(i,j),j=1,3)
+!   write(6,'(I4,3(1X,F11.3),3(1X,1PE17.10))') i,(dTrace(i,j),j=1,3),    &
+!      (bf(i,j),j=1,3)
+    write(6,'(I4,90(1X,1PE17.10))') i,(solpsf(i,j),j=1,nfit)
 enddo
 
 !extract aperture

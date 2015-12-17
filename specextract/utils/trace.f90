@@ -1,4 +1,4 @@
-subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf)
+subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
 !generates trace
 use precision
 implicit none
@@ -8,7 +8,7 @@ integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
    triplegaussian,sq2pi,pi,tracetest,tcut
-real(double), dimension(:,:) :: Image,dTrace,bf
+real(double), dimension(:,:) :: Image,dTrace,bf,solpsf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
    sol,model,solnew,amp,solfirst
 real(double), allocatable, dimension(:,:) :: Kernel,psf
@@ -185,6 +185,7 @@ do k=1,ntrace
 enddo
 write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,                           &
    (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,3)
+solpsf(nline,:)=sol(1:ntrace*9+1) !save PSF model for output
 
 allocate(model(size(line)))
 allocate(px(size(line)),py(size(line)))
@@ -254,6 +255,7 @@ do i=nline+1,naxes(1) !forward direction
 !      dTrace(i,k)=sol(9+9*(k-1))
       dTrace(i,k)=sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
    enddo
+   solpsf(i,:)=sol(1:ntrace*9+1) !save PSF model for output
 
    write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
 
@@ -296,6 +298,7 @@ do i=nline-1,1,-1 !negative direction
 !      dTrace(i,k)=sol(9+9*(k-1))
       dTrace(i,k)=sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
    enddo
+   solpsf(i,:)=sol(1:ntrace*9+1) !save PSF model for output
 
    write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
 
