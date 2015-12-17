@@ -83,11 +83,12 @@ allocate(header(nkeysmax))
 Image=bpix !initialize Image array with bad-pixels
 call getfits(Imagename,naxes,Image,Rmin,Rmax,nkeys,header,bpix)
 
-do i=1,naxes(1)
-   do j=1,naxes(2)
-      Image(i,j)=max(-0.0d0,Image(i,j))
-   enddo
-enddo
+!no need remove negative pixels
+!do i=1,naxes(1)
+!   do j=1,naxes(2)
+!      Image(i,j)=max(-0.0d0,Image(i,j))
+!   enddo
+!enddo
 
 !write(0,*) "Naxes:" ,naxes(1),naxes(2)
 !write(0,*) "Rmin, Rmax: ",Rmin,Rmax
