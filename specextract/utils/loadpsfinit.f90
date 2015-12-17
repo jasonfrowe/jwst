@@ -18,11 +18,11 @@ allocate(solt(nfit))
 
 !initial model template based on fit to noiseless PSF trace at line 800.
 solt(1)=0.0d0 !background
-!first Gaussian
+!first Gaussian - relative to third
 solt(2)=1.5406681  !amplitude
 solt(3)=-7.442  !position
 solt(4)=1.60659  !width
-!Second Gaussian
+!Second Gaussian - relative to third
 solt(5)=1.5942485  !amplitude
 solt(6)=8.372  !position
 solt(7)=1.77816  !width
@@ -47,14 +47,14 @@ do k=1,ntrace
    xp=min(size(line),i+ncutd2)
    Sintsol=Sum(line(xm:xp)) !Sum of line elements over width of ncutpsf
 !   write(0,*) k,Sintsol
-   sol(2+9*(k-1))=solt(2)*Sintsol/Sintsolt
-   sol(3+9*(k-1))=solt(3)+dble(i)
+   sol(2+9*(k-1))=solt(2)
+   sol(3+9*(k-1))=solt(3)
    sol(4+9*(k-1))=solt(4)
-   sol(5+9*(k-1))=solt(5)*Sintsol/Sintsolt
-   sol(6+9*(k-1))=solt(6)+dble(i)
+   sol(5+9*(k-1))=solt(5)
+   sol(6+9*(k-1))=solt(6)
    sol(7+9*(k-1))=solt(7)
    sol(8+9*(k-1))=solt(8)*Sintsol/Sintsolt
-   sol(9+9*(k-1))=solt(9)+dble(i)
+   sol(9+9*(k-1))=dble(i)
    sol(10+9*(k-1))=solt(10)
 enddo
 

@@ -7,12 +7,19 @@ real(double) :: triplegaussian,x
 real(double), dimension(nfit) :: sol
 
 triplegaussian=sol(1)
-do i=1,3
-   np=3*(i-1)
-   triplegaussian=triplegaussian+sol(np+2)*exp(-(x-sol(np+3))**2.0d0/   &
-      (2.0d0*sol(np+4)*sol(np+4)))
-enddo
-!write(0,*) "tp:",triplegaussian
+!first Gaussian
+triplegaussian=triplegaussian+                                          &
+               sol(2)*sol(8)*exp(-(x-sol(3)-sol(9))**2.0d0/             &
+               (2.0d0*sol(4)*sol(4)))
+!second Gaussian
+triplegaussian=triplegaussian+                                          &
+               sol(5)*sol(8)*exp(-(x-sol(6)-sol(9))**2.0d0/             &
+               (2.0d0*sol(7)*sol(7)))
+!third Gaussian
+triplegaussian=triplegaussian+                                          &
+               sol(8)*exp(-(x-sol(9))**2.0d0/             &
+               (2.0d0*sol(10)*sol(10)))
+
 
 return
 end function triplegaussian

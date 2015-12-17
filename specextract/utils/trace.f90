@@ -67,7 +67,7 @@ sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
 bcut=10.0d0      !threshold for finding a trace
-tcut=3.0d0       !threshold for traces to jump
+tcut=10.0d0       !threshold for traces to jump
 ncutpsf=24       !width of PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
    write(0,*) "Error: ncutpsf must be less than nKsize"
@@ -168,21 +168,23 @@ line=Image(nline,:)    !we start at user-defined 'nline'
 allocate(sol(ntrace*9+1),isol(ntrace*9+1),solnew(ntrace*9+1),amp(ntrace))
 call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
 !write(0,*) "****",(sol(i),i=1,ntrace*9+1)
-write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,(sol(9+9*(k-1)),k=1,3)
+write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,                           &
+   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,3)
 isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
 call modelline(naxes(2),line,ntrace,sol,isol)
 do k=1,ntrace
-   amp(k)=sq2pi*solnew(2+9*(k-1))*solnew(4+9*(k-1))+                    &
-          sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                    &
+   amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
+          sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
           sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
    bf(i,k)=amp(k)
 enddo
 do k=1,ntrace
 !   dTrace(nline,k)=sol(9+9*(k-1))
-   dTrace(nline,k)=(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
+   dTrace(nline,k)=sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
 enddo
-write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,(sol(9+9*(k-1)),k=1,3)
+write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,                           &
+   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,3)
 
 allocate(model(size(line)))
 allocate(px(size(line)),py(size(line)))
@@ -198,6 +200,9 @@ call pgline(size(line),px,py) !plot a line
 call pgsci(1) !change plotting colour back to default
 deallocate(px,py) !de-allocate plotting variables
 deallocate(model)
+!write(0,*) "pause.."
+!read(5,*)
+
 
 allocate(solfirst(ntrace*9+1),isolfirst(ntrace*9+1))
 solfirst=sol !save solution from first line
@@ -212,8 +217,8 @@ do i=nline+1,naxes(1) !forward direction
    call modelline(naxes(2),line,ntrace,solnew,isol) !model
 !  now check the amplitudes and changes in trace
    do k=1,ntrace
-      amp(k)=sq2pi*solnew(2+9*(k-1))*solnew(4+9*(k-1))+                 &
-             sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                 &
+      amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
+             sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
       bf(i,k)=amp(k)
       if(amp(k).lt.bcut)then  !if amplitude is too low - kill trace
@@ -223,8 +228,9 @@ do i=nline+1,naxes(1) !forward direction
             bf(i,k)=0.0d0
          enddo
       endif
-      tracetest=(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
+      tracetest=sol(9+9*(k-1))+(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
       if(abs(dTrace(i-1,k)-tracetest).gt.tcut)then !if trace jumps. kill trace
+         write(0,*) "Trace Jumped ",k,tracetest,dTrace(i-1,k)
          do j=2+9*(k-1),10+9*(k-1)
             solnew(j)=0.0d0
             isol(j)=0
@@ -236,7 +242,7 @@ do i=nline+1,naxes(1) !forward direction
    sol=solnew
    do k=1,ntrace
 !      dTrace(i,k)=sol(9+9*(k-1))
-      dTrace(i,k)=(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
+      dTrace(i,k)=sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
    enddo
 
    write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
@@ -253,8 +259,8 @@ do i=nline-1,1,-1 !negative direction
    call modelline(naxes(2),line,ntrace,solnew,isol) !model
 !  now check the amplitudes and changes in trace
    do k=1,ntrace
-      amp(k)=sq2pi*solnew(2+9*(k-1))*solnew(4+9*(k-1))+                 &
-             sq2pi*solnew(5+9*(k-1))*solnew(7+9*(k-1))+                 &
+      amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
+             sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
       bf(i,k)=amp(k)
       if(amp(k).lt.bcut)then  !amplitude is too low.. kill trace
@@ -264,8 +270,9 @@ do i=nline-1,1,-1 !negative direction
             bf(i,k)=0.0d0
          enddo
       endif
-      tracetest=(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
+      tracetest=sol(9+9*(k-1))+(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
       if(abs(dTrace(i+1,k)-tracetest).gt.tcut)then !trace jumped alot
+         write(0,*) "Trace Jumped ",k,tracetest,dTrace(i+1,k)
          do j=2+9*(k-1),10+9*(k-1)  !kill trace
             solnew(j)=0.0d0
             isol(j)=0
@@ -277,34 +284,13 @@ do i=nline-1,1,-1 !negative direction
    sol=solnew
    do k=1,ntrace
 !      dTrace(i,k)=sol(9+9*(k-1))
-      dTrace(i,k)=(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
+      dTrace(i,k)=sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
    enddo
 
    write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
 
-
 enddo
 
-!do i=1,naxes(1)
-!   write(6,*) i,dTrace(i,k)
-!enddo
-
-!plotting to have a look
-!allocate(px(naxes(2)),py(naxes(2)))
-!do i=1,naxes(2)
-!   px(i)=real(i)
-!enddo
-!py=real(f)
-!!pmin=minval(py)
-!!py=log10(py-pmin+1.000)
-!call pgpage()
-!call pgsci(1)
-!call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
-!call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-!call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-!call pglabel("X (pixels)","Y (Counts)","")
-!call pgline(naxes(2),px,py)
-!deallocate(px,py)
 
 write(0,*) "End of Trace.. "
 return
