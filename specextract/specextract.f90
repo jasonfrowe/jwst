@@ -140,9 +140,7 @@ do i=1,naxes(1)
 enddo
 
 !extract aperture
-!nTrace=1
 call apflux(naxes,Image,bpix,nTrace,dTrace)
-!nTrace=3
 
 !plot Image again
 call pgpanl(1,1)
