@@ -1,6 +1,6 @@
 subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
-!generates trace
+!generates trace - Version 2.0
 use precision
 implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
@@ -8,7 +8,7 @@ integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
 integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
-   triplegaussian,sq2pi,pi,tracetest,tcut
+   triplegaussian,sq2pi,pi,tracetest,tcut,sky,std
 real(double), dimension(:,:) :: Image,dTrace,bf,solpsf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
    sol,model,solnew,amp,solfirst
@@ -58,7 +58,15 @@ interface
       real(double), dimension(:), intent(inout) :: line,sol
    end subroutine modelline
 end interface
-
+interface
+   function getsky(naxes,Image,std)
+      use precision
+      implicit none
+      integer, dimension(2), intent(in) :: naxes
+      real(double) :: getsky,std
+      real(double), dimension(:,:), intent(in) :: Image
+   end function getsky
+end interface
 
 !constants
 nKsize=64        !size of Kernel for import (note.. this gets resized)
@@ -90,7 +98,6 @@ write(0,*) "knaxes: ",knaxes
 allocate(lpsf(nKsize),psfwork(nKsize))
 lpsf=Sum(Kernel,2)
 lpsf=lpsf(nKsize:1:-1) !looks like the PSF needs to be flipped to match spgen
-!lpsf=lpsf-minval(lpsf) !remove zero point?
 
 allocate(psf(nKsize,ntrace))
 do i=1,nTrace    !make a trace for each order.
@@ -101,8 +108,10 @@ enddo
 allocate(line(naxes(2)))  !this will contain each column of data to scan
 
 line=Image(nline,:)    !we start at user-defined 'nline'
+sky=getsky(naxes,Image,std) !return sky and standard-deviation
+write(0,*) "Sky: ",sky,std
 !subtract off minimum value - maybe a true sky value would be better
-line=line-minval(line)
+line=line-sky
 
 do k=1,nTrace !loop over expected number of traces
 
@@ -138,19 +147,19 @@ do k=1,nTrace !loop over expected number of traces
 !  calculate residual
    line(xm:xp)=line(xm:xp)-lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)
 
-!  plot the fitted PSF against the line
-!  PGPLOT uses REAL*4, so we convert dble -> real
-   allocate(px(size(line(xm:xp))),py(size(line(xm:xp))))
-   do j=xm,xp
-      px(j-xm+1)=real(j)  !X axis
-   enddo
-   py=real(lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)) !Y-axis
-!   pmin=minval(py)
-!   py=log10(py-pmin+1.0d0)
-   call pgsci(2+k)  !change plotting colour
-   call pgline(size(line(xm:xp)),px,py) !plot a line
-   call pgsci(1) !change plotting colour back to default
-   deallocate(px,py) !de-allocate plotting variables
+!!  plot the fitted PSF against the line
+!!  PGPLOT uses REAL*4, so we convert dble -> real
+!   allocate(px(size(line(xm:xp))),py(size(line(xm:xp))))
+!   do j=xm,xp
+!      px(j-xm+1)=real(j)  !X axis
+!   enddo
+!   py=real(lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)) !Y-axis
+!!   pmin=minval(py)
+!!   py=log10(py-pmin+1.0d0)
+!   call pgsci(2+k)  !change plotting colour
+!   call pgline(size(line(xm:xp)),px,py) !plot a line
+!   call pgsci(1) !change plotting colour back to default
+!   deallocate(px,py) !de-allocate plotting variables
 
 !There can be siginficant differences compare to first pass, so
 !zero out residuals to avoid problems.
@@ -164,13 +173,13 @@ enddo
 
 !Lets model the line with a PSF.
 line=Image(nline,:)    !we start at user-defined 'nline'
+line=line-sky
 !load initial-Guess in sol.  The parameter isol controls with variables
 !are fit
 allocate(sol(ntrace*9+1),isol(ntrace*9+1),solnew(ntrace*9+1),amp(ntrace))
 call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
-!write(0,*) "****",(sol(i),i=1,ntrace*9+1)
-write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,                           &
-   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,3)
+!write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,                           &
+!   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,ntrace)
 isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
 call modelline(naxes(2),line,ntrace,sol,isol)
@@ -184,8 +193,8 @@ do k=1,ntrace
 !   dTrace(nline,k)=sol(9+9*(k-1))
    dTrace(nline,k)=sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0
 enddo
-write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,                           &
-   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,3)
+!write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,                           &
+!   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,ntrace)
 solpsf(nline,:)=sol(1:ntrace*9+1) !save PSF model for output
 
 allocate(model(size(line)))
@@ -224,7 +233,7 @@ isolfirst=isol
 
 do i=nline+1,naxes(1) !forward direction
    line=Image(i,:)  !get next column from image to use.
-   line=line-minval(line) !offset to zero - change to sky-subtraction
+   line=line-sky
    solnew=sol !save current solution
    call modelline(naxes(2),line,ntrace,solnew,isol) !model
 !  now check the amplitudes and changes in trace
@@ -258,7 +267,7 @@ do i=nline+1,naxes(1) !forward direction
    enddo
    solpsf(i,:)=sol(1:ntrace*9+1) !save PSF model for output
 
-   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
+!   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,ntrace)
 
 enddo
 
@@ -267,7 +276,7 @@ sol=solfirst
 isol=isolfirst
 do i=nline-1,1,-1 !negative direction
    line=Image(i,:)
-   line=line-minval(line)
+   line=line-sky
    solnew=sol !save current solution
    call modelline(naxes(2),line,ntrace,solnew,isol) !model
 !  now check the amplitudes and changes in trace
@@ -301,7 +310,7 @@ do i=nline-1,1,-1 !negative direction
    enddo
    solpsf(i,:)=sol(1:ntrace*9+1) !save PSF model for output
 
-   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,3)
+!   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,ntrace)
 
 enddo
 

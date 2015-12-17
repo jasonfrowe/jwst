@@ -73,6 +73,7 @@ if(ntrace.lt.1)then   !check that value is valid
    write(0,*) "<ntrace> must be greater than zero"
    stop
 endif
+write(0,*) "nTrace: ",ntrace
 
 !read in FITS file
 bpix=1.0e30  !mark bad pixels
@@ -88,6 +89,17 @@ endif
 allocate(header(nkeysmax))
 Image=bpix !initialize Image array with bad-pixels
 call getfits(Imagename,naxes,Image,Rmin,Rmax,nkeys,header,bpix)
+
+if((naxes(1).ne.nxmax).or.(naxes(2).ne.nymax))then
+   allocate(tImage(naxes(1),naxes(2)))
+   tImage(1:naxes(1),1:naxes(2))=Image(1:naxes(1),1:naxes(2))
+   deallocate(Image)
+   nxmax=naxes(1)
+   nymax=naxes(2)
+   allocate(Image(nxmax,nymax))
+   Image=tImage
+   deallocate(tImage)
+endif
 
 !no need remove negative pixels
 !do i=1,naxes(1)
@@ -133,8 +145,8 @@ py=real(Image(nline,:))
 call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
-!call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-call pgwindow(200.0,350.0,minval(py),maxval(py(200:350)))
+call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
+!call pgwindow(50.0,250.0,minval(py),maxval(py(50:250)))
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 call pglabel("X (pixels)","Y (Counts)","")
 call pgline(nymax,px,py)
@@ -159,13 +171,13 @@ call apflux(naxes,Image,bpix,nTrace,dTrace)
 call pgpanl(1,1)
 call displayfits(nxmax,nymax,Image,bpix,tavg)
 allocate(px(naxes(1)),py(naxes(1)))
-do i=1,3!nTrace
+do i=1,nTrace
    nplot=0
    do j=1,naxes(1)
-      if(bf(j,i).gt.10.0)then
+      if(bf(j,i).gt.1.0)then
          nplot=nplot+1
          px(nplot)=real(j)
-         py(nplot)=real(dTrace(nplot,i))
+         py(nplot)=real(dTrace(j,i))
       endif
    enddo
    call pgsci(2+i)

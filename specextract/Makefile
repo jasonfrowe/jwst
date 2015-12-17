@@ -39,12 +39,14 @@ apextractincl = precision.o getfits.o
 apextract: apextract.f90 $(apextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ apextract.f90 $(apextractincl) $(LIBS2)
 
-specextractincl = precision.o fittingmod.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o loadpsfinit.o triplegaussian.o psfmodel1d.o modelline.o minpack.o 
+specextractincl = precision.o fittingmod.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o loadpsfinit.o triplegaussian.o psfmodel1d.o modelline.o minpack.o getsky.o
 specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
 
+getsky.o: $(UTILS)getsky.f90
+	$(F90) $(FFLAGS) $(UTILS)getsky.f90
 fittingmod.o: $(UTILS)fittingmod.f90
 	$(F90) $(FFLAGS) $(UTILS)fittingmod.f90
 modelline.o: $(UTILS)modelline.f90
