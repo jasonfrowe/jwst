@@ -2,7 +2,8 @@ program specextract
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
-integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status,nfit
+integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status,    &
+   nfit,dumi
 integer, dimension(2) :: naxes
 real :: pmin
 integer :: nplot
@@ -79,7 +80,7 @@ write(0,*) "nTrace: ",ntrace
 bpix=1.0e30  !mark bad pixels
 nkeysmax=700
 nxmax=2048
-nymax=512
+nymax=2048
 allocate(Image(nxmax,nymax),stat=status)
 if(status.gt.0) then !fix for gfortran
    write(0,*) "Allocation of Image array failed.."
@@ -89,6 +90,13 @@ endif
 allocate(header(nkeysmax))
 Image=bpix !initialize Image array with bad-pixels
 call getfits(Imagename,naxes,Image,Rmin,Rmax,nkeys,header,bpix)
+write(0,*) "FITS read..",naxes
+!For CV3
+Image=transpose(Image)
+write(0,*) "hello"
+dumi=naxes(1)
+naxes(1)=naxes(2)
+naxes(2)=dumi
 
 if((naxes(1).ne.nxmax).or.(naxes(2).ne.nymax))then
    allocate(tImage(naxes(1),naxes(2)))
