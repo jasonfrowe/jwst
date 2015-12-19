@@ -3,7 +3,7 @@ program apextract
 use precision
 implicit none
 integer :: iargc,nkeysmax,nxmax,nymax,status,nkeys,dumi,filestatus,     &
-   nunit,ntrace,nlines,nfit,i,j,k,nplot
+   nunit,ntrace,nlines,nfit,i,j,k,nplot,nfitline
 integer, dimension(2) :: naxes
 real, allocatable, dimension(:) :: px,py
 real(double) :: bpix,Rmin,Rmax,tavg,avgsplitlength,tilt
@@ -52,6 +52,14 @@ interface
       real(double), intent(in) :: avgsplitlength,tilt
       real(double), dimension(:,:), intent(in) :: apfluxl,apfluxu
    end subroutine xcorr
+end interface
+interface
+   subroutine fitline(nlines,nTrace,apfluxl,apfluxu,nfit)
+      use precision
+      implicit none
+      integer, intent(in) :: nfit,nlines,nTrace
+      real(double), dimension(:,:), intent(inout) :: apfluxl,apfluxu
+   end subroutine fitline
 end interface
 
 !get filename
@@ -104,7 +112,7 @@ endif
 !open up pgplot window
 call pgopen('/xserve')
 call PGPAP (8.0 ,1.0) !use a square 8" across
-call pgsubp(1,2)
+call pgsubp(1,4)
 call pgpage()
 
 tavg=0.0 !displays a time on the image
@@ -129,7 +137,7 @@ endif
 
 nfit=1+9*ntrace
 allocate(solpsf(nlines,nfit),psf(nfit))
-
+!read in data from file line by line
 do
    read(nunit,*,iostat=filestatus) i,(psf(j),j=1,nfit)
    if(filestatus == 0) then
@@ -174,9 +182,55 @@ do i=1,nTrace
    call pgsci(2+i)
    call pgline(nplot,px,py)
 enddo
+deallocate(px,py)
 
+!extract flux on each side of the trace via PSF model
 allocate(apfluxl(nlines,nTrace),apfluxu(nlines,nTrace))
 call apsplit(naxes,Image,nlines,nTrace,solpsf,apfluxl,apfluxu)
+
+nfitline=12
+call fitline(nlines,nTrace,apfluxl,apfluxu,nfitline)
+
+allocate(px(nlines),py(nlines))
+nplot=0
+k=1 !plot first Trace
+do i=1,nlines
+!   if(apfluxl(i,k).gt.0.0)then
+      nplot=nplot+1
+      px(nplot)=real(i)
+      py(nplot)=real(apfluxl(i,k))
+!      write(0,*) px(nplot),py(nplot)
+!   endif
+enddo
+call pgpage()
+call pgsci(1)
+call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
+call pgwindow(minval(px(1:nplot)),maxval(px(1:nplot)),                  &
+   minval(py(1:nplot)),maxval(py(1:nplot))) !plot scale
+!call pgwindow(50.0,250.0,minval(py),maxval(py(50:250)))
+call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
+call pglabel("X (pixels)","Y (Counts)","")
+call pgline(nplot,px,py)
+nplot=0
+k=1 !plot first Trace
+do i=1,nlines
+!   if(apfluxu(i,k).gt.0.0)then
+      nplot=nplot+1
+      px(nplot)=real(i)
+      py(nplot)=real(apfluxu(i,k))
+!   endif
+enddo
+call pgpage()
+call pgsci(1)
+call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
+call pgwindow(minval(px(1:nplot)),maxval(px(1:nplot)),                  &
+   minval(py(1:nplot)),maxval(py(1:nplot))) !plot scale
+!call pgwindow(50.0,250.0,minval(py),maxval(py(50:250)))
+call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
+call pglabel("X (pixels)","Y (Counts)","")
+call pgline(nplot,px,py)
+deallocate(px,py)
+
 
 !estimate the average difference between the two peaks of the PSF
 k=0

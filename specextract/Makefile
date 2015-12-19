@@ -35,7 +35,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract apextract
 
-apextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o
+apextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o lfit.o fitline.o
 apextract: apextract.f90 $(apextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ apextract.f90 $(apextractincl) $(LIBS2) -lfftw3
 
@@ -45,6 +45,10 @@ specextract: specextract.f90 $(specextractincl)
 
 #building object libraries
 
+fitline.o: $(UTILS)fitline.f90
+	$(F90) $(FFLAGS) $(UTILS)fitline.f90
+lfit.o: $(UTILS)lfit.f
+	$(F90) $(FFLAGS) $(UTILS)lfit.f
 spline.o: $(UTILS)spline.f
 	$(F90) $(FFLAGS) $(UTILS)spline.f
 xcorr.o: $(UTILS)xcorr.f90

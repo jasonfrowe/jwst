@@ -26,14 +26,15 @@ complex(C_DOUBLE_COMPLEX), allocatable, dimension(:) :: AC,BC,CC
 Pi=acos(-1.d0)       !define Pi
 rad2deg=180.0/Pi
 
-!start subroutine...
+k=1 !work on first trace
+
+
+!choose oversampling and then allocate arrays
 noversample=8
 XF=nlines*noversample !make arrays bigger for oversampling
 allocate(A(XF),B(XF),C(XF))
 nh=(XF/2)+1
 allocate(AC(nh),BC(nh),CC(nh))
-
-k=1 !work on first trace
 
 A=0.0d0 !initialize to zero (for zero-padding)
 B=0.0d0
