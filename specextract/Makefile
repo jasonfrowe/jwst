@@ -35,9 +35,9 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract apextract
 
-apextractincl = precision.o getfits.o 
+apextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o
 apextract: apextract.f90 $(apextractincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ apextract.f90 $(apextractincl) $(LIBS2)
+	$(F90) $(LFLAGS) -o $(BIN)$@ apextract.f90 $(apextractincl) $(LIBS2) -lfftw3
 
 specextractincl = precision.o fittingmod.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o loadpsfinit.o triplegaussian.o psfmodel1d.o modelline.o minpack.o getsky.o
 specextract: specextract.f90 $(specextractincl)
@@ -45,6 +45,12 @@ specextract: specextract.f90 $(specextractincl)
 
 #building object libraries
 
+spline.o: $(UTILS)spline.f
+	$(F90) $(FFLAGS) $(UTILS)spline.f
+xcorr.o: $(UTILS)xcorr.f90
+	$(F90) $(FFLAGS) $(UTILS)xcorr.f90
+apsplit.o: $(UTILS)apsplit.f90
+	$(F90) $(FFLAGS) $(UTILS)apsplit.f90
 getsky.o: $(UTILS)getsky.f90
 	$(F90) $(FFLAGS) $(UTILS)getsky.f90
 fittingmod.o: $(UTILS)fittingmod.f90

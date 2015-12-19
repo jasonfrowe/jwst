@@ -216,13 +216,13 @@ deallocate(model)
 
 !fixing the shape of the PSF model (only central position and amplitude)
 do k=1,ntrace
-   isol(2+9*(k-1))=0
-   isol(3+9*(k-1))=0
-   isol(4+9*(k-1))=0
-   isol(5+9*(k-1))=0
-   isol(6+9*(k-1))=0
-   isol(7+9*(k-1))=0
-   isol(10+9*(k-1))=0
+   isol(2+9*(k-1))=0 !amplitude
+   isol(3+9*(k-1))=0 !position
+   isol(4+9*(k-1))=0 !width
+   isol(5+9*(k-1))=0 !amplitude
+   isol(6+9*(k-1))=0 !position
+   isol(7+9*(k-1))=0 !width
+   isol(10+9*(k-1))=0 !width
 enddo
 
 allocate(solfirst(ntrace*9+1),isolfirst(ntrace*9+1))

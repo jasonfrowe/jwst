@@ -90,13 +90,14 @@ endif
 allocate(header(nkeysmax))
 Image=bpix !initialize Image array with bad-pixels
 call getfits(Imagename,naxes,Image,Rmin,Rmax,nkeys,header,bpix)
-write(0,*) "FITS read..",naxes
+!write(0,*) "FITS read..",naxes
 !For CV3
-Image=transpose(Image)
-write(0,*) "hello"
-dumi=naxes(1)
-naxes(1)=naxes(2)
-naxes(2)=dumi
+if(naxes(1).lt.naxes(2))then
+   Image=transpose(Image)
+   dumi=naxes(1)
+   naxes(1)=naxes(2)
+   naxes(2)=dumi
+endif
 
 if((naxes(1).ne.nxmax).or.(naxes(2).ne.nymax))then
    allocate(tImage(naxes(1),naxes(2)))
