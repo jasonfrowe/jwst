@@ -11,7 +11,7 @@ integer :: nlines,nTrace
 real(double) :: avgsplitlength
 real(double), dimension(:,:) :: apfluxl,apfluxu
 
-integer :: XF,i,j,k,nplot,noversample,imax
+integer :: XF,i,j,k,nplot,noversample,imax,jj
 real, allocatable, dimension(:) :: px,py
 real(double) :: x,y,dnover,Pi,rad2deg,maxc,tilt
 real(double), allocatable, dimension(:) :: A,B,C,xl,yl,yu,yl2,yu2
@@ -92,13 +92,14 @@ do i=1,size(C)
    endif
 enddo
 
-j=size(C)
-if(imax.gt.j/2)then
-   tilt=atan(real(imax-j)/dnover/avgsplitlength)*rad2deg
+jj=size(C)
+if(imax.gt.jj/2)then
+   tilt=atan(real(imax-jj)/dnover/avgsplitlength)*rad2deg
 else
    tilt=atan(real(imax)/dnover/avgsplitlength)*rad2deg
 endif
 !tilt=-tilt
+write(0,*) "tilt :",tilt,imax,maxc
 write(tilttext,'(A6,F5.2)') "Tilt: ",tilt
 
 j=50*noversample

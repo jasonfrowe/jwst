@@ -3,7 +3,7 @@ program apextract
 use precision
 implicit none
 integer :: iargc,nkeysmax,nxmax,nymax,status,nkeys,dumi,filestatus,     &
-   nunit,ntrace,nlines,nfit,i,j,k,nplot,nfitline
+   nunit,ntrace,nlines,nfit,i,j,k,nplot,nfitline,nbin
 integer, dimension(2) :: naxes
 real, allocatable, dimension(:) :: px,py
 real(double) :: bpix,Rmin,Rmax,tavg,avgsplitlength,tilt
@@ -60,6 +60,14 @@ interface
       integer, intent(in) :: nfit,nlines,nTrace
       real(double), dimension(:,:), intent(inout) :: apfluxl,apfluxu
    end subroutine fitline
+end interface
+interface
+   subroutine polyfilter(nlines,nTrace,apfluxl,apfluxu,nbin)
+      use precision
+      implicit none
+      integer, intent(in) :: nlines,nTrace,nbin
+      real(double), dimension(:,:), intent(inout) :: apfluxl,apfluxu
+   end subroutine polyfilter
 end interface
 
 !get filename
@@ -188,8 +196,13 @@ deallocate(px,py)
 allocate(apfluxl(nlines,nTrace),apfluxu(nlines,nTrace))
 call apsplit(naxes,Image,nlines,nTrace,solpsf,apfluxl,apfluxu)
 
-nfitline=12
-call fitline(nlines,nTrace,apfluxl,apfluxu,nfitline)
+!fitting a polynomial to remove the continuum
+!nfitline=12
+!call fitline(nlines,nTrace,apfluxl,apfluxu,nfitline)
+
+!using a polynomial based bandpass filter to remove the continuum
+nbin=50 !width of bin for filtering
+call polyfilter(nlines,nTrace,apfluxl,apfluxu,nbin)
 
 allocate(px(nlines),py(nlines))
 nplot=0
