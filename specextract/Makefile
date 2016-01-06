@@ -33,11 +33,15 @@ BIN = /Users/rowe/Documents/jwst/specgen/
 UTILS = utils/
 
 #Listing of programs to create.
-all: specextract apextract
+all: specextract apextract tilt
 
 apextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o lfit.o fitline.o polyfilter.o
 apextract: apextract.f90 $(apextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ apextract.f90 $(apextractincl) $(LIBS2) -lfftw3
+
+tiltincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o lfit.o fitline.o polyfilter.o
+tilt: tilt.f90 $(apextractincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ tilt.f90 $(tiltincl) $(LIBS2) -lfftw3
 
 specextractincl = precision.o fittingmod.o getfits.o displayfits.o rqsort.o stdev.o trace.o apflux.o heatlut.o loadpsfinit.o triplegaussian.o psfmodel1d.o modelline.o minpack.o getsky.o
 specextract: specextract.f90 $(specextractincl)
