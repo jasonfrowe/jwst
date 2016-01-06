@@ -9,10 +9,14 @@ FFLAGS = -O3
 BIN = ./bin/
 UTILS = utils/
 
-all: specextract calcldco spgen genoskernel
+all: apextract specextract calcldco spgen genoskernel
 
 specextractsrc = specextract/
-specextractincl = $(specextractsrc)precision.o $(specextractsrc)fittingmod.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o $(specextractsrc)heatlut.o $(specextractsrc)loadpsfinit.o $(specextractsrc)triplegaussian.o $(specextractsrc)psfmodel1d.o $(specextractsrc)modelline.o $(specextractsrc)minpack.o
+apextractincl = $(specextractsrc)precision.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)heatlut.o $(specextractsrc)apsplit.o $(specextractsrc)xcorr.o $(specextractsrc)spline.o $(specextractsrc)lfit.o $(specextractsrc)fitline.o $(specextractsrc)polyfilter.o
+apextract: $(specextractsrc)apextract.f90 $(apextractincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ $(specextractsrc)apextract.f90 $(apextractincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS) $(FFTFLAGS)
+
+specextractincl = $(specextractsrc)precision.o $(specextractsrc)fittingmod.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o $(specextractsrc)heatlut.o $(specextractsrc)loadpsfinit.o $(specextractsrc)triplegaussian.o $(specextractsrc)psfmodel1d.o $(specextractsrc)modelline.o $(specextractsrc)minpack.o $(specextractsrc)getsky.o
 specextract: $(specextractsrc)specextract.f90 $(specextractincl)
 	$(F90) $(FFLAGS) -o $(BIN)$@ $(specextractsrc)specextract.f90 $(specextractincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS)
 	
@@ -20,7 +24,6 @@ calcldcosrc = limbdark/
 calcldcoincl = $(calcldcosrc)precision.o $(calcldcosrc)minpack.o $(calcldcosrc)fittingmod.o
 calcldco: $(calcldcosrc)calcldco.f90 $(calcldcoincl)
 	$(F90) $(FFLAGS) -o $(BIN)$@ $(calcldcosrc)calcldco.f90 $(calcldcoincl) $(LFLAGS) $(XFLAGS) $(PFLAGS)
-
 
 spgensrc = specgen/
 spgenincl = $(spgensrc)precision.o $(spgensrc)response.o $(spgensrc)readmodel.o $(spgensrc)writefits.o $(spgensrc)deletefile.o $(spgensrc)binmodel.o $(spgensrc)rqsort.o $(spgensrc)addflux2pix.o $(spgensrc)readkernels.o $(spgensrc)getfits.o $(spgensrc)genkernel.o $(spgensrc)spline.o $(spgensrc)convolveft.o $(spgensrc)ovrwrt.o $(spgensrc)readresponse.o $(spgensrc)readheader.o
@@ -39,6 +42,20 @@ genoskernel: $(spgensrc)genoskernel.f90 $(genoskernelincl)
 
 #Libs for SPECEXTRACT
 
+$(specextractsrc)polyfilter.o: $(specextractsrc)$(UTILS)polyfilter.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)polyfilter.f90
+$(specextractsrc)fitline.o: $(specextractsrc)$(UTILS)fitline.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)fitline.f90
+$(specextractsrc)lfit.o: $(specextractsrc)$(UTILS)lfit.f
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)lfit.f
+$(specextractsrc)spline.o: $(specextractsrc)$(UTILS)spline.f
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)spline.f
+$(specextractsrc)xcorr.o: $(specextractsrc)$(UTILS)xcorr.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)xcorr.f90
+$(specextractsrc)apsplit.o: $(specextractsrc)$(UTILS)apsplit.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)apsplit.f90
+$(specextractsrc)getsky.o: $(specextractsrc)$(UTILS)getsky.f90
+	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)getsky.f90
 $(specextractsrc)fittingmod.o: $(specextractsrc)$(UTILS)fittingmod.f90
 	cd $(specextractsrc) ; $(F90) -c $(FFLAGS) $(UTILS)fittingmod.f90
 $(specextractsrc)loadpsfinit.o: $(specextractsrc)$(UTILS)loadpsfinit.f90
