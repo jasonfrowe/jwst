@@ -1,4 +1,4 @@
-program tilt
+program tiltest
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
@@ -10,7 +10,7 @@ real(double) :: bpix,Rmin,Rmax,tavg,avgsplitlength,tilt
 real(double), allocatable, dimension(:) :: psf
 real(double), allocatable, dimension(:,:) :: Image,tImage,solpsf,dTrace,&
    apfluxl,apfluxu
-character(80) :: Imagename,tracename
+character(80) :: Imagename,tracename,cline
 character(80), allocatable, dimension(:) :: header
 
 interface
@@ -70,15 +70,25 @@ interface
    end subroutine polyfilter
 end interface
 
+nbin=50 !width of bin for filtering
+
 !get filename
 if(iargc().lt.2)then
-   write(0,*) "Usage: apextract <FITS> <tracepsf.dat>"
+   write(0,*) "Usage: apextract <FITS> <tracepsf.dat> [nbin]"
    write(0,*) "  <FITS>         : FITS file containing SOSS data"
    write(0,*) "  <tracepsf.dat> : Output from spectextract"
+   write(0,*) "  [nbin]         : filter length (optional), default=50"
    stop
 endif
 call getarg(1,Imagename)
 call getarg(2,tracename)
+if(iargc().ge.3)then
+   call getarg(3,cline)
+   read(cline,*) nbin
+   if(nbin.lt.0)then
+      write(0,*) "nbin must be greater than zero"
+   endif
+endif
 
 !read in FITS file
 bpix=1.0e30  !mark bad pixels
@@ -201,7 +211,7 @@ call apsplit(naxes,Image,nlines,nTrace,solpsf,apfluxl,apfluxu)
 !call fitline(nlines,nTrace,apfluxl,apfluxu,nfitline)
 
 !using a polynomial based bandpass filter to remove the continuum
-nbin=50 !width of bin for filtering
+!nbin controls the filter
 call polyfilter(nlines,nTrace,apfluxl,apfluxu,nbin)
 
 allocate(px(nlines),py(nlines))
@@ -260,4 +270,4 @@ write(6,'(A6,A32,1X,F6.3)') "Tilt: ",Imagename,tilt
 
 call pgclos()
 
-end program apextract
+end program tiltest
