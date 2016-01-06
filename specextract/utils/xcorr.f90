@@ -1,4 +1,4 @@
-subroutine xcorr(nlines,nTrace,apfluxl,apfluxu,avgsplitlength,tilt)
+subroutine xcorr(nlines,nTrace,apfluxl,apfluxu,avgsplitlength,tilt,imax)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 !iso_c_binding is for FFTW3 interface
@@ -28,9 +28,8 @@ rad2deg=180.0/Pi
 
 k=1 !work on first trace
 
-
 !choose oversampling and then allocate arrays
-noversample=8
+noversample=32
 XF=nlines*noversample !make arrays bigger for oversampling
 allocate(A(XF),B(XF),C(XF))
 nh=(XF/2)+1
@@ -99,10 +98,15 @@ else
    tilt=atan(real(imax)/dnover/avgsplitlength)*rad2deg
 endif
 !tilt=-tilt
-write(0,*) "tilt :",tilt,imax,maxc
-write(tilttext,'(A6,F5.2)') "Tilt: ",tilt
+!write(6,'(F9.4,1X,I5,1X,A12)') tilt,imax,"(deg,pixels)"
+!write(0,*) tilt,imax,size(C)
+if(imax.gt.size(C)/2)then
+   imax=imax-size(C)
+endif
+write(tilttext,'(A6,F9.4)') "Tilt: ",tilt
 
-j=50*noversample
+!j=50*noversample
+j=min(50,nlines)*noversample
 allocate(px(j*2),py(j*2))
 nplot=0
 k=1 !plot first Trace

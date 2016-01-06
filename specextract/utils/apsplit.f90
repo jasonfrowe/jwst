@@ -2,7 +2,7 @@ subroutine apsplit(naxes,Image,nlines,nTrace,solpsf,apfluxl,apfluxu)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
-integer nlines,nTrace,i,j,k,n1,n2,nplot
+integer nlines,nTrace,i,j,k,n1,n2,nplot,nstart,nend,nlinesex
 integer, dimension(2) :: naxes
 real, allocatable, dimension(:) :: px,py
 real(double) :: pos,width,apfac,avgsplitlength
