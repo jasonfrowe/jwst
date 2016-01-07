@@ -8,7 +8,7 @@ integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
 integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
-   triplegaussian,sq2pi,pi,tracetest,tcut,sky,std
+   triplegaussian,sq2pi,pi,tracetest,tcut,sky,std,snr,signal
 real(double), dimension(:,:) :: Image,dTrace,bf,solpsf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
    sol,model,solnew,amp,solfirst
@@ -75,8 +75,8 @@ Pi=acos(-1.d0)       !define Pi
 sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
-bcut=10.0d0      !threshold for finding a trace
-tcut=10.0d0       !threshold for traces to jump
+bcut=4.0d0       !S/N threshold for finding a trace
+tcut=10.0d0      !threshold for traces to jump
 ncutpsf=24       !width of PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
    write(0,*) "Error: ncutpsf must be less than nKsize"
@@ -147,19 +147,27 @@ do k=1,nTrace !loop over expected number of traces
 !  calculate residual
    line(xm:xp)=line(xm:xp)-lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)
 
-!!  plot the fitted PSF against the line
-!!  PGPLOT uses REAL*4, so we convert dble -> real
-!   allocate(px(size(line(xm:xp))),py(size(line(xm:xp))))
-!   do j=xm,xp
-!      px(j-xm+1)=real(j)  !X axis
-!   enddo
-!   py=real(lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)) !Y-axis
-!!   pmin=minval(py)
-!!   py=log10(py-pmin+1.0d0)
-!   call pgsci(2+k)  !change plotting colour
-!   call pgline(size(line(xm:xp)),px,py) !plot a line
-!   call pgsci(1) !change plotting colour back to default
-!   deallocate(px,py) !de-allocate plotting variables
+!  plot the fitted PSF against the line
+!  PGPLOT uses REAL*4, so we convert dble -> real
+   allocate(px(size(line(xm:xp))),py(size(line(xm:xp))))
+   do j=xm,xp
+      px(j-xm+1)=real(j)  !X axis
+   enddo
+   py=real(lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)) !Y-axis
+!   pmin=minval(py)
+!   py=log10(py-pmin+1.0d0)
+   call pgsci(2+k)  !change plotting colour
+   call pgline(size(line(xm:xp)),px,py) !plot a line
+   call pgsci(1) !change plotting colour back to default
+   deallocate(px,py) !de-allocate plotting variables
+
+!  calculate S/N
+   signal=Sum(lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k))
+   snr=signal/(sqrt(dble(xp-xm+1)*std))
+   write(0,*) "SNR: ",snr
+
+!  copy S/N into bf array to return
+   bf(nline,k)=snr
 
 !There can be siginficant differences compare to first pass, so
 !zero out residuals to avoid problems.
@@ -187,7 +195,9 @@ do k=1,ntrace
    amp(k)=sq2pi*sol(8+9*(k-1))*sol(2+9*(k-1))*sol(4+9*(k-1))+  &
           sq2pi*sol(8+9*(k-1))*sol(5+9*(k-1))*sol(7+9*(k-1))+  &
           sq2pi*sol(8+9*(k-1))*sol(10+9*(k-1))
-   bf(nline,k)=amp(k)
+   bf(nline,k)=amp(k)/(std*sqrt(sol(6+9*(k-1))-sol(3+9*(k-1))+          &
+    sol(4+9*(k-1))+sol(7+9*(k-1))))
+!   write(0,*) "SNR: ",bf(nline,k)
 enddo
 do k=1,ntrace
 !   dTrace(nline,k)=sol(9+9*(k-1))
@@ -195,7 +205,7 @@ do k=1,ntrace
 enddo
 !write(0,'(A2,1X,I4,3(1X,F11.3))') "**",nline,                           &
 !   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,ntrace)
-solpsf(nline,:)=sol(1:ntrace*9+1) !save PSF model for output
+solpsf(nline,:)=sol(1:ntrace*9+1) !save PSF model
 
 allocate(model(size(line)))
 allocate(px(size(line)),py(size(line)))
@@ -241,8 +251,11 @@ do i=nline+1,naxes(1) !forward direction
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
-      bf(i,k)=amp(k)
-      if(amp(k).lt.bcut)then  !if amplitude is too low - kill trace
+      bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(sol(6+9*(k-1))-sol(3+9*(k-1))+ &
+       sol(4+9*(k-1))+sol(7+9*(k-1)))))
+      if(bf(i,k).gt.0.0) write(0,*) i,k,bf(i,k)
+
+      if(bf(i,k).lt.bcut)then  !if amplitude is too low - kill trace
          do j=2+9*(k-1),10+9*(k-1)
             solnew(j)=0.0d0
             isol(j)=0
@@ -284,8 +297,9 @@ do i=nline-1,1,-1 !negative direction
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
-      bf(i,k)=amp(k)
-      if(amp(k).lt.bcut)then  !amplitude is too low.. kill trace
+      bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(sol(6+9*(k-1))-sol(3+9*(k-1))+ &
+       sol(4+9*(k-1))+sol(7+9*(k-1)))))
+      if(bf(i,k).lt.bcut)then  !amplitude is too low.. kill trace
          do j=2+9*(k-1),10+9*(k-1)
             solnew(j)=0.0d0   !set PSF model parameter to zero
             isol(j)=0         !disable variables
