@@ -79,7 +79,7 @@ if(iargc().lt.2)then
    write(0,*) "Usage: tilt <Image> <tracepsf.dat> [nbin]"
    write(0,*) "  <Image>        : FITS file containing SOSS data"
    write(0,*) "  <tracepsf.dat> : Output from spectextract"
-   write(0,*) "  [nbin]         : filter length (optional), default=20"
+   write(0,*) "  [nbin]         : filter length (pixels, optional), default=20"
    write(0,*) "  [nstart]       : Column to start correlation with"
    write(0,*) "  [nend]         : Column to end correlation with"
    stop

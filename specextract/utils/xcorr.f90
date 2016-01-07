@@ -13,7 +13,7 @@ real(double), dimension(:,:) :: apfluxl,apfluxu
 
 integer :: XF,i,j,k,nplot,noversample,imax,jj
 real, allocatable, dimension(:) :: px,py
-real(double) :: x,y,dnover,Pi,rad2deg,maxc,tilt
+real(double) :: x,y,dnover,Pi,rad2deg,maxc,tilt,tilterr
 real(double), allocatable, dimension(:) :: A,B,C,xl,yl,yu,yl2,yu2
 character(80) :: tilttext
 
@@ -64,7 +64,6 @@ do i=1,XF
    B(i)=y
 enddo
 
-
 !generate FFTW plans
 planA=fftw_plan_dft_r2c_1d(XF,A,AC,FFTW_ESTIMATE)
 planB=fftw_plan_dft_r2c_1d(XF,B,BC,FFTW_ESTIMATE)
@@ -97,6 +96,8 @@ if(imax.gt.jj/2)then
 else
    tilt=atan(real(imax)/dnover/avgsplitlength)*rad2deg
 endif
+tilterr=atan(-1.0d0/dnover/avgsplitlength)*rad2deg
+write(0,*) "tilt,err: ",tilt,tilterr
 !tilt=-tilt
 !write(6,'(F9.4,1X,I5,1X,A12)') tilt,imax,"(deg,pixels)"
 !write(0,*) tilt,imax,size(C)
