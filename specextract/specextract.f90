@@ -65,6 +65,7 @@ if(iargc().lt.2)then
    write(0,*) "Usage: specextract <FITS> <ntrace>"
    write(0,*) "  <FITS>   : FITS file containing SOSS data"
    write(0,*) "  <ntrace> : number of orders to trace.  Must be 1 or greater"
+   write(0,*) "  [nStart] : column to start trace with, optional (default=800)"
    stop
 endif
 call getarg(1,Imagename)
@@ -91,7 +92,7 @@ allocate(header(nkeysmax))
 Image=bpix !initialize Image array with bad-pixels
 call getfits(Imagename,naxes,Image,Rmin,Rmax,nkeys,header,bpix)
 !write(0,*) "FITS read..",naxes
-!For CV3
+!For CV3 we need to transpose the Image.
 if(naxes(1).lt.naxes(2))then
    Image=transpose(Image)
    dumi=naxes(1)
@@ -99,6 +100,7 @@ if(naxes(1).lt.naxes(2))then
    naxes(2)=dumi
 endif
 
+!compact memory requirements for array
 if((naxes(1).ne.nxmax).or.(naxes(2).ne.nymax))then
    allocate(tImage(naxes(1),naxes(2)))
    tImage(1:naxes(1),1:naxes(2))=Image(1:naxes(1),1:naxes(2))
@@ -108,6 +110,16 @@ if((naxes(1).ne.nxmax).or.(naxes(2).ne.nymax))then
    allocate(Image(nxmax,nymax))
    Image=tImage
    deallocate(tImage)
+endif
+
+!read in magic line if provided and check that value is valid
+if(iargc().ge.3)then
+   call getarg(3,cline)
+   read(cline,*) nline
+endif
+if((nline.lt.1).or.(nline.gt.naxes(1)))then
+   write(0,'(A30,I5)') "nline invalid, 1 <= nline <= ",naxes(1)
+   stop
 endif
 
 !no need remove negative pixels
@@ -129,7 +141,7 @@ call pgpage()
 tavg=0.0 !displays a time on the image
 call displayfits(nxmax,nymax,Image,bpix,tavg)
 
-!plot each column
+!plot sum of each column
 allocate(px(nxmax),py(nxmax))
 do i=1,nxmax
    px(i)=real(i)
