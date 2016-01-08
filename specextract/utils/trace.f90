@@ -241,7 +241,8 @@ isolfirst=isol
 
 !Next part is to use the found positions and develop the trace.
 
-do i=nline+1,naxes(1) !forward direction
+i=nline+1
+do while (i.le.naxes(1))
    line=Image(i,:)  !get next column from image to use.
    line=line-sky
    solnew=sol !save current solution
@@ -255,8 +256,15 @@ do i=nline+1,naxes(1) !forward direction
        sol(4+9*(k-1))+sol(7+9*(k-1)))))
       if(bf(i,k).gt.0.0) write(0,*) i,k,bf(i,k)
 
-      if(bf(i,k).lt.bcut)then  !if amplitude is too low - kill trace
-         do j=2+9*(k-1),10+9*(k-1)
+      if(bf(i,k).lt.bcut)then  !if amplitude is too low
+
+         !try averaging together a few columns
+         !bin=1
+         !line=0
+         !do j=-bin,bin
+         !line=Sum(Image(i,:)
+
+         do j=2+9*(k-1),10+9*(k-1)  !kill trace
             solnew(j)=0.0d0
             isol(j)=0
             bf(i,k)=0.0d0
@@ -281,13 +289,14 @@ do i=nline+1,naxes(1) !forward direction
    solpsf(i,:)=sol(1:ntrace*9+1) !save PSF model for output
 
 !   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,ntrace)
-
+   i=i+1
 enddo
 
 !restore solution from nline.
 sol=solfirst
 isol=isolfirst
-do i=nline-1,1,-1 !negative direction
+i=nline-1
+do while (i.ge.1)
    line=Image(i,:)
    line=line-sky
    solnew=sol !save current solution
@@ -325,7 +334,7 @@ do i=nline-1,1,-1 !negative direction
    solpsf(i,:)=sol(1:ntrace*9+1) !save PSF model for output
 
 !   write(0,'(A2,1X,I4,3(1X,F11.3))') "**",i,(dTrace(i,k),k=1,ntrace)
-
+   i=i-1
 enddo
 
 
