@@ -6,8 +6,9 @@ F77 = ifort
 #compiling object file flags
 OPT1 = -O3 -fast -parallel -ipo
 #OPT1 = -O0 -g -CB
-#OPT1 = -O3
-OPT2 = -heap-arrays 0
+#OPT1 = -O3 -parallel -ipo
+OPT2 = -heap-arrays 0 -g -traceback
+#OPT2 = 
 FFLAGS = -c $(OPT1) $(OPT2)
 #FFLAGS = -c -O0 -g -CB -warn $(OPT2)
 #linking flags

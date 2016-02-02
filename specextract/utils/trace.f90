@@ -4,7 +4,7 @@ subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
 use precision
 implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
-   nTp,jj,ncut,ncutpsf,ncutd2
+   nTp,jj,ncut,ncutpsf,ncutd2,ilinkpsf
 integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
@@ -50,10 +50,10 @@ interface
    end subroutine psfmodel1d
 end interface
 interface
-   subroutine modelline(npt,line,ntrace,sol,isol)
+   subroutine modelline(npt,line,ntrace,sol,isol,ilinkpsf)
       use precision
       implicit none
-      integer, intent(in) :: npt,ntrace
+      integer, intent(inout) :: npt,ntrace,ilinkpsf
       integer, dimension(:), intent(inout) :: isol
       real(double), dimension(:), intent(inout) :: line,sol
    end subroutine modelline
@@ -75,7 +75,7 @@ Pi=acos(-1.d0)       !define Pi
 sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
-bcut=4.0d0       !S/N threshold for finding a trace
+bcut=0.0d0       !S/N threshold for finding a trace
 tcut=10.0d0      !threshold for traces to jump
 ncutpsf=24       !width of PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
@@ -113,6 +113,8 @@ write(0,*) "Sky: ",sky,std
 !subtract off minimum value - maybe a true sky value would be better
 line=line-sky
 
+
+!this part is to get the initial positions of the traces for each order
 do k=1,nTrace !loop over expected number of traces
 
    maxf=0.0d0 !initalize scan for maximum value of f
@@ -178,6 +180,14 @@ do k=1,nTrace !loop over expected number of traces
    enddo
 enddo
 
+!now we have initial positions, if you want to override, then set
+!dtrace(nline,k) to appropriate guess of position (k=trace#)
+!dtrace(nline,1)=194
+!write(0,*) "dtrace2 ",dtrace(nline,2)
+if(nTrace.ge.2) dtrace(nline,2)=160.0
+if(nTrace.ge.3) dtrace(nline,3)=100.0
+!read(5,*)
+
 
 !Lets model the line with a PSF.
 line=Image(nline,:)    !we start at user-defined 'nline'
@@ -190,7 +200,12 @@ call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
 !   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,ntrace)
 isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
-call modelline(naxes(2),line,ntrace,sol,isol)
+ilinkpsf=1 !(0) - each order has own PSF, (1) PSF shapes linked
+!do i=1,size(sol)
+!   write(0,*) "sol:",i,sol(i)
+!enddo
+
+call modelline(naxes(2),line,ntrace,sol,isol,ilinkpsf)
 do k=1,ntrace
    amp(k)=sq2pi*sol(8+9*(k-1))*sol(2+9*(k-1))*sol(4+9*(k-1))+  &
           sq2pi*sol(8+9*(k-1))*sol(5+9*(k-1))*sol(7+9*(k-1))+  &
@@ -224,6 +239,11 @@ deallocate(model)
 !write(0,*) "pause.."
 !read(5,*)
 
+!do i=1,size(sol)
+!   write(0,*) "sol:",i,sol(i)
+!enddo
+!read(5,*)
+
 !fixing the shape of the PSF model (only central position and amplitude)
 do k=1,ntrace
    isol(2+9*(k-1))=0 !amplitude
@@ -246,7 +266,7 @@ do while (i.le.naxes(1))
    line=Image(i,:)  !get next column from image to use.
    line=line-sky
    solnew=sol !save current solution
-   call modelline(naxes(2),line,ntrace,solnew,isol) !model
+   call modelline(naxes(2),line,ntrace,solnew,isol,ilinkpsf) !model
 !  now check the amplitudes and changes in trace
    do k=1,ntrace
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
@@ -300,7 +320,7 @@ do while (i.ge.1)
    line=Image(i,:)
    line=line-sky
    solnew=sol !save current solution
-   call modelline(naxes(2),line,ntrace,solnew,isol) !model
+   call modelline(naxes(2),line,ntrace,solnew,isol,ilinkpsf) !model
 !  now check the amplitudes and changes in trace
    do k=1,ntrace
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &

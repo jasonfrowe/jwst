@@ -15,11 +15,11 @@ specextractsrc = specextract/
 
 tiltincl = $(specextractsrc)precision.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)heatlut.o $(specextractsrc)apsplit.o $(specextractsrc)xcorr.o $(specextractsrc)spline.o $(specextractsrc)lfit.o $(specextractsrc)fitline.o $(specextractsrc)polyfilter.o
 tilt: $(specextractsrc)apextract.f90 $(tiltincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ $(specextractsrc)tilt.f90 $(tiltincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS) $(FFTFLAGS)
+	$(F90) $(FFLAGS) -o $(BIN)$@ $(specextractsrc)tilt.f90 $(tiltincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS) $(FFTFLAGS)
 
 apextractincl = $(specextractsrc)precision.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)heatlut.o $(specextractsrc)apsplit.o $(specextractsrc)xcorr.o $(specextractsrc)spline.o $(specextractsrc)lfit.o $(specextractsrc)fitline.o $(specextractsrc)polyfilter.o
 apextract: $(specextractsrc)apextract.f90 $(apextractincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ $(specextractsrc)apextract.f90 $(apextractincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS) $(FFTFLAGS)
+	$(F90) $(FFLAGS) -o $(BIN)$@ $(specextractsrc)apextract.f90 $(apextractincl) $(LFLAGS) $(XFLAGS) $(PFLAGS) $(CFLAGS) $(FFTFLAGS)
 
 specextractincl = $(specextractsrc)precision.o $(specextractsrc)fittingmod.o $(specextractsrc)getfits.o $(specextractsrc)displayfits.o $(specextractsrc)rqsort.o $(specextractsrc)stdev.o $(specextractsrc)trace.o $(specextractsrc)apflux.o $(specextractsrc)heatlut.o $(specextractsrc)loadpsfinit.o $(specextractsrc)triplegaussian.o $(specextractsrc)psfmodel1d.o $(specextractsrc)modelline.o $(specextractsrc)minpack.o $(specextractsrc)getsky.o
 specextract: $(specextractsrc)specextract.f90 $(specextractincl)

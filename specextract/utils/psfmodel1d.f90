@@ -7,6 +7,8 @@ real(double) x,triplegaussian
 real(double), dimension(:) :: model,sol
 real(double), allocatable, dimension(:) :: sol1
 
+!write(0,*) "PSFModel?? start"
+
 nfit=10 !parameters for triple-gaussian
 allocate(sol1(nfit))
 
@@ -21,5 +23,6 @@ do k=1,ntrace
    enddo
 enddo
 
+!write(0,*) "PSFModel?? end"
 
 end subroutine psfmodel1d

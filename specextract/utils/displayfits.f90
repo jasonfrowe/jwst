@@ -99,7 +99,8 @@ enddo
 !write(0,*) "lmin,lmax: ",lmin,lmax
 !z1=log10(minlp-minlp+1.0)
 z1=log10(max(0.0,med-2.0*std-minlp)+1.0)
-z2=log10(maxp-minlp+1.0)
+!z2=log10(maxp-minlp+1.0)
+z2=log10(max(0.0,med+50.0*std-minlp)+1.0)
 
 !uncommnet for a sqrt scale opposed to log
 !lparray=sqrt(parray-minp)

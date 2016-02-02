@@ -54,15 +54,15 @@ do k=1,ntrace
    sol(5+9*(k-1))=solt(5)
    sol(6+9*(k-1))=solt(6)
    sol(7+9*(k-1))=solt(7)
-   sol(8+9*(k-1))=solt(8)*Sintsol/Sintsolt
-   sol(9+9*(k-1))=dble(i)
+   sol(8+9*(k-1))=solt(8)*Sintsol/Sintsolt  !amplitude
+   sol(9+9*(k-1))=dble(i)                   !position
    sol(10+9*(k-1))=solt(10)
 enddo
 
 !do i=1,size(sol)
 !   write(0,*) "sol:",i,sol(i)
 !enddo
-
+!
 !read(5,*)
 
 return
