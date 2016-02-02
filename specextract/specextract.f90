@@ -9,6 +9,7 @@ real :: pmin
 integer :: nplot
 real, allocatable, dimension(:) :: px,py
 real(double) :: Rmin,Rmax,bpix,tavg
+real(double), allocatable, dimension(:) :: posguess
 real(double), allocatable, dimension(:,:) :: Image,tImage,dTrace,bf,solpsf
 character(80) :: Imagename,cline
 character(80), allocatable, dimension(:) :: header
@@ -36,12 +37,13 @@ interface
    end subroutine displayfits
 end interface
 interface
-   subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
+   subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf,posguess)
       use precision
       implicit none
       integer :: nline,nTrace
       integer, dimension(2), intent(inout) :: naxes
       real(double), intent(inout) :: bpix
+      real(double), dimension(:) :: posguess
       real(double), dimension(:,:), intent(inout) :: Image,dTrace,bf,solpsf
    end subroutine trace
 end interface
@@ -122,6 +124,20 @@ if((nline.lt.1).or.(nline.gt.naxes(1)))then
    stop
 endif
 
+!if there is a magic line, then one can also allow initial guesses
+!for trace location.  Good for low S/N cases
+allocate(posguess(ntrace))
+posguess=-1.0d0 !initiate to negative number to indicate invalid value
+do i=1,ntrace
+   if(iargc().ge.3+i)then
+      call getarg(3+i,cline)
+      read(cline,*) posguess(i)
+      if((posguess(i).le.0.0).or.(posguess(i).gt.naxes(2)))then
+         write(0,'(A9,I2,A31)') "position ",i,"invalid, will be safely ignored"
+      endif
+   endif
+enddo
+
 !no need remove negative pixels
 !do i=1,naxes(1)
 !   do j=1,naxes(2)
@@ -177,7 +193,7 @@ deallocate(px,py)
 nfit=1+9*ntrace
 allocate(dtrace(naxes(1),nTrace),bf(naxes(1),nTrace),solpsf(naxes(1),nfit))
 dTrace=0.0d0
-call trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
+call trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf,posguess)
 write(6,'(I2,1X,I4)') ntrace,naxes(1)
 do i=1,naxes(1)
 !   write(6,'(I4,3(1X,F11.3),3(1X,1PE17.10))') i,(dTrace(i,j),j=1,3),    &

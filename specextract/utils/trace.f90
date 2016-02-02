@@ -1,4 +1,4 @@
-subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf)
+subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf,posguess)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 !generates trace - Version 2.0
 use precision
@@ -9,6 +9,7 @@ integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
    triplegaussian,sq2pi,pi,tracetest,tcut,sky,std,snr,signal
+real(double), dimension(:) :: posguess
 real(double), dimension(:,:) :: Image,dTrace,bf,solpsf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
    sol,model,solnew,amp,solfirst
@@ -75,9 +76,9 @@ Pi=acos(-1.d0)       !define Pi
 sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
-bcut=0.0d0       !S/N threshold for finding a trace
+bcut=2.0d0       !S/N threshold for finding a trace
 tcut=10.0d0      !threshold for traces to jump
-ncutpsf=24       !width of PSF to fit - must be less than nKsize/2
+ncutpsf=24       !width of initial PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
    write(0,*) "Error: ncutpsf must be less than nKsize"
    write(0,*) "ncutpsf : ",ncutpsf
@@ -182,11 +183,13 @@ enddo
 
 !now we have initial positions, if you want to override, then set
 !dtrace(nline,k) to appropriate guess of position (k=trace#)
-!dtrace(nline,1)=194
-!write(0,*) "dtrace2 ",dtrace(nline,2)
-if(nTrace.ge.2) dtrace(nline,2)=160.0
-if(nTrace.ge.3) dtrace(nline,3)=100.0
-!read(5,*)
+!e.g., dtrace(nline,1)=194
+!We also can use commandline parameters for this:
+do i=1,nTrace
+   if(posguess(i).gt.0.0d0)then
+      dtrace(nline,i)=posguess(i)
+   endif
+enddo
 
 
 !Lets model the line with a PSF.
