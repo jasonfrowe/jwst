@@ -4,7 +4,7 @@ subroutine trace(naxes,Image,bpix,nline,nTrace,dTrace,bf,solpsf,posguess)
 use precision
 implicit none
 integer :: nkeys,nkeysmax,nKsize,i,nline,nksd2,xm,xp,j,nmaxf,k,nTrace,  &
-   nTp,jj,ncut,ncutpsf,ncutd2,ilinkpsf
+   nTp,jj,ncut,ncutpsf,ncutd2,ilinkpsf,nbin
 integer, dimension(2) :: naxes,knaxes
 integer, allocatable, dimension(:) :: isol,isolfirst
 real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
@@ -12,7 +12,7 @@ real(double) :: Kmin,Kmax,bpix,maxf,S,Sxy,Sxx,Sx,Sy,df,bcut,f,          &
 real(double), dimension(:) :: posguess
 real(double), dimension(:,:) :: Image,dTrace,bf,solpsf
 real(double), allocatable, dimension(:) :: line,lpsf,lpsftemp,psfwork,  &
-   sol,model,solnew,amp,solfirst
+   sol,model,solnew,amp,solfirst,solbin
 real(double), allocatable, dimension(:,:) :: Kernel,psf
 character(80) :: kfile
 character(80), allocatable, dimension(:) :: header
@@ -76,7 +76,7 @@ Pi=acos(-1.d0)       !define Pi
 sq2pi=sqrt(2.0d0*pi) !define sqrt(2*pi)
 !parameters to control trace
 ncut=35          !width of spectrum to zero out
-bcut=2.0d0       !S/N threshold for finding a trace
+bcut=3.0d0       !S/N threshold for finding a trace
 tcut=10.0d0      !threshold for traces to jump
 ncutpsf=24       !width of initial PSF to fit - must be less than nKsize/2
 if(ncutpsf.gt.nKsize)then  !check ncutpsf value is valid
@@ -198,16 +198,15 @@ line=line-sky
 !load initial-Guess in sol.  The parameter isol controls with variables
 !are fit
 allocate(sol(ntrace*9+1),isol(ntrace*9+1),solnew(ntrace*9+1),amp(ntrace))
+allocate(solbin(ntrace*9+1))
 call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
 !write(0,'(A2,1X,I4,3(1X,F11.3))') "*1",nline,                           &
 !   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,ntrace)
 isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
 ilinkpsf=1 !(0) - each order has own PSF, (1) PSF shapes linked
-!do i=1,size(sol)
-!   write(0,*) "sol:",i,sol(i)
-!enddo
-
+!This is the FIRST psf model update.. so keep the parameters free as
+!possible.
 call modelline(naxes(2),line,ntrace,sol,isol,ilinkpsf)
 do k=1,ntrace
    amp(k)=sq2pi*sol(8+9*(k-1))*sol(2+9*(k-1))*sol(4+9*(k-1))+  &
@@ -262,7 +261,7 @@ allocate(solfirst(ntrace*9+1),isolfirst(ntrace*9+1))
 solfirst=sol !save solution from first line
 isolfirst=isol
 
-!Next part is to use the found positions and develop the trace.
+!Next part is to use the provided positions and develop the trace.
 
 i=nline+1
 do while (i.le.naxes(1))
@@ -275,25 +274,44 @@ do while (i.le.naxes(1))
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
-      bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(sol(6+9*(k-1))-sol(3+9*(k-1))+ &
-       sol(4+9*(k-1))+sol(7+9*(k-1)))))
+      bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(solnew(6+9*(k-1))-solnew(3+9*(k-1))+ &
+       solnew(4+9*(k-1))+solnew(7+9*(k-1)))))
       if(bf(i,k).gt.0.0) write(0,*) i,k,bf(i,k)
 
-      if(bf(i,k).lt.bcut)then  !if amplitude is too low
+      if((bf(i,k).lt.bcut).and.(bf(i,k).gt.0.0d0))then  !if amplitude is too low
 
          !try averaging together a few columns
-         !bin=1
-         !line=0
-         !do j=-bin,bin
-         !line=Sum(Image(i,:)
-
-         do j=2+9*(k-1),10+9*(k-1)  !kill trace
-            solnew(j)=0.0d0
-            isol(j)=0
-            bf(i,k)=0.0d0
+         nbin=max(4,int((2.0d0*bcut/bf(i,k))**2.0d0)+1)
+         line=0.0d0
+         do j=max(i-nbin,1),min(i+nbin,naxes(1))
+            line=line+Image(j,:) !Sum together ajacent lines
          enddo
+         line=line/dble(2*nbin+1)-sky
+         solbin=sol !try to fit again with previous solution.
+         call modelline(naxes(2),line,ntrace,solbin,isol,ilinkpsf) !model
+         amp(k)=sq2pi*solbin(8+9*(k-1))*solbin(2+9*(k-1))*solbin(4+9*(k-1))+  &
+          sq2pi*solbin(8+9*(k-1))*solbin(5+9*(k-1))*solbin(7+9*(k-1))+  &
+          sq2pi*solbin(8+9*(k-1))*solbin(10+9*(k-1))
+         bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(solbin(6+9*(k-1))-solbin(3+9*(k-1))+ &
+          solbin(4+9*(k-1))+solbin(7+9*(k-1)))))
+
+         if(bf(i,k).gt.0.0) then
+            write(0,*) "binned: ",i,k,bf(i,k)
+            do j=2+9*(k-1),10+9*(k-1)  !update our running solution.
+               solnew(j)=solbin(j)
+            enddo
+
+         else
+
+            do j=2+9*(k-1),10+9*(k-1)  !kill trace
+               solnew(j)=0.0d0
+               isol(j)=0
+               bf(i,k)=0.0d0
+            enddo
+
+         endif
       endif
-      tracetest=sol(9+9*(k-1))+(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
+      tracetest=solnew(9+9*(k-1))+(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
       if(abs(dTrace(i-1,k)-tracetest).gt.tcut)then !if trace jumps. kill trace
          write(0,*) "Trace Jumped ",k,tracetest,dTrace(i-1,k)
          do j=2+9*(k-1),10+9*(k-1)
@@ -329,16 +347,44 @@ do while (i.ge.1)
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(5+9*(k-1))*solnew(7+9*(k-1))+  &
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
-      bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(sol(6+9*(k-1))-sol(3+9*(k-1))+ &
-       sol(4+9*(k-1))+sol(7+9*(k-1)))))
-      if(bf(i,k).lt.bcut)then  !amplitude is too low.. kill trace
-         do j=2+9*(k-1),10+9*(k-1)
-            solnew(j)=0.0d0   !set PSF model parameter to zero
-            isol(j)=0         !disable variables
-            bf(i,k)=0.0d0
+      bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(solnew(6+9*(k-1))-solnew(3+9*(k-1))+ &
+       solnew(4+9*(k-1))+solnew(7+9*(k-1)))))
+      if((bf(i,k).lt.bcut).and.(bf(i,k).gt.0.0d0))then  !amplitude is too low.. try binning
+
+         !try averaging together a few columns
+         nbin=max(4,int((2.0d0*bcut/bf(i,k))**2.0d0)+1)
+!         write(0,*) "nbin: ",nbin
+         line=0.0d0
+         do j=max(i-nbin,1),min(i+nbin,naxes(1))
+            line=line+Image(j,:) !Sum together ajacent lines
          enddo
+         line=line/dble(2*nbin+1)-sky
+         solbin=sol !try to fit again with previous solution.
+         call modelline(naxes(2),line,ntrace,solbin,isol,ilinkpsf) !model
+         amp(k)=sq2pi*solbin(8+9*(k-1))*solbin(2+9*(k-1))*solbin(4+9*(k-1))+  &
+          sq2pi*solbin(8+9*(k-1))*solbin(5+9*(k-1))*solbin(7+9*(k-1))+  &
+          sq2pi*solbin(8+9*(k-1))*solbin(10+9*(k-1))
+         bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(solbin(6+9*(k-1))-solbin(3+9*(k-1))+ &
+          solbin(4+9*(k-1))+solbin(7+9*(k-1)))))
+
+         if(bf(i,k).gt.0.0) then
+            write(0,*) "binned: ",i,k,bf(i,k)
+            do j=2+9*(k-1),10+9*(k-1)  !update our running solution.
+               solnew(j)=solbin(j)
+            enddo
+
+         else
+
+            do j=2+9*(k-1),10+9*(k-1)  !kill trace
+               solnew(j)=0.0d0
+               isol(j)=0
+               bf(i,k)=0.0d0
+            enddo
+
+         endif
+
       endif
-      tracetest=sol(9+9*(k-1))+(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
+      tracetest=solnew(9+9*(k-1))+(solnew(3+9*(k-1))+solnew(6+9*(k-1)))/2.0d0
       if(abs(dTrace(i+1,k)-tracetest).gt.tcut)then !trace jumped alot
          write(0,*) "Trace Jumped ",k,tracetest,dTrace(i+1,k)
          do j=2+9*(k-1),10+9*(k-1)  !kill trace
