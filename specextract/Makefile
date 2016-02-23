@@ -36,6 +36,10 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract apextract tilt imintg
 
+calcapincl = precision.o
+calcap: calcap.f90 $(calcapincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ calcap.f90 $(calcapincl)
+
 immatchincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o writefits.o deletefile.o
 immatch: immatch.f90 $(immatchincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ immatch.f90 $(immatchincl) $(LIBS2)
