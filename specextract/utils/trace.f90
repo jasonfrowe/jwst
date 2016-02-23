@@ -254,7 +254,7 @@ do k=1,ntrace
    isol(5+9*(k-1))=1 !amplitude
    isol(6+9*(k-1))=1 !position
    isol(7+9*(k-1))=1 !width
-   isol(10+9*(k-1))=1 !width
+   isol(10+9*(k-1))=0 !width
 enddo
 
 allocate(solfirst(ntrace*9+1),isolfirst(ntrace*9+1))

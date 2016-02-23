@@ -20,13 +20,13 @@ allocate(solt(nfit))
 !initial model template based on fit to noiseless PSF trace at line 800.
 solt(1)=0.0d0 !background
 !first Gaussian - relative to third
-solt(2)=1.5406681  !amplitude
-solt(3)=-7.442  !position
-solt(4)=1.60659  !width
+solt(2)=1.5406681  !amplitude  !a
+solt(3)=-7.442  !position      !b
+solt(4)=1.60659  !width        !c
 !Second Gaussian - relative to third
-solt(5)=1.5942485  !amplitude
-solt(6)=8.372  !position
-solt(7)=1.77816  !width
+solt(5)=1.5942485  !amplitude  !a
+solt(6)=8.372  !position       !b
+solt(7)=1.77816  !width        !c
 !Third  Gaussian
 solt(8)=1.0  !amplitude
 solt(9)=0.0  !position

@@ -36,9 +36,9 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract apextract tilt imintg
 
-calcapincl = precision.o
+calcapincl = precision.o erf.o getfits.o
 calcap: calcap.f90 $(calcapincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ calcap.f90 $(calcapincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ calcap.f90 $(calcapincl) -L$(FITSIODIR) -lcfitsio
 
 immatchincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o writefits.o deletefile.o
 immatch: immatch.f90 $(immatchincl)
@@ -61,6 +61,8 @@ specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
+erf.o: $(UTILS)erf.f
+	$(F90) $(FFLAGS) $(UTILS)erf.f
 readcfits.o: $(UTILS)readcfits.f90
 	$(F90) $(FFLAGS) $(UTILS)readcfits.f90
 polyfilter.o: $(UTILS)polyfilter.f90
