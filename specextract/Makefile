@@ -4,10 +4,10 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -fast -parallel -ipo
+OPT1 = -O3 -parallel -ipo
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3 -parallel -ipo
-OPT2 = -heap-arrays 0 -g -traceback
+OPT2 = -heap-arrays 0 
 #OPT2 = 
 FFLAGS = -c $(OPT1) $(OPT2)
 #FFLAGS = -c -O0 -g -CB -warn $(OPT2)
@@ -34,7 +34,15 @@ BIN = /Users/rowe/Documents/jwst/specgen/
 UTILS = utils/
 
 #Listing of programs to create.
-all: specextract apextract tilt
+all: specextract apextract tilt imintg
+
+immatchincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o writefits.o deletefile.o
+immatch: immatch.f90 $(immatchincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ immatch.f90 $(immatchincl) $(LIBS2)
+
+imintgincl = precision.o readcfits.o
+imintg: imintg.f90 $(imintgincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ imintg.f90 $(imintgincl) -L$(FITSIODIR) -lcfitsio
 
 apextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o lfit.o fitline.o polyfilter.o
 apextract: apextract.f90 $(apextractincl)
@@ -49,6 +57,8 @@ specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
+readcfits.o: $(UTILS)readcfits.f90
+	$(F90) $(FFLAGS) $(UTILS)readcfits.f90
 polyfilter.o: $(UTILS)polyfilter.f90
 	$(F90) $(FFLAGS) $(UTILS)polyfilter.f90
 fitline.o: $(UTILS)fitline.f90
@@ -89,10 +99,10 @@ precision.o: $(UTILS)precision.f90
 	$(F90) $(FFLAGS) $(UTILS)precision.f90
 #readmodel.o: $(UTILS)readmodel.f90
 #	$(F90) $(FFLAGS) $(UTILS)readmodel.f90
-#writefits.o: $(UTILS)writefits.f90
-#	$(F90) $(FFLAGS) $(UTILS)writefits.f90
-#deletefile.o: $(UTILS)deletefile.f
-#	$(F90) $(FFLAGS) $(UTILS)deletefile.f
+writefits.o: $(UTILS)writefits.f90
+	$(F90) $(FFLAGS) $(UTILS)writefits.f90
+deletefile.o: $(UTILS)deletefile.f
+	$(F90) $(FFLAGS) $(UTILS)deletefile.f
 #binmodel.o: $(UTILS)binmodel.f90
 #	$(F90) $(FFLAGS) $(UTILS)binmodel.f90
 rqsort.o: $(UTILS)rqsort.f

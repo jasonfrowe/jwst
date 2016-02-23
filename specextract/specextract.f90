@@ -182,8 +182,8 @@ py=real(Image(nline,:))
 call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
-call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-!call pgwindow(120.0,170.0,minval(py),maxval(py(120:170)))
+!call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
+call pgwindow(120.0,250.0,minval(py),maxval(py(120:250)))
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
 call pglabel("X (pixels)","Y (Counts)","")
 call pgline(nymax,px,py)

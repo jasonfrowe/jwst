@@ -160,7 +160,7 @@ do k=1,nTrace !loop over expected number of traces
 !   pmin=minval(py)
 !   py=log10(py-pmin+1.0d0)
    call pgsci(2+k)  !change plotting colour
-   call pgline(size(line(xm:xp)),px,py) !plot a line
+!   call pgline(size(line(xm:xp)),px,py) !plot a line
    call pgsci(1) !change plotting colour back to default
    deallocate(px,py) !de-allocate plotting variables
 
@@ -248,13 +248,13 @@ deallocate(model)
 
 !fixing the shape of the PSF model (only central position and amplitude)
 do k=1,ntrace
-   isol(2+9*(k-1))=0 !amplitude
-   isol(3+9*(k-1))=0 !position
-   isol(4+9*(k-1))=0 !width
-   isol(5+9*(k-1))=0 !amplitude
-   isol(6+9*(k-1))=0 !position
-   isol(7+9*(k-1))=0 !width
-   isol(10+9*(k-1))=0 !width
+   isol(2+9*(k-1))=1 !amplitude
+   isol(3+9*(k-1))=1 !position
+   isol(4+9*(k-1))=1 !width
+   isol(5+9*(k-1))=1 !amplitude
+   isol(6+9*(k-1))=1 !position
+   isol(7+9*(k-1))=1 !width
+   isol(10+9*(k-1))=1 !width
 enddo
 
 allocate(solfirst(ntrace*9+1),isolfirst(ntrace*9+1))

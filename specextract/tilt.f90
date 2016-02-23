@@ -163,6 +163,7 @@ endif
 
 !open up pgplot window
 call pgopen('/xserve')
+!call pgopen('?')
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()

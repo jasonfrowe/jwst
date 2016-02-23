@@ -99,8 +99,9 @@ enddo
 !write(0,*) "lmin,lmax: ",lmin,lmax
 !z1=log10(minlp-minlp+1.0)
 z1=log10(max(0.0,med-2.0*std-minlp)+1.0)
-!z2=log10(maxp-minlp+1.0)
-z2=log10(max(0.0,med+50.0*std-minlp)+1.0)
+z2=log10(maxp-minlp+1.0)
+!z2=log10(max(0.0,med+50.0*std-minlp)+1.0)
+!z2=min(z2,log10(med+20.0*std-minlp))
 
 !uncommnet for a sqrt scale opposed to log
 !lparray=sqrt(parray-minp)
@@ -129,8 +130,8 @@ enddo
 !call pgscr(0,1.0,1.0,1.0)
 call pgscr(15,0.0,0.3,0.2)
 
-call pgsch(1.5) !make the font a bit bigger
-call pgslw(3)  !make the lines a bit thicker
+call pgsch(2.0) !make the font a bit bigger
+call pgslw(2)  !make the lines a bit thicker
 
 !call pgscr(1,0.0,0.0,0.0)
 call pgsci(1)
@@ -188,8 +189,11 @@ y2=real(nr(4)-nr(3))/xr
 !write(0,*) "x2,y2: ",x2,y2
 !call pgpixl(ia,nxmax,nymax,nr(1),nr(2),nr(3),nr(4),0.0,x2,0.0,y2)
 call pgpixl(ia,nxmax,nymax,nr(1),nr(2),nr(3),nr(4),rj(1),rj(2),rj(3),rj(4))
+CALL PGSCR(ncol+15, 1.0, 1.0, 1.0)
+call pgsci(ncol+15)
+!call pgbox("BCNTS1",0.0,0,"BCNTS1",0.0,0)
+call pgbox("BCTS",0.0,0,"BCTS",0.0,0)
 call pgsci(1)
-call pgbox("BCNTS1",0.0,0,"BCNTS1",0.0,0)
 
 !call pgsci(2)
 !call pgsfs(2)
@@ -203,7 +207,7 @@ call PGPTXT(rj(2)-0.10*(rj(2)-rj(1)), rj(4)-0.08*(rj(4)-rj(3)), 0.0, 0.0, tchar)
 call pgsch(0.9)
 !call PGPTXT(rj(2)-0.12*(rj(2)-rj(1)), rj(3)-0.12*(rj(4)-rj(3)), 0.0, 0.0, "Kepler/K2 Team")
 !call PGPTXT(rj(2)-0.12*(rj(2)-rj(1)), rj(3)-0.15*(rj(4)-rj(3)), 0.0, 0.0, "J.Rowe (SETI)")
-call pgsch(1.5)
+call pgsch(2.0)
 call pgsci(1)
 
 deallocate(ia,lparray)
