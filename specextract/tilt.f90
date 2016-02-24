@@ -6,7 +6,7 @@ integer :: iargc,nkeysmax,nxmax,nymax,status,nkeys,dumi,filestatus,     &
    nunit,ntrace,nlines,nfit,i,j,k,nplot,nfitline,nbin,nstart,nend,      &
    nlinesex,imax
 integer, dimension(2) :: naxes
-real, allocatable, dimension(:) :: px,py,px2,py2
+real, allocatable, dimension(:) :: px,py,px2,py2,bb
 real(double) :: bpix,Rmin,Rmax,tavg,avgsplitlength,tilt
 real(double), allocatable, dimension(:) :: psf
 real(double), allocatable, dimension(:,:) :: Image,tImage,solpsf,dTrace,&
@@ -162,8 +162,8 @@ if(nlinesex.lt.3)then
 endif
 
 !open up pgplot window
-call pgopen('/xserve')
-!call pgopen('?')
+!call pgopen('/xserve')
+call pgopen('?')
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()
@@ -253,7 +253,7 @@ if(nbin.lt.nlines)then
    call polyfilter(nlines,nTrace,apfluxl,apfluxu,nbin)
 endif
 
-allocate(px(nlines),py(nlines))
+allocate(px(nlines),py(nlines),bb(4))
 nplot=0
 k=1 !plot first Trace
 do i=1,nlines
@@ -267,8 +267,11 @@ enddo
 call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
-call pgwindow(minval(px(1:nplot)),maxval(px(1:nplot)),                  &
-   minval(py(1:nplot)),maxval(py(1:nplot))) !plot scale
+bb(1)=minval(px(1:nplot))
+bb(2)=maxval(px(1:nplot))
+bb(3)=minval(py(1:nplot))
+bb(4)=maxval(py(1:nplot))
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 !call pgwindow(50.0,250.0,minval(py),maxval(py(50:250)))
 
 allocate(px2(4),py2(4))
@@ -287,7 +290,11 @@ call pgsci(1)
 deallocate(px2,py2)
 
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-call pglabel("X (pixels)","Y (Counts)","")
+!call pglabel("X (pixels)","Y (Counts)","")
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.16*(bb(4)-bb(3)),0.0,0.5,         &
+   "X (pixels)")
+call pgptxt(bb(1)-0.04*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
+   "Y (counts)")
 call pgline(nplot,px,py)
 
 nplot=0
@@ -302,8 +309,11 @@ enddo
 call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
-call pgwindow(minval(px(1:nplot)),maxval(px(1:nplot)),                  &
-   minval(py(1:nplot)),maxval(py(1:nplot))) !plot scale
+bb(1)=minval(px(1:nplot))
+bb(2)=maxval(px(1:nplot))
+bb(3)=minval(py(1:nplot))
+bb(4)=maxval(py(1:nplot))
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 !call pgwindow(50.0,250.0,minval(py),maxval(py(50:250)))
 
 allocate(px2(4),py2(4))
@@ -322,7 +332,11 @@ call pgsci(1)
 deallocate(px2,py2)
 
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-call pglabel("X (pixels)","Y (Counts)","")
+!call pglabel("X (pixels)","Y (Counts)","")
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.16*(bb(4)-bb(3)),0.0,0.5,         &
+   "X (pixels)")
+call pgptxt(bb(1)-0.04*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
+   "Y (counts)")
 call pgline(nplot,px,py)
 deallocate(px,py)
 

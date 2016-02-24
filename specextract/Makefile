@@ -36,6 +36,10 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract apextract tilt imintg
 
+dispfitsincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o
+dispfits: dispfits.f90 $(dispfitsincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ dispfits.f90 $(dispfitsincl) $(LIBS2)
+
 calcapincl = precision.o erf.o getfits.o
 calcap: calcap.f90 $(calcapincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ calcap.f90 $(calcapincl) -L$(FITSIODIR) -lcfitsio

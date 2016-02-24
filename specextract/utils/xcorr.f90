@@ -12,7 +12,7 @@ real(double) :: avgsplitlength
 real(double), dimension(:,:) :: apfluxl,apfluxu
 
 integer :: XF,i,j,k,nplot,noversample,imax,jj
-real, allocatable, dimension(:) :: px,py
+real, allocatable, dimension(:) :: px,py,bb
 real(double) :: x,y,dnover,Pi,rad2deg,maxc,tilt,tilterr
 real(double), allocatable, dimension(:) :: A,B,C,xl,yl,yu,yl2,yu2
 character(80) :: tilttext
@@ -108,7 +108,7 @@ write(tilttext,'(A6,F9.4)') "Tilt: ",tilt
 
 !j=50*noversample
 j=min(50,nlines)*noversample
-allocate(px(j*2),py(j*2))
+allocate(px(j*2),py(j*2),bb(4))
 nplot=0
 k=1 !plot first Trace
 do i=size(C)-j+1,size(C)
@@ -126,12 +126,19 @@ enddo
 call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.20,0.95) !make room around the edges for labels
-call pgwindow(minval(px(1:nplot)),maxval(px(1:nplot)),                  &
-   minval(py(1:nplot)),maxval(py(1:nplot))) !plot scale
+bb(1)=minval(px(1:nplot))
+bb(2)=maxval(px(1:nplot))
+bb(3)=minval(py(1:nplot))
+bb(4)=maxval(py(1:nplot))
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 !call pgwindow(50.0,250.0,minval(py),maxval(py(50:250)))
 call pgsch(2.0)
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-call pglabel("Tilt (deg)","Corr","")
+!call pglabel("Tilt (deg)","Corr","")
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.16*(bb(4)-bb(3)),0.0,0.5,         &
+   "Tilt (deg)")
+call pgptxt(bb(1)-0.04*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
+   "Corr")
 call pgline(nplot,px,py)
 call pgwindow(0.0,1.0,0.0,1.0)
 call PGPTXT (0.8, 0.8, 0.0, 0.0, tilttext)
