@@ -7,7 +7,7 @@ integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status,    &
 integer, dimension(2) :: naxes
 real :: pmin
 integer :: nplot
-real, allocatable, dimension(:) :: px,py
+real, allocatable, dimension(:) :: px,py,bb
 real(double) :: Rmin,Rmax,bpix,tavg
 real(double), allocatable, dimension(:) :: posguess
 real(double), allocatable, dimension(:,:) :: Image,tImage,dTrace,bf,solpsf
@@ -158,7 +158,7 @@ tavg=0.0 !displays a time on the image
 call displayfits(nxmax,nymax,Image,bpix,tavg)
 
 !plot sum of each column
-allocate(px(nxmax),py(nxmax))
+allocate(px(nxmax),py(nxmax),bb(4))
 do i=1,nxmax
    px(i)=real(i)
 enddo
@@ -166,9 +166,17 @@ py=real(Sum(Image,2))
 call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
-call pgwindow(0.0,real(nxmax),minval(py),maxval(py)) !plot scale
+bb(1)=0.0
+bb(2)=real(nxmax)
+bb(3)=minval(py)
+bb(4)=maxval(py)
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-call pglabel("X (pixels)","Y (Counts)","")
+!call pglabel("X (pixels)","Y (Counts)","")
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.16*(bb(4)-bb(3)),0.0,0.5,         &
+   "X (pixels)")
+call pgptxt(bb(1)-0.04*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
+   "Y (counts)")
 call pgline(nxmax,px,py)
 deallocate(px,py)
 
@@ -183,9 +191,17 @@ call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
 !call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-call pgwindow(120.0,250.0,minval(py),maxval(py(120:250)))
+bb(1)=120.0 !minval(px)
+bb(2)=250.0 !maxval(px)
+bb(3)=minval(py)
+bb(4)=maxval(py(120:250))
+call pgwindow(bb(1),bb(2),bb(3),bb(4))
 call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
-call pglabel("X (pixels)","Y (Counts)","")
+!call pglabel("X (pixels)","Y (Counts)","")
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.16*(bb(4)-bb(3)),0.0,0.5,         &
+   "X (pixels)")
+call pgptxt(bb(1)-0.04*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
+   "Y (counts)")
 call pgline(nymax,px,py)
 deallocate(px,py)
 

@@ -143,7 +143,11 @@ call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
 call pgsci(1)
 call pgwindow(rj(1),rj(2),rj(3),rj(4)) !plot scale
 call pgbox("BCNTS1",0.0,0,"BCNTS1",0.0,0)
-call pglabel("X (pixels)","Y (pixels)","")
+!call pglabel("X (pixels)","Y (pixels)","")
+call pgptxt((rj(1)+rj(2))/2.0,rj(3)-0.16*(rj(4)-rj(3)),0.0,0.5,         &
+   "X (pixels)")
+call pgptxt(rj(1)-0.04*(rj(2)-rj(1)),(rj(4)+rj(3))/2,90.0,0.5,          &
+   "Y (pixels)")
 call pgsci(1)
 
 
