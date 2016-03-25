@@ -28,12 +28,13 @@ interface
    end subroutine getfits
 end interface
 interface
-   subroutine displayfits(nxmax,nymax,parray,bpix,tavg)
+   subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
       use precision
       implicit none
       integer, intent(inout) :: nxmax,nymax
       real(double), dimension(:,:), intent(inout) :: parray
       real(double), intent(inout) :: bpix,tavg
+      real(double), intent(in) :: sigscale
    end subroutine displayfits
 end interface
 interface
@@ -150,12 +151,13 @@ enddo
 
 !display fits file
 !call pgopen('?')
-call pgopen('/xserve')
+!call pgopen('/xserve')
+call pgopen('trace.ps/vcps')
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()
 tavg=0.0 !displays a time on the image
-call displayfits(nxmax,nymax,Image,bpix,tavg)
+call displayfits(nxmax,nymax,Image,bpix,tavg,20.0d0)
 
 !plot sum of each column
 allocate(px(nxmax),py(nxmax),bb(4))
@@ -191,7 +193,7 @@ call pgpage()
 call pgsci(1)
 call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
 !call pgwindow(minval(px),maxval(px),minval(py),maxval(py)) !plot scale
-bb(1)=120.0 !minval(px)
+bb(1)=170.0 !minval(px)
 bb(2)=250.0 !maxval(px)
 bb(3)=minval(py)
 bb(4)=maxval(py(120:250))
@@ -222,7 +224,7 @@ call apflux(naxes,Image,bpix,nTrace,dTrace)
 
 !plot Image again
 call pgpanl(1,1)
-call displayfits(nxmax,nymax,Image,bpix,tavg)
+call displayfits(nxmax,nymax,Image,bpix,tavg,20.0d0)
 allocate(px(naxes(1)),py(naxes(1)))
 do i=1,nTrace
    nplot=0

@@ -34,7 +34,11 @@ BIN = /Users/rowe/Documents/jwst/specgen/
 UTILS = utils/
 
 #Listing of programs to create.
-all: specextract apextract tilt imintg
+all: specextract tilt dispfits crossx2d
+
+crossx2dincl = precision.o
+crossx2d: crossx2d.f90 $(crossx2dincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ crossx2d.f90 $(crossx2dincl) $(LIBS2)
 
 dispfitsincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o
 dispfits: dispfits.f90 $(dispfitsincl)
@@ -48,9 +52,9 @@ immatchincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o wri
 immatch: immatch.f90 $(immatchincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ immatch.f90 $(immatchincl) $(LIBS2)
 
-imintgincl = precision.o readcfits.o
+imintgincl = precision.o readcfits.o medfit.o writefits.o deletefile.o
 imintg: imintg.f90 $(imintgincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ imintg.f90 $(imintgincl) -L$(FITSIODIR) -lcfitsio
+	$(F90) $(LFLAGS) -o $(BIN)$@ imintg.f90 $(imintgincl) $(LIBS2)
 
 apextractincl = precision.o getfits.o displayfits.o rqsort.o stdev.o heatlut.o apsplit.o xcorr.o spline.o lfit.o fitline.o polyfilter.o
 apextract: apextract.f90 $(apextractincl)
@@ -65,6 +69,8 @@ specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
+medfit.o: $(UTILS)medfit.f
+	$(F90) $(FFLAGS) $(UTILS)medfit.f
 erf.o: $(UTILS)erf.f
 	$(F90) $(FFLAGS) $(UTILS)erf.f
 readcfits.o: $(UTILS)readcfits.f90

@@ -23,16 +23,17 @@ interface
    end subroutine getfits
 end interface
 interface
-   subroutine displayfits(nxmax,nymax,parray,bpix,tavg)
+   subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
       use precision
       implicit none
       integer, intent(inout) :: nxmax,nymax
       real(double), dimension(:,:), intent(inout) :: parray
       real(double), intent(inout) :: bpix,tavg
+      real(double), intent(in) :: sigscale
    end subroutine displayfits
 end interface
 interface
-   subroutine writefits(nxmax,nymax,parray,bpix,tavg,nkeys,header,fileout)
+   subroutine writefits2(nxmax,nymax,parray,bpix,tavg,nkeys,header,fileout)
       use precision
       implicit none
       integer, intent(inout) :: nxmax,nymax,nkeys
@@ -40,7 +41,7 @@ interface
       real(double), dimension(:,:), intent(inout) :: parray
       character(80), intent(inout) :: fileout
       character(80), dimension(:), intent(inout) :: header
-   end subroutine writefits
+   end subroutine writefits2
 end interface
 
 !get filename
@@ -133,14 +134,14 @@ call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()
 tavg=0.0 !displays a time on the image
-call displayfits(nxmax,nymax,Image1,bpix,tavg)
+call displayfits(nxmax,nymax,Image1,bpix,tavg,0.0d0)
 call PGSFS(2)
 CALL PGSCR(16, 1.0, 1.0, 1.0)
 call pgsci(16)
 call pgrect(1675.0,2038.0,140.0,220.0)
 call pgsci(1)
 call pgpage()
-call displayfits(nxmax,nymax,Image2,bpix,tavg)
+call displayfits(nxmax,nymax,Image2,bpix,tavg,0.0d0)
 CALL PGSCR(16, 1.0, 1.0, 1.0)
 call pgsci(16)
 call pgrect(1675.0,2038.0,140.0,220.0)
@@ -163,10 +164,10 @@ allocate(Image3(nxmax,nymax))
 Image3=Image1-(Image2*a(2)+a(1))
 
 call pgpage()
-call displayfits(nxmax,nymax,Image3,bpix,tavg)
+call displayfits(nxmax,nymax,Image3,bpix,tavg,0.0d0)
 
 fileout="test.fits"
-call writefits(nxmax,nymax,Image3,bpix,tavg,nkeys,header,fileout)
+call writefits2(nxmax,nymax,Image3,bpix,tavg,nkeys,header,fileout)
 
 call pgclos()
 

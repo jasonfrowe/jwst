@@ -4,10 +4,10 @@ implicit none
 integer, dimension(:) :: naxes,imax
 real(double) :: bpix
 real(double), dimension(:,:,:) :: Imagecube
-character(80) :: filename
+character(200) :: filename
 !local vars
 integer :: istatus,unitfits,readwrite,dumi,nkeys,nspace,i,nfound,group, &
- firstpix,nbuf,j
+ firstpix,nbuf,j,naxis
 real(double) :: nullval
 real(double), allocatable, dimension(:) :: buffer
 character(80) :: record
@@ -39,6 +39,10 @@ do i=1,nkeys
    header(i)=record
 !   write(6,'(A80)') header(i)
 enddo
+
+!read in dimension of image
+call ftgidm(unitfits,naxis,istatus)
+!write(0,*) "naxis: ",naxis
 
 call ftgknj(unitfits,'NAXIS',1,3,naxes,nfound,istatus)
 if((naxes(1).gt.size(Imagecube(:,1,1))).or.                             &
@@ -76,15 +80,17 @@ do j=1,naxes(3)
          write(0,*) "istatus: ",istatus
          write(0,*) "Error reading in Image"
       endif
+      firstpix=firstpix+nbuf
    enddo
 enddo
 
-write(0,*) "min/max: ",minval(Imagecube(1:naxes(1),1:naxes(2),1:naxes(3))),&
-   maxval(Imagecube(1:naxes(1),1:naxes(2),1:naxes(3)))
+!write(0,*) "min/max: ",minval(Imagecube(1:naxes(1),1:naxes(2),1:naxes(3))),&
+!   maxval(Imagecube(1:naxes(1),1:naxes(2),1:naxes(3)))
 
-do i=1,naxes(3)
-   write(6,*) Imagecube(122,1803,i)
-enddo
+!do i=1,naxes(3)
+!   write(6,*) Imagecube(200,100,i)
+!   write(0,*) sum(Imagecube(1:naxes(1),1:naxes(2),i))
+!enddo
 
 return
 end subroutine readcfits

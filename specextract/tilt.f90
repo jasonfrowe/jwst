@@ -27,12 +27,13 @@ interface
    end subroutine getfits
 end interface
 interface
-   subroutine displayfits(nxmax,nymax,parray,bpix,tavg)
+   subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
       use precision
       implicit none
       integer, intent(inout) :: nxmax,nymax
       real(double), dimension(:,:), intent(inout) :: parray
       real(double), intent(inout) :: bpix,tavg
+      real(double), intent(in) :: sigscale
    end subroutine displayfits
 end interface
 interface
@@ -169,7 +170,7 @@ call pgsubp(1,4)
 call pgpage()
 
 tavg=0.0 !displays a time on the image
-call displayfits(nxmax,nymax,Image,bpix,tavg)
+call displayfits(nxmax,nymax,Image,bpix,tavg,0.0d0)
 
 !read in trace
 nunit=10 !unit number for file list

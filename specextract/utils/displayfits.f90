@@ -1,4 +1,4 @@
-subroutine displayfits(nxmax,nymax,parray,bpix,tavg)
+subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
@@ -9,7 +9,7 @@ integer, allocatable, dimension(:,:) :: ia
 real :: r,g,b,dumr,x2,y2,xr
 real, dimension(4) :: rj
 real(double) :: bpix,maxp,minp,z1,z2,med,std,stdev2,tavg,lmin,lmax, &
-   ratio,lmed,lstd,minlp,replacethres
+   ratio,lmed,lstd,minlp,replacethres,sigscale
 real(double), dimension(:,:) :: parray
 real(double), allocatable, dimension(:) :: a
 real(double), allocatable, dimension(:,:) :: lparray
@@ -100,7 +100,9 @@ enddo
 !z1=log10(minlp-minlp+1.0)
 z1=log10(max(0.0,med-2.0*std-minlp)+1.0)
 z2=log10(maxp-minlp+1.0)
-!z2=log10(max(0.0,med+50.0*std-minlp)+1.0)
+if(sigscale.gt.0.0d0)then
+   z2=log10(max(0.0,med+sigscale*std-minlp)+1.0)
+endif
 !z2=min(z2,log10(med+20.0*std-minlp))
 
 !uncommnet for a sqrt scale opposed to log
@@ -207,7 +209,7 @@ call pgsci(1)
 
 write(tchar,500) tavg
 500 format(F4.1)
-call PGPTXT(rj(2)-0.10*(rj(2)-rj(1)), rj(4)-0.08*(rj(4)-rj(3)), 0.0, 0.0, tchar)
+!call PGPTXT(rj(2)-0.10*(rj(2)-rj(1)), rj(4)-0.08*(rj(4)-rj(3)), 0.0, 0.0, tchar)
 call pgsch(0.9)
 !call PGPTXT(rj(2)-0.12*(rj(2)-rj(1)), rj(3)-0.12*(rj(4)-rj(3)), 0.0, 0.0, "Kepler/K2 Team")
 !call PGPTXT(rj(2)-0.12*(rj(2)-rj(1)), rj(3)-0.15*(rj(4)-rj(3)), 0.0, 0.0, "J.Rowe (SETI)")
