@@ -11,7 +11,7 @@ real(double), dimension(:,:) :: Image1,Image2
 !FFTW3 vars
 type(C_PTR) :: planA,planB,planC
 integer ( kind = 4 ) :: nh,nhs
-real(double), allocatable, dimension(:,:) :: A,B,C
+real(double), allocatable, dimension(:,:) :: A,B,C,Ct
 complex(C_DOUBLE_COMPLEX), allocatable, dimension(:,:) :: AC,BC,CC,ACs, &
    BCs
 !local vars
@@ -20,7 +20,7 @@ real(double) :: maxc
 
 
 !choose oversampling and then allocate arrays
-noversample=8
+noversample=32
 XF=naxes(1) !make arrays bigger for oversampling
 YF=naxes(2)
 allocate(A(XF,YF),B(XF,YF))
@@ -112,23 +112,52 @@ deallocate(CC)
 !simple normalization
 C=C/maxval(C)
 
+allocate(Ct(XFs,YFs))
+ii=XFs/2
+jj=YFs/2
+do i=1,XFs/2
+   do j=1,YFs/2
+      Ct(i+ii,j+jj)=C(i,j)
+   enddo
+enddo
+do i=XFs/2+1,XFs
+   do j=1,YFs/2
+      Ct(i-ii,j+jj)=C(i,j)
+   enddo
+enddo
+do i=1,XFs/2
+   do j=YFs/2+1,YFs
+      Ct(i+ii,j-jj)=C(i,j)
+   enddo
+enddo
+do i=XFs/2+1,XFs
+   do j=YFs/2+1,YFs
+      Ct(i-ii,j-jj)=C(i,j)
+   enddo
+enddo
+
+!deallocate unneeded arrays
+deallocate(C)
+
 open(unit=11,file="fft.dat")
 do i=1,XFs
-   write(11,'(100000(1PE17.10,1X))') (C(i,j),j=1,YFs)
+   write(11,'(100000(1PE17.10,1X))') (Ct(i,j),j=1,YFs)
 enddo
 close(11)
 
 maxc=0.0
 do i=1,size(C(:,1))
    do j=1,size(C(1,:))
-      if(C(i,j).gt.maxc)then
-         maxc=C(i,j)
+      if(Ct(i,j).gt.maxc)then
+         maxc=Ct(i,j)
          imax=i
          jmax=j
       endif
    enddo
 enddo
-write(0,*) "shift: ",maxc,imax,jmax
+write(0,*) "shift: ",dble(imax-XFs/2-1)/dble(noversample),           &
+                     dble(jmax-YFs/2-1)/dble(noversample)
+
 
 end subroutine xcorr2d
 

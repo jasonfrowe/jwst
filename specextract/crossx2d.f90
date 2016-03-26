@@ -59,7 +59,7 @@ endif
 allocate(header(nkeysmax))
 Image1=bpix !initialize Image array with bad-pixels
 call getfits(file1,naxes,Image1,Rmin,Rmax,nkeys,header,bpix)
-write(0,*) "Rmin,Rmax: ",Rmin,Rmax
+!write(0,*) "Rmin,Rmax: ",Rmin,Rmax
 
 !read in 2nd FITS file
 allocate(Image2(nxmax,nymax),stat=status)
@@ -70,7 +70,7 @@ if(status.gt.0) then !fix for gfortran
 endif
 Image2=bpix !initialize Image array with bad-pixels
 call getfits(file2,naxes,Image2,Rmin,Rmax,nkeys,header,bpix)
-write(0,*) "Rmin,Rmax: ",Rmin,Rmax
+!write(0,*) "Rmin,Rmax: ",Rmin,Rmax
 
 if(idcor.eq.0)then !read in Dark and correct images if possible
    !read in dark FITS file
@@ -82,7 +82,7 @@ if(idcor.eq.0)then !read in Dark and correct images if possible
    endif
    dark=bpix !initialize Image array with bad-pixels
    call getfits(darkfile,naxes,dark,Rmin,Rmax,nkeys,header,bpix)
-   write(0,*) "Rmin,Rmax: ",Rmin,Rmax
+!   write(0,*) "Rmin,Rmax: ",Rmin,Rmax
 
    !Dark correction
    Image1=Image1-dark
