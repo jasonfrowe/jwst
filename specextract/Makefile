@@ -36,9 +36,9 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract tilt dispfits crossx2d
 
-crossx2dincl = precision.o
+crossx2dincl = precision.o getfits.o xcorr2d.o spline.o
 crossx2d: crossx2d.f90 $(crossx2dincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ crossx2d.f90 $(crossx2dincl) $(LIBS2)
+	$(F90) $(LFLAGS) -o $(BIN)$@ crossx2d.f90 $(crossx2dincl) $(LIBS2) -lfftw3
 
 dispfitsincl = precision.o getfits.o displayfits.o heatlut.o stdev.o rqsort.o
 dispfits: dispfits.f90 $(dispfitsincl)
@@ -69,6 +69,8 @@ specextract: specextract.f90 $(specextractincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ specextract.f90 $(specextractincl) $(LIBS2)
 
 #building object libraries
+xcorr2d.o: $(UTILS)xcorr2d.f90
+	$(F90) $(FFLAGS) $(UTILS)xcorr2d.f90
 medfit.o: $(UTILS)medfit.f
 	$(F90) $(FFLAGS) $(UTILS)medfit.f
 erf.o: $(UTILS)erf.f
