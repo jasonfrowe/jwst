@@ -4,7 +4,8 @@ implicit none
 integer iargc,nkeysmax,nxmax,nymax,nkeys,status,idcor,dumi
 integer, dimension(2) :: naxes
 real(double) :: Rmin,Rmax,bpix
-real(double), allocatable, dimension(:,:) :: Image1,Image2,dark
+real(double), allocatable, dimension(:,:) :: Image1,Image2,dark,tImage1,&
+   tImage2
 character(200) :: file1,file2,darkfile
 character(80), allocatable, dimension(:) :: header
 
@@ -94,10 +95,24 @@ endif
 !Rotate images to deal with CV3
 if(naxes(1).lt.naxes(2))then
    Image1=transpose(Image1)
-   Image1=transpose(Image1)
+   Image2=transpose(Image2)
    dumi=naxes(1)
    naxes(1)=naxes(2)
    naxes(2)=dumi
+endif
+
+!resize images to minimize memory usage.
+if((naxes(1).ne.nxmax).or.(naxes(2).ne.nymax))then
+   allocate(tImage1(naxes(1),naxes(2)),tImage2(naxes(1),naxes(2)))
+   tImage1(1:naxes(1),1:naxes(2))=Image1(1:naxes(1),1:naxes(2))
+   tImage2(1:naxes(1),1:naxes(2))=Image2(1:naxes(1),1:naxes(2))
+   deallocate(Image1,Image2)
+   nxmax=naxes(1)
+   nymax=naxes(2)
+   allocate(Image1(nxmax,nymax),Image2(nxmax,nymax))
+   Image1=tImage1
+   Image2=tImage2
+   deallocate(tImage1,tImage2)
 endif
 
 call xcorr2d(naxes,Image1,Image2)
