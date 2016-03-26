@@ -155,8 +155,8 @@ do i=1,size(C(:,1))
       endif
    enddo
 enddo
-write(0,*) "shift: ",dble(imax-XFs/2-1)/dble(noversample),           &
-                     dble(jmax-YFs/2-1)/dble(noversample)
+write(6,'(2(F9.5,1X))') dble(imax-XFs/2-1)/dble(noversample),           &
+           dble(jmax-YFs/2-1)/dble(noversample)
 
 
 end subroutine xcorr2d

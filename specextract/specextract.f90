@@ -151,8 +151,8 @@ enddo
 
 !display fits file
 !call pgopen('?')
-!call pgopen('/xserve')
-call pgopen('trace.ps/vcps')
+call pgopen('/xserve')
+!call pgopen('trace.ps/vcps')
 call PGPAP (8.0 ,1.0) !use a square 8" across
 call pgsubp(1,4)
 call pgpage()
