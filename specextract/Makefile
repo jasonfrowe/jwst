@@ -36,6 +36,13 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract tilt dispfits crossx2d
 
+qetestincl = precision.o
+qetest: qetest.f90 $(qetestincl)
+	$(F90) $(LFLAGS) -O $(BIN)$@ qetest.f90 $(qetestincl) $(LIBS2)
+
+plotdtracesincl = precision.o
+plotdtraces: plotdtraces.f90 $(plotdtracesincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ plotdtraces.f90 $(LIBS2)
 crossx2dincl = precision.o getfits.o xcorr2d.o spline.o
 crossx2d: crossx2d.f90 $(crossx2dincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ crossx2d.f90 $(crossx2dincl) $(LIBS2) -lfftw3

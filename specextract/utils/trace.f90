@@ -276,7 +276,7 @@ do while (i.le.naxes(1))
              sq2pi*solnew(8+9*(k-1))*solnew(10+9*(k-1))
       bf(i,k)=amp(k)/max(1.0d0,(std*sqrt(solnew(6+9*(k-1))-solnew(3+9*(k-1))+ &
        solnew(4+9*(k-1))+solnew(7+9*(k-1)))))
-      if(bf(i,k).gt.0.0) write(0,*) i,k,bf(i,k)
+!      if(bf(i,k).gt.0.0) write(0,*) i,k,bf(i,k)
 
       if((bf(i,k).lt.bcut).and.(bf(i,k).gt.0.0d0))then  !if amplitude is too low
 

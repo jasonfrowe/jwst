@@ -20,7 +20,7 @@ real(double) :: maxc
 
 
 !choose oversampling and then allocate arrays
-noversample=32
+noversample=4  !64 needs 32G of memory!!
 XF=naxes(1) !make arrays bigger for oversampling
 YF=naxes(2)
 allocate(A(XF,YF),B(XF,YF))

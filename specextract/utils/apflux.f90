@@ -22,6 +22,12 @@ do i=1,naxes(1)
    flux(i)=Sum(Image(i,nm:np))
 enddo
 
+open(unit=11,file='apflux.dat')
+do i=1,naxes(1)
+   write(11,*) i,flux(i)
+enddo
+close(11)
+
 !plotting to have a look
 allocate(px(naxes(1)),py(naxes(1)),bb(4))
 do i=1,naxes(1)
