@@ -39,7 +39,11 @@ do i=1,nmodel
    endif
 enddo
 do i=1,npt
-   fmodbin(i)=fmodbin(i)/dble(nfmodbin(i))
+   if(nfmodbin(i).gt.0)then
+      fmodbin(i)=fmodbin(i)/dble(nfmodbin(i))
+   else
+      fmodbin(i)=0.0d0
+   endif
 enddo
 !deallocate(nfmodbin)
 

@@ -6,15 +6,15 @@ use response
 implicit none
 integer xmax,ymax,iargc,nunit,filestatus,nmodelmax,iflag,nmodel,i,j,npx,&
    npy,nK,xout,yout,noversample,nKd2,npt,nrK,nKs,Ks,ntrace,ntracemax,   &
-   seed
+   seed,nmodeltype
 integer, dimension(2) :: ybounds
 integer, dimension(3) :: now
 real(double) :: w2p,px,py,ptrace,dxmaxp1,dymaxp1,dnossq,rv,dnpt,wl,mSum,&
-   fmodres,respond,awmod,snr,dumr,ran2
+   fmodres,respond,awmod,snr,dumr,ran2,rprs
 real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
    fmodbin,wv,yres1,yres2,yres3
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
-   opixels,wKernel,wpixels,wcpixels
+   opixels,wKernel,wpixels,wcpixels,nll,nll2
 real(double), allocatable, dimension(:,:,:) :: rKernel
 character(80) :: modelfile,fileout,cline
 
@@ -24,6 +24,15 @@ interface
       implicit none
       integer, intent(inout) :: nunit,nmodelmax,nmodel,iflag
       real(double), dimension(:), intent(inout) :: wmod, fmod
+   end subroutine
+end interface
+interface
+   subroutine readatlas(nunit,nmodelmax,nmodel,wmod,fmod,nll,iflag)
+      use precision
+      implicit none
+      integer, intent(inout) :: nunit,nmodelmax,nmodel,iflag
+      real(double), dimension(:), intent(inout) :: wmod, fmod
+      real(double), dimension(:,:), intent(inout) :: nll
    end subroutine
 end interface
 interface
@@ -75,6 +84,12 @@ yout=512
 
 snr=1000  !S/N of spectrum - move to commandline
 
+rv=0.0 !radial velocity shift (m/s)
+
+!parameter controling modeltype
+nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
+
+
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline
 call getarg(2,cline)
@@ -115,23 +130,34 @@ endif
 
 nmodelmax=1500000 !initital guess at the number of data points
 allocate(wmod(nmodelmax),fmod(nmodelmax))
+allocate(nll(nmodelmax,4)) !limb-darkening co-efficients
+
 iflag=0 !flag traces data i/o
 nmodel=0   !initalize counter for number of data points
 do !we do a loop.  If there are memory errors, we can get more this way
-   call readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag) !read in spectrum
+   if(nmodeltype.eq.1)then
+      call readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag) !read in spectrum
+      nll=0.0d0 !no limb-darkening
+   elseif(nmodeltype.eq.2)then
+      call readatlas(nunit,nmodelmax,nmodel,wmod,fmod,nll,iflag)
+   endif
    if(iflag.eq.1) then !reallocate array space (we ran out of space)
-      allocate(wmod2(nmodelmax),fmod2(nmodelmax)) !allocate temp arrays
+      allocate(wmod2(nmodelmax),fmod2(nmodelmax),nll2(nmodelmax,4)) !allocate temp arrays
       wmod2=wmod   !copy over the data we read
       fmod2=fmod
-      deallocate(wmod,fmod) !deallocate data arrays
+      nll2=nll
+      deallocate(wmod,fmod,nll) !deallocate data arrays
       nmodelmax=nmodelmax*2 !lets get more memory
       write(0,*) "warning, increasing nmodelmax: ",nmodelmax
-      allocate(wmod(nmodelmax),fmod(nmodelmax)) !reallocate array
+      allocate(wmod(nmodelmax),fmod(nmodelmax),nll(nmodelmax,4)) !reallocate array
       do i=1,nmodelmax/2  !copy data back into data arrays
          wmod(i)=wmod2(i)
          fmod(i)=fmod2(i)
+         do j=1,4
+            nll(i,j)=nll2(i,j)
+         enddo
       enddo
-      deallocate(wmod2,fmod2) !deallocate temp arrays
+      deallocate(wmod2,fmod2,nll2) !deallocate temp arrays
       iflag=2  !set flag that we are continuing to read in data
       cycle !repeat data read loop
    endif
@@ -139,6 +165,14 @@ do !we do a loop.  If there are memory errors, we can get more this way
 enddo
 close(nunit) !close file.
 !write(0,*) "nmodel: ",nmodel  !report number of data points read.
+
+fmod=fmod/maxval(fmod(1:nmodel))*65536.0d0 !scale input flux
+!write(0,*) "fbounds: ",minval(fmod(1:nmodel)),maxval(fmod(1:nmodel))
+
+!Now we readin the planet model and interpolate onto the spectral model grid
+allocate(rprs(nmodel))
+rprs=0.1188
+
 
 npt=200000 !this sets the number of spectral points when resampled
 allocate(wv(npt),fmodbin(npt))

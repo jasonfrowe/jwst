@@ -20,7 +20,7 @@ dnbin=dble(nbin)
 nmu=17 !number of surface angles
 
 !parameters for fitting limb-darkening..
-nfit=2
+nfit=4
 allocate(sol(nfit),fvec(nmu),iwa(nfit))
 if(nfit.eq.4)then
    sol(1)=0.0d0
