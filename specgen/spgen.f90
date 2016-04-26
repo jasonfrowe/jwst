@@ -10,9 +10,9 @@ integer xmax,ymax,iargc,nunit,filestatus,nmodelmax,iflag,nmodel,i,j,npx,&
 integer, dimension(2) :: ybounds
 integer, dimension(3) :: now
 real(double) :: w2p,px,py,ptrace,dxmaxp1,dymaxp1,dnossq,rv,dnpt,wl,mSum,&
-   fmodres,respond,awmod,snr,dumr,ran2,rprs
+   fmodres,respond,awmod,snr,dumr,ran2,b,p2w
 real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
-   fmodbin,wv,yres1,yres2,yres3
+   fmodbin,wv,yres1,yres2,yres3,rprs
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
    opixels,wKernel,wpixels,wcpixels,nll,nll2
 real(double), allocatable, dimension(:,:,:) :: rKernel
@@ -71,11 +71,22 @@ interface
       real(double), dimension(:,:), intent(inout) :: opixels
    end subroutine
 end interface
+interface
+   subroutine tmodel(nmodel,fmod,rprs,nll,b)
+      use precision
+      implicit none
+      integer, intent(inout) :: nmodel
+      real(double), intent(inout) :: b
+      real(double), dimension(:), intent(inout) :: fmod,rprs
+      real(double), dimension(:,:), intent(inout) :: nll
+   end subroutine
+end interface
 
 if(iargc().lt.2)then
-   write(0,*) "Usage: spgen specmodel noversample"
-   write(0,*) "  specmodel - BT-Stell.7 stellar model"
-   write(0,*) " noversample - is new sampling for Kernel (must be > 0)"
+   write(0,*) "Usage: spgen <specmodel> <noversample> [b]"
+   write(0,*) "   <specmodel> - Atlas-9 stellar model"
+   write(0,*) " <noversample> - is new sampling for Kernel (must be > 0)"
+   write(0,*) "           <b> - impact parameter (must be > 0)"
    stop
 endif
 
@@ -85,6 +96,18 @@ yout=512
 snr=1000  !S/N of spectrum - move to commandline
 
 rv=0.0 !radial velocity shift (m/s)
+
+if(iargc().ge.3)then
+   call getarg(3,cline)
+   read(cline,*) b
+   if(b.lt.0.0d0)then
+      write(0,*) "b must be positive"
+      stop
+   endif
+else
+   !default impact parameter
+   b=2.0!0.3589
+endif
 
 !parameter controling modeltype
 nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
@@ -173,6 +196,9 @@ fmod=fmod/maxval(fmod(1:nmodel))*65536.0d0 !scale input flux
 allocate(rprs(nmodel))
 rprs=0.1188
 
+if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
+   call tmodel(nmodel,fmod,rprs,nll,b)
+endif
 
 npt=200000 !this sets the number of spectral points when resampled
 allocate(wv(npt),fmodbin(npt))
@@ -247,11 +273,20 @@ do ntrace=1,ntracemax !loop over all traces
             fmodres=fmod(i)*max(respond,0.0d0) !flux to add to pixel
             call addflux2pix(px,py,xmax,ymax,wpixels,fmodres)
 
-!           j=j+1 !for counting number of wavelength samples
+!           j=j+1 !for counting gnumber of wavelength samples
          endif
       endif
    enddo
    !write(0,*) "nsamples: ",j
+
+!  quick hack to dump the NIRISS native resolution model to a file
+   if(ntrace.eq.1)then
+      open(unit=10,file="spgen_m.txt")
+         do i=1,xmax
+            write(10,*) p2w(dble(i),noversample,1),Sum(wpixels(i,1:ymax))
+         enddo
+      close(10)
+   endif
 
    !Now we convolve the narrow spectra with the PSF kernel
    write(0,*) minval(wpixels),maxval(wpixels)
