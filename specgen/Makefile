@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -fast -parallel -ipo
+OPT1 = -O3 -parallel -ipo -openmp
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 =
@@ -42,13 +42,15 @@ genoskernelincl = precision.o readkernels.o getfits.o spline.o writefits.o delet
 genoskernel: genoskernel.f90 $(genoskernelincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ genoskernel.f90 $(genoskernelincl) $(LIBS2)
 
-spgenincl = precision.o response.o readmodel.o writefits.o deletefile.o binmodel.o rqsort.o addflux2pix.o readkernels.o getfits.o genkernel.o spline.o convolveft.o ovrwrt.o readresponse.o readheader.o addgnoise.o ran2.o tmodel.o mandelagol.o
+spgenincl = precision.o response.o readmodel.o writefits.o deletefile.o binmodel.o rqsort.o addflux2pix.o readkernels.o getfits.o genkernel.o spline.o convolveft.o ovrwrt.o readresponse.o readheader.o addgnoise.o ran2.o tmodel.o mandelagol.o readpmodel.o
 spgen: spgen.f90 $(spgenincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ spgen.f90 $(spgenincl) $(LIBS2) -lfftw3
 
 
 #building object libraries
-mandelagol.o:$(UTILS)mandelagol.f
+readpmodel.o: $(UTILS)readpmodel.f90
+	$(F90) $(FFLAGS) $(UTILS)readpmodel.f90
+mandelagol.o: $(UTILS)mandelagol.f
 	$(F90) $(FFLAGS) $(UTILS)mandelagol.f
 tmodel.o: $(UTILS)tmodel.f90
 	$(F90) $(FFLAGS) $(UTILS)tmodel.f90

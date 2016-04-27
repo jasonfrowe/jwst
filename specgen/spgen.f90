@@ -16,7 +16,7 @@ real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
    opixels,wKernel,wpixels,wcpixels,nll,nll2
 real(double), allocatable, dimension(:,:,:) :: rKernel
-character(80) :: modelfile,fileout,cline
+character(80) :: modelfile,fileout,cline,pmodelfile
 
 interface
    subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
@@ -81,24 +81,37 @@ interface
       real(double), dimension(:,:), intent(inout) :: nll
    end subroutine
 end interface
+interface
+   subroutine readpmodel(nunit,nmodel,rprs)
+      use precision
+      implicit none
+      integer :: nunit,nmodel
+      real(double), dimension(:) :: rprs
+   end subroutine
+end interface
 
-if(iargc().lt.2)then
-   write(0,*) "Usage: spgen <specmodel> <noversample> [b]"
+if(iargc().lt.3)then
+   write(0,*) "Usage: spgen <specmodel> <noversample> <planetmodel>"
    write(0,*) "   <specmodel> - Atlas-9 stellar model"
    write(0,*) " <noversample> - is new sampling for Kernel (must be > 0)"
-   write(0,*) "           <b> - impact parameter (must be > 0)"
+   write(0,*) " <planetmodel> - name of planet model (A, rprs)"
+   write(0,*) "           [b] - impact parameter - optional (must be > 0)"
    stop
 endif
 
+
+!image dimensions
 xout=2048  !dimensions for output image.
 yout=512
 
+!parameters that control the simulation
 snr=1000  !S/N of spectrum - move to commandline
-
 rv=0.0 !radial velocity shift (m/s)
 
-if(iargc().ge.3)then
-   call getarg(3,cline)
+
+
+if(iargc().ge.4)then
+   call getarg(4,cline)
    read(cline,*) b
    if(b.lt.0.0d0)then
       write(0,*) "b must be positive"
@@ -194,7 +207,17 @@ fmod=fmod/maxval(fmod(1:nmodel))*65536.0d0 !scale input flux
 
 !Now we readin the planet model and interpolate onto the spectral model grid
 allocate(rprs(nmodel))
-rprs=0.1188
+
+!read in a model spectrum
+call getarg(3,pmodelfile)
+nunit=11 !unit number for data spectrum
+open(unit=nunit,file=pmodelfile,iostat=filestatus,status='old')
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",modelfile
+   stop
+endif
+call readpmodel(nunit,nmodel,rprs)
+close(nunit)
 
 if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
    call tmodel(nmodel,fmod,rprs,nll,b)
@@ -282,8 +305,8 @@ do ntrace=1,ntracemax !loop over all traces
 !  quick hack to dump the NIRISS native resolution model to a file
    if(ntrace.eq.1)then
       open(unit=10,file="spgen_m.txt")
-         do i=1,xmax
-            write(10,*) p2w(dble(i),noversample,1),Sum(wpixels(i,1:ymax))
+         do i=noversample,xmax,noversample
+            write(10,*) p2w(dble(i-noversample/2),noversample,1),Sum(wpixels(i-noversample+1:i,1:ymax))
          enddo
       close(10)
    endif
