@@ -1,4 +1,4 @@
-subroutine writefits(nxmax,nymax,parray,fileout)
+subroutine writefits(nxmax,nymax,parray,fileout,time)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 implicit none
@@ -6,6 +6,7 @@ integer :: nxmax,nymax,nkeys,nstep,status,blocksize,bitpix,naxis,funit, &
    npixels,group,firstpix,nbuf,i,j,nbuffer
 integer, dimension(2) :: naxes
 integer, dimension(4) :: nr
+real(double) :: time
 real(double), allocatable, dimension(:) :: buffer
 real(double), dimension(:,:) :: parray
 character(80) :: fileout,record
@@ -71,9 +72,9 @@ do while (npixels.gt.0)
 enddo
 
 !write(6,*) "ftprec:",status
-!!write(record,'(A8,A3,F10.1)') 'DATAMAX ','=  ',bpix
-!write(6,'(a80)') record
-!!call ftprec(funit,record,status)
+write(record,'(A8,A3,F12.8)') 'HJD     ','=  ',time
+write(6,'(a80)') record
+call ftprec(funit,record,status)
 !!write(record,'(A8,A3,F10.1)') 'DATAMIN ','=  ',-10000.0
 !write(6,'(a80)') record
 !!call ftprec(funit,record,status)

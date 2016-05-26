@@ -10,7 +10,7 @@ integer xmax,ymax,iargc,nunit,filestatus,nmodelmax,iflag,nmodel,i,j,npx,&
 integer, dimension(2) :: ybounds
 integer, dimension(3) :: now
 real(double) :: w2p,px,py,ptrace,dxmaxp1,dymaxp1,dnossq,rv,dnpt,wl,mSum,&
-   fmodres,respond,awmod,snr,dumr,ran2,b,p2w
+   fmodres,respond,awmod,snr,dumr,ran2,b,p2w,time
 real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
    fmodbin,wv,yres1,yres2,yres3,rprs
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
@@ -36,10 +36,11 @@ interface
    end subroutine
 end interface
 interface
-   subroutine writefits(nxmax,nymax,parray,fileout)
+   subroutine writefits(nxmax,nymax,parray,fileout,time)
       use precision
       implicit none
       integer, intent(inout) :: nxmax,nymax
+      real(double), intent(inout) :: time
       real(double), dimension(:,:), intent(inout) :: parray
       character(80) :: fileout
    end subroutine
@@ -82,20 +83,29 @@ interface
    end subroutine
 end interface
 interface
-   subroutine readpmodel(nunit,nmodel,rprs)
+   subroutine readpmodel(nunit,nmodel,wmod,rprs)
       use precision
       implicit none
       integer :: nunit,nmodel
-      real(double), dimension(:) :: rprs
+      real(double), dimension(:) :: rprs,wmod
+   end subroutine
+end interface
+interface
+   subroutine addshotnoise(xout,yout,opixels,seed)
+      use precision
+      implicit none
+      integer :: xout,yout,seed
+      real(double), dimension(:,:) :: opixels
    end subroutine
 end interface
 
 if(iargc().lt.3)then
-   write(0,*) "Usage: spgen <specmodel> <noversample> <planetmodel>"
+   write(0,*) "Usage: spgen <specmodel> <noversample> <planetmodel> [b] [time]"
    write(0,*) "   <specmodel> - Atlas-9 stellar model"
    write(0,*) " <noversample> - is new sampling for Kernel (must be > 0)"
    write(0,*) " <planetmodel> - name of planet model (A, rprs)"
    write(0,*) "           [b] - impact parameter - optional (must be > 0)"
+   write(0,*) "        [time] - observation timestamp to imbed in header"
    stop
 endif
 
@@ -120,6 +130,13 @@ if(iargc().ge.4)then
 else
    !default impact parameter
    b=2.0!0.3589
+endif
+
+if(iargc().ge.5)then
+   call getarg(5,cline)
+   read(cline,*) time
+else
+   time=0.0d0
 endif
 
 !parameter controling modeltype
@@ -208,7 +225,7 @@ fmod=fmod/maxval(fmod(1:nmodel))*65536.0d0 !scale input flux
 !Now we readin the planet model and interpolate onto the spectral model grid
 allocate(rprs(nmodel))
 
-!read in a model spectrum
+!read in a planet model spectrum
 call getarg(3,pmodelfile)
 nunit=11 !unit number for data spectrum
 open(unit=nunit,file=pmodelfile,iostat=filestatus,status='old')
@@ -216,7 +233,7 @@ if(filestatus>0)then !trap missing file errors
    write(0,*) "Cannot open ",modelfile
    stop
 endif
-call readpmodel(nunit,nmodel,rprs)
+call readpmodel(nunit,nmodel,wmod,rprs)
 close(nunit)
 
 if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
@@ -338,7 +355,7 @@ do i=noversample,xmax,noversample
    enddo
 enddo
 fileout="spgen.fits"  !write out un-convolved 2D spectrum
-call writefits(xout,yout,opixels,fileout) !make fits file.
+call writefits(xout,yout,opixels,fileout,time) !make fits file.
 
 opixels=0.0d0 !reinitialize the array
 dnossq=noversample*noversample
@@ -351,10 +368,11 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
    enddo
 enddo
 !Now we can add noise.
-call addgnoise(xout,yout,opixels,snr,seed)
+call addshotnoise(xout,yout,opixels,seed)
+!call addgnoise(xout,yout,opixels,snr,seed)
 !Export final image to FITS
 fileout="spgen_c.fits" !write out convolved 2D spectrum
-call writefits(xout,yout,opixels,fileout) !make fits file.
+call writefits(xout,yout,opixels,fileout,time) !make fits file.
 
 end program spgen
 

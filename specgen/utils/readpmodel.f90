@@ -1,22 +1,25 @@
-subroutine readpmodel(nunit,nmodel,rprs)
+subroutine readpmodel(nunit,nmodel,wmod,rprs)
 use precision
 implicit none
 integer :: nunit,nmodel
-real(double), dimension(:) :: rprs
+real(double), dimension(:) :: rprs,wmod
 !local vars
 integer :: npt,i,filestatus
-real(double), allocatable, dimension(:) :: wv,pmod
+real(double), allocatable, dimension(:) :: pwv,pmod,y2
 
 rprs=0.1188
 
-allocate(wv(nmodel),pmod(nmodel))
-!i=1
+!read in the model points.
+allocate(pwv(nmodel),pmod(nmodel))
+i=1
 do
    if(i.gt.nmodel)then !ran out of array space
       write(0,*) "Critical Error: Planet model has higher resolution that Star model"
       stop
    endif
-   read(nunit,*) wv(i),pmod(i)
+   read(nunit,*,iostat=filestatus) pwv(i),pmod(i) !Angstroms, RpRs
+!   write(0,*) i,pwv(i),pmod(i)
+!   read(5,*)
    if(filestatus == 0) then
       i=i+1
       cycle
@@ -29,6 +32,21 @@ do
       stop
    endif
 enddo
+npt=i-1
+write(0,*) "Number of planet model points: ",npt
+
+!resample the spectra to match the star spectra.
+!try out a spline (this might be super slow)
+allocate(y2(npt))
+call spline(pwv,pmod,npt,1.d30,1.d30,y2)
+
+do i=1,nmodel
+   call splint(pwv,pmod,y2,npt,wmod(i),rprs(i))
+!   write(0,*) i,wmod(i),rprs(i)
+!   read(5,*)
+enddo
+
+rprs=0.1188
 
 return
 end subroutine readpmodel

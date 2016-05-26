@@ -13,8 +13,8 @@ real, allocatable, dimension(:) :: px,py
 character(80) :: filename,title
 external fcn
 
-nskip=1 !frames to skip for plotting
-nbin=1000
+nskip=1000 !frames to skip for plotting
+nbin=1
 dnbin=dble(nbin)
 
 nmu=17 !number of surface angles
@@ -115,6 +115,18 @@ do
          call pgptxt(0.0,1.0,0.0,0.0,title)
          call pgsch(2.0)
       endif
+
+if(nfit.eq.4)then
+   sol(1)=0.0d0
+   sol(2)=0.0d0
+   sol(3)=0.0d0
+   sol(4)=1.0d0
+else !default it to use quadratic law
+   nfit=2
+   sol(1)=0.0d0
+   sol(2)=1.0d0
+endif
+
 
       !fit the data
       call lmdif1(fcn,nmu,nfit,sol,fvec,tol,info,iwa,wa,lwa)

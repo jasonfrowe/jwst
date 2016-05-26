@@ -148,7 +148,7 @@ call pgbox("BCNTS1",0.0,0,"BCNTS1",0.0,0)
 !call pglabel("X (pixels)","Y (pixels)","")
 call pgptxt((rj(1)+rj(2))/2.0,rj(3)-0.16*(rj(4)-rj(3)),0.0,0.5,         &
    "X (pixels)")
-call pgptxt(rj(1)-0.04*(rj(2)-rj(1)),(rj(4)+rj(3))/2,90.0,0.5,          &
+call pgptxt(rj(1)-0.06*(rj(2)-rj(1)),(rj(4)+rj(3))/2,90.0,0.5,          &
    "Y (pixels)")
 call pgsci(1)
 

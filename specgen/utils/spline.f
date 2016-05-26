@@ -8,7 +8,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER m,n,NN
       REAL*8 x1a(m),x2a(n),y2a(m,n),ya(m,n)
-      PARAMETER (NN=10000) !Maximum expected value of n and m.
+      PARAMETER (NN=20000) !Maximum expected value of n and m.
 C     USES spline
 C     Given an m by n tabulated function ya(1:m,1:n), and tabulated
 C     independent variables x2a(1:n), this routine constructs
@@ -36,7 +36,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER m,n,NN
       REAL*8 x1,x2,y,x1a(m),x2a(n),y2a(m,n),ya(m,n)
-      PARAMETER (NN=10000) !Maximum expected value of n and m.
+      PARAMETER (NN=20000) !Maximum expected value of n and m.
 C     USESspline,splint
 C     Given x1a, x2a, ya, m, n as described in splie2 and y2a as
 C     produced by that routine; and given a desired interpolating point
@@ -62,7 +62,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       implicit none
       INTEGER n,NMAX
       REAL*8 yp1,ypn,x(n),y(n),y2(n)
-      PARAMETER (NMAX=10000)
+      PARAMETER (NMAX=20000)
 C     Given arrays x(1:n) and y(1:n) containing a tabulated function,
 C     i.e., yi = f(xi), with x1 < x2 < ... < xN, and given values yp1
 C     and ypn for the first derivative of the inter- polating function
@@ -76,7 +76,7 @@ C     Parameter: NMAX is the largest anticipated value of n.
       INTEGER i,k
       REAL*8 p,qn,sig,un,u(NMAX)
       if (yp1.gt..99d30) then !The lower boundary condition is set
-         y2(1)=0.             !either to be ÒnaturalÓ
+         y2(1)=0.             !either to be ï¿½naturalï¿½
          u(1)=0.
       else                !or else to have a specified first derivative.
          y2(1)=-0.5
@@ -90,7 +90,7 @@ C     Parameter: NMAX is the largest anticipated value of n.
      .      /(x(i)-x(i-1)))/(x(i+1)-x(i-1))-sig*u(i-1))/p
  11   continue
       if (ypn.gt..99d30) then !The upper boundary condition is set
-         qn=0.                !either to be ÒnaturalÓ
+         qn=0.                !either to be ï¿½naturalï¿½
          un=0.
       else           !or else to have a specified first derivative.
          qn=0.5
@@ -110,7 +110,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       INTEGER n
       REAL*8 x,y,xa(n),y2a(n),ya(n)
 C     Given the arrays xa(1:n) and ya(1:n) of length n, which tabulate a
-C     function (with the xaiÕs in order), and given the array y2a(1:n),
+C     function (with the xaiï¿½s in order), and given the array y2a(1:n),
 C     which is the output from spline above, and given a value of x,
 C     this routine returns a cubic-spline interpolated value y.
       INTEGER k,khi,klo
@@ -128,7 +128,7 @@ C     this routine returns a cubic-spline interpolated value y.
       endif
       h=xa(khi)-xa(klo)
       if (h.eq.0.) then
-         write(0,*) 'bad xa input in splint' !The xaÕs must be distinct.
+         write(0,*) 'bad xa input in splint' !The xaï¿½s must be distinct.
          stop
       endif
       a=(xa(khi)-x)/h !Cubic spline polynomial is now evaluated.

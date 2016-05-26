@@ -42,12 +42,14 @@ genoskernelincl = precision.o readkernels.o getfits.o spline.o writefits.o delet
 genoskernel: genoskernel.f90 $(genoskernelincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ genoskernel.f90 $(genoskernelincl) $(LIBS2)
 
-spgenincl = precision.o response.o readmodel.o writefits.o deletefile.o binmodel.o rqsort.o addflux2pix.o readkernels.o getfits.o genkernel.o spline.o convolveft.o ovrwrt.o readresponse.o readheader.o addgnoise.o ran2.o tmodel.o mandelagol.o readpmodel.o
+spgenincl = precision.o response.o readmodel.o writefits.o deletefile.o binmodel.o rqsort.o addflux2pix.o readkernels.o getfits.o genkernel.o spline.o convolveft.o ovrwrt.o readresponse.o readheader.o addgnoise.o ran2.o tmodel.o mandelagol.o readpmodel.o spline.o addshotnoise.o
 spgen: spgen.f90 $(spgenincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ spgen.f90 $(spgenincl) $(LIBS2) -lfftw3
 
 
 #building object libraries
+addshotnoise.o: $(UTILS)addshotnoise.f90
+	$(F90) $(FFLAGS) $(UTILS)addshotnoise.f90
 readpmodel.o: $(UTILS)readpmodel.f90
 	$(F90) $(FFLAGS) $(UTILS)readpmodel.f90
 mandelagol.o: $(UTILS)mandelagol.f

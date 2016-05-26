@@ -1,7 +1,7 @@
 subroutine heatlut(i,r,g,b)
 !based on heat.lut from IRAF packages
 implicit none
-integer :: i
+integer :: i,ii
 integer :: imap = 3 !1=heat,2=viridis,3=inferno
 real :: r,g,b
 real, dimension(3,256) :: heat = reshape((/0.00000, 0.00000, 0.00000, &
@@ -775,47 +775,49 @@ real, dimension(3,256) :: infr = reshape((/ 0.001462, 0.000466, 0.013866, &
                  0.982257, 0.994109, 0.631017, &
                  0.988362, 0.998364, 0.644924/),(/3,256/))
 
+ii=256-i
+
 if(imap.eq.2)then
-   if(i.le.0)then
+   if(ii.le.0)then
       r=0.0
       g=0.0
       b=0.0
-   elseif(i.gt.256)then
+   elseif(ii.gt.256)then
       r=0.993248
       g=0.906157
       b=0.143936
    else
-      r=viri(1,i)
-      g=viri(2,i)
-      b=viri(3,i)
+      r=viri(1,ii)
+      g=viri(2,ii)
+      b=viri(3,ii)
    endif
 elseif(imap.eq.3)then
-   if(i.le.0)then
+   if(ii.le.0)then
       r=0.0
       g=0.0
       b=0.0
-   elseif(i.gt.256)then
+   elseif(ii.gt.256)then
       r=0.988362
       g=0.998364
       b=0.644924
    else
-      r=infr(1,i)
-      g=infr(2,i)
-      b=infr(3,i)
+      r=infr(1,ii)
+      g=infr(2,ii)
+      b=infr(3,ii)
    endif
 else
-   if(i.le.0)then
+   if(ii.le.0)then
       r=0.0
       g=0.0
       b=0.0
-   elseif(i.gt.256)then
+   elseif(ii.gt.256)then
       r=1.0
       g=1.0
       b=1.0
    else
-      r=heat(1,i)
-      g=heat(2,i)
-      b=heat(3,i)
+      r=heat(1,ii)
+      g=heat(2,ii)
+      b=heat(3,ii)
    endif
 endif
 
