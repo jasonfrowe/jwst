@@ -36,6 +36,14 @@ UTILS = utils/
 #Listing of programs to create.
 all: specextract tilt dispfits crossx2d
 
+posterfig3incl = precision.o
+posterfig3: posterfig3.f90 $(posterfig3incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ posterfig3.f90 $(posterfig3incl) $(LIBS2)
+
+posterfig2incl = precision.o
+posterfig2: posterfig2.f90 $(posterfig2incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ posterfig2.f90 $(posterfig2incl) $(LIBS2)
+
 qetestincl = precision.o spline.o
 qetest: qetest.f90 $(qetestincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ qetest.f90 $(qetestincl) $(LIBS2)

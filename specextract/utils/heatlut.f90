@@ -776,6 +776,7 @@ real, dimension(3,256) :: infr = reshape((/ 0.001462, 0.000466, 0.013866, &
                  0.988362, 0.998364, 0.644924/),(/3,256/))
 
 ii=256-i
+ii=i
 
 if(imap.eq.2)then
    if(ii.le.0)then

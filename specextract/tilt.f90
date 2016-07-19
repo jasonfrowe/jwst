@@ -352,7 +352,7 @@ do i=1,nlines
    endif
 enddo
 avgsplitlength=avgsplitlength/dble(k)
-!write(0,*) "avgsplitlength", avgsplitlength
+write(0,*) "avgsplitlength", avgsplitlength
 
 !calculate cross-correlation
 !call xcorr(nlines,nTrace,apfluxl,apfluxu,avgsplitlength,tilt,imax)

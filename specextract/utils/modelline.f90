@@ -1,9 +1,9 @@
-subroutine modelline(npt,line,ntrace,sol,isol,ilinkpsf)
+subroutine modelline(npt,line,ntrace,sol,isol,ilinkpsf,nline)
 !Jason Rowe 2015 - jasonfrowe@gmail.com
 use precision
 use fittingmod
 implicit none
-integer, target :: ntrace,nfit,ilinkpsf
+integer, target :: ntrace,nfit,ilinkpsf,nline
 integer :: npt,info,lwa,nfitin,j,i
 integer, dimension(:), target :: isol
 integer, allocatable, dimension(:) :: iwa
@@ -20,6 +20,7 @@ line2 => line     !the data to model
 isol2 => isol     !which parameters to fit
 sol2 => sol       !the fitted solution
 ilinkpsf2 => ilinkpsf !are the PSF models linked
+nline2 => nline   !which column are we fitting
 
 nfit=1+9*ntrace !size of sol
 tol=1.0d-10 !fitting tolerence
@@ -145,6 +146,17 @@ call psfmodel1d(m,fvec,ntrace2,sol)
 do i=1,m
    fvec(i)=(fvec(i)-line2(i))/1.0d0
 enddo
+
+if(abs(sol2(3)-sol(3)).gt.1.0)then
+   fvec=9.9e30
+endif
+if(abs(sol2(6)-sol(6)).gt.1.0)then
+   fvec=9.9e30
+endif
+if(abs(sol2(9)-sol(9)).gt.1.0)then
+   fvec=9.9e30
+endif
+
 
 return
 end

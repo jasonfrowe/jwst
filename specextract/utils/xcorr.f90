@@ -57,10 +57,10 @@ dnover=dble(noversample)
 do i=1,XF
 !   write(0,*) "i: ",i
    x=dble(i)/dnover
-   call splint(xl,yl,yl2,nlines,x,y)
+   call splint(xl,yl,yl2,nlines,x+0.0,y)
 !   write(0,*) "y: ",y
    A(i)=y
-   call splint(xl,yu,yu2,nlines,x,y)
+   call splint(xl,yu,yu2,nlines,x+0.0,y)
    B(i)=y
 enddo
 
@@ -90,11 +90,14 @@ do i=1,size(C)
    endif
 enddo
 
+
 jj=size(C)
 if(imax.gt.jj/2)then
    tilt=atan(real(imax-jj)/dnover/avgsplitlength)*rad2deg
+   write(0,*) "pixels: ",dble(imax-jj)/dnover
 else
    tilt=atan(real(imax)/dnover/avgsplitlength)*rad2deg
+   write(0,*) "pixels: ",dble(imax)/dnover
 endif
 tilterr=atan(-1.0d0/dnover/avgsplitlength)*rad2deg
 write(0,*) "tilt,err: ",tilt,tilterr

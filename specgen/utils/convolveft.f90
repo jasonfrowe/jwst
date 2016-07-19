@@ -48,6 +48,9 @@ A=0.0d0 !initalize to zero
 A(1:xmax,1:ymax)=pixels(1:xmax,1:ymax) !assign Image to zero-padded A
 planA=fftw_plan_dft_r2c_2d(YF,XF,A,AC,FFTW_ESTIMATE)
 call fftw_execute_dft_r2c(planA,A,AC)
+!write(0,*) "ttt: ",minval(pixels),maxval(pixels)
+!write(6,*) pixels
+!read(5,*)
 call fftw_destroy_plan(planA)
 
 !We can precompute plans..
@@ -99,6 +102,8 @@ do while(wl.lt.wle)
 !         fac=1.0d0-abs(wlp-wl)/dwl
 !      endif
       fac=max(0.0,1.0d0-abs(wlp-wl)/dwl)
+!      write(0,*) "t: ",minval(C(i,1:ymax)/dble(xmax*ymax)*fac),maxval(C(i,1:ymax)/dble(xmax*ymax)*fac)
+!      write(0,*) "tt: ",minval(C(i,1:ymax)),maxval(C(i,1:ymax))
       cpixels(i,1:ymax)=cpixels(i,1:ymax)+C(i,1:ymax)/dble(xmax*ymax)*fac
    enddo
    wl=wl+dwl

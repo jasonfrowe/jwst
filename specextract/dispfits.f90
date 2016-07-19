@@ -45,11 +45,11 @@ endif
 call pgopen('?')
 !call pgopen('/xserve')
 call PGPAP (8.0 ,1.0) !use a square 8" across
-call pgsubp(1,2)
+call pgsubp(1,4)
 
 nkeysmax=700
 allocate(header(nkeysmax),sigs(iargc()))
-sigs=20.0d0
+sigs=1000.0d0
 sigs(2)=20.0d0
 
 do i=1,iargc()  !loop over command-line arguments

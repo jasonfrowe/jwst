@@ -219,7 +219,7 @@ enddo
 close(nunit) !close file.
 !write(0,*) "nmodel: ",nmodel  !report number of data points read.
 
-fmod=fmod/maxval(fmod(1:nmodel))*65536.0d0 !scale input flux
+fmod=fmod/maxval(fmod(1:nmodel))*65536d0 !scale input flux
 !write(0,*) "fbounds: ",minval(fmod(1:nmodel)),maxval(fmod(1:nmodel))
 
 !Now we readin the planet model and interpolate onto the spectral model grid
@@ -414,6 +414,7 @@ function p2w(p,noversample,ntrace)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !convert pixel to wavelength
 ! n=1 polynomial fit
+!output is in Angstroms
 use precision
 implicit none
 integer :: i,noversample,ntrace
@@ -451,6 +452,7 @@ function w2p(w,noversample,ntrace)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !convert wavelength to pixel
 ! n=1 polynomial fit.
+! input is in angtroms
 use precision
 implicit none
 integer :: i,noversample,ntrace

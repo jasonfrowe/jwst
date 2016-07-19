@@ -51,10 +51,10 @@ interface
    end subroutine psfmodel1d
 end interface
 interface
-   subroutine modelline(npt,line,ntrace,sol,isol,ilinkpsf)
+   subroutine modelline(npt,line,ntrace,sol,isol,ilinkpsf,nline)
       use precision
       implicit none
-      integer, intent(inout) :: npt,ntrace,ilinkpsf
+      integer, intent(inout) :: npt,ntrace,ilinkpsf,nline
       integer, dimension(:), intent(inout) :: isol
       real(double), dimension(:), intent(inout) :: line,sol
    end subroutine modelline
@@ -204,10 +204,10 @@ call loadPSFinit(ntrace,sol,ncutpsf,nline,dtrace,line)
 !   (sol(9+9*(k-1))+(sol(3+9*(k-1))+sol(6+9*(k-1)))/2.0d0,k=1,ntrace)
 isol=1  !fit all variables
 isol(1)=0 !do not fit zero line
-ilinkpsf=1 !(0) - each order has own PSF, (1) PSF shapes linked
+ilinkpsf=0 !(0) - each order has own PSF, (1) PSF shapes linked
 !This is the FIRST psf model update.. so keep the parameters free as
 !possible.
-call modelline(naxes(2),line,ntrace,sol,isol,ilinkpsf)
+call modelline(naxes(2),line,ntrace,sol,isol,ilinkpsf,nline)
 do k=1,ntrace
    amp(k)=sq2pi*sol(8+9*(k-1))*sol(2+9*(k-1))*sol(4+9*(k-1))+  &
           sq2pi*sol(8+9*(k-1))*sol(5+9*(k-1))*sol(7+9*(k-1))+  &
@@ -248,12 +248,12 @@ deallocate(model)
 
 !fixing the shape of the PSF model (only central position and amplitude)
 do k=1,ntrace
-   isol(2+9*(k-1))=0 !amplitude
-   isol(3+9*(k-1))=0 !position
-   isol(4+9*(k-1))=0 !width
-   isol(5+9*(k-1))=0 !amplitude
-   isol(6+9*(k-1))=0 !position
-   isol(7+9*(k-1))=0 !width
+   isol(2+9*(k-1))=1 !amplitude
+   isol(3+9*(k-1))=1 !position
+   isol(4+9*(k-1))=1 !width
+   isol(5+9*(k-1))=1 !amplitude
+   isol(6+9*(k-1))=1 !position
+   isol(7+9*(k-1))=1 !width
    isol(10+9*(k-1))=0 !width
 enddo
 
@@ -268,7 +268,7 @@ do while (i.le.naxes(1))
    line=Image(i,:)  !get next column from image to use.
    line=line-sky
    solnew=sol !save current solution
-   call modelline(naxes(2),line,ntrace,solnew,isol,ilinkpsf) !model
+   call modelline(naxes(2),line,ntrace,solnew,isol,ilinkpsf,i) !model
 !  now check the amplitudes and changes in trace
    do k=1,ntrace
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
@@ -288,7 +288,7 @@ do while (i.le.naxes(1))
          enddo
          line=line/dble(2*nbin+1)-sky
          solbin=sol !try to fit again with previous solution.
-         call modelline(naxes(2),line,ntrace,solbin,isol,ilinkpsf) !model
+         call modelline(naxes(2),line,ntrace,solbin,isol,ilinkpsf,i) !model
          amp(k)=sq2pi*solbin(8+9*(k-1))*solbin(2+9*(k-1))*solbin(4+9*(k-1))+  &
           sq2pi*solbin(8+9*(k-1))*solbin(5+9*(k-1))*solbin(7+9*(k-1))+  &
           sq2pi*solbin(8+9*(k-1))*solbin(10+9*(k-1))
@@ -341,7 +341,7 @@ do while (i.ge.1)
    line=Image(i,:)
    line=line-sky
    solnew=sol !save current solution
-   call modelline(naxes(2),line,ntrace,solnew,isol,ilinkpsf) !model
+   call modelline(naxes(2),line,ntrace,solnew,isol,ilinkpsf,i) !model
 !  now check the amplitudes and changes in trace
    do k=1,ntrace
       amp(k)=sq2pi*solnew(8+9*(k-1))*solnew(2+9*(k-1))*solnew(4+9*(k-1))+  &
@@ -360,7 +360,7 @@ do while (i.ge.1)
          enddo
          line=line/dble(2*nbin+1)-sky
          solbin=sol !try to fit again with previous solution.
-         call modelline(naxes(2),line,ntrace,solbin,isol,ilinkpsf) !model
+         call modelline(naxes(2),line,ntrace,solbin,isol,ilinkpsf,i) !model
          amp(k)=sq2pi*solbin(8+9*(k-1))*solbin(2+9*(k-1))*solbin(4+9*(k-1))+  &
           sq2pi*solbin(8+9*(k-1))*solbin(5+9*(k-1))*solbin(7+9*(k-1))+  &
           sq2pi*solbin(8+9*(k-1))*solbin(10+9*(k-1))

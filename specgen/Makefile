@@ -4,7 +4,7 @@ CCMPL = gcc
 F90 = ifort
 F77 = ifort
 #compiling object file flags
-OPT1 = -O3 -parallel -ipo -openmp
+OPT1 = -O3 -parallel -openmp
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 =
@@ -34,6 +34,10 @@ UTILS = utils/
 
 #Listing of programs to create.
 all: spgen
+
+rescaleincl = precision.o
+rescale: rescale.f90 $(rescaleincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ rescale.f90 $(rescaleincl) $(LIBS2)
 
 fftwexample: fftwexample.f90 
 	$(F90) $(LFLAGS) -o $(BIN)$@ fftwexample.f90 -L$(PGPLOTDIR) -lfftw3

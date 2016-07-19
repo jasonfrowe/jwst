@@ -10,6 +10,7 @@ real(double) :: wv,norm,tol,dnbin,rwv
 real(double), allocatable, dimension(:),target :: mu,dIn,rdIn
 real(double), allocatable, dimension(:) :: sol,fvec,wa
 real, allocatable, dimension(:) :: px,py
+character(18) :: pname
 character(80) :: filename,title
 external fcn
 
@@ -20,7 +21,7 @@ dnbin=dble(nbin)
 nmu=17 !number of surface angles
 
 !parameters for fitting limb-darkening..
-nfit=4
+nfit=2
 allocate(sol(nfit),fvec(nmu),iwa(nfit))
 if(nfit.eq.4)then
    sol(1)=0.0d0
@@ -57,7 +58,7 @@ read(nunit,*) idum,(mu(i),i=1,nmu)
 
 call pgopen('/xserve') !open PGPlot device
 call pgask(.false.) !false=don't ask for new page.. just do it.
-call PGPAP ( 8.0 ,1.0) !paper size
+call PGPAP ( 6.0 ,1.0) !paper size
 call pgsubp(1,1)  !break up plot into grid
 call pgpage()
 call pgvport(0.20,0.9,0.20,0.9)
@@ -84,6 +85,7 @@ do
    read(nunit,*,iostat=filestatus) wv,(dIn(i),i=1,nmu)
    if(filestatus == 0) then
       nstep=nstep+1 !count number of steps
+      write(pname,'(A1,I9.9,A8)') "p",nstep,".png/png"
       if(mod(nstep,nbin).ne.0)then
          rwv=rwv+wv
          rdIn=rdIn+dIn
@@ -104,6 +106,13 @@ do
 !      call pgpage()
 
       if(mod(nstep,nskip).eq.0)then
+!         call pgopen(pname)
+!         call PGPAP ( 8.0 ,1.0) !paper size
+!         call pgsubp(1,1)  !break up plot into grid
+!         call pgvport(0.20,0.9,0.20,0.9)
+!         call pgwindow(-0.1,1.1,-0.1,1.1)
+!         call pgsch(2.0)
+
          call pgeras()
          call pgbox('BCNTS1',0.0,0,'BCNTSV1',0.0,0)
          call pglabel("mu","Intensity","")
@@ -149,11 +158,14 @@ endif
             enddo
          endif
          call pgsci(2)
+         call pgslw(3)
          call pgline(nmu,px,py)
+         call pgslw(1)
          call pgsci(1)
-!      read(5,*)
+      read(5,*)
 !         call pgeras()
-         call sleepqq(30)
+!         call sleepqq(30)
+!         call pgclos()
       endif
       cycle
    elseif(filestatus == -1) then
@@ -166,7 +178,7 @@ endif
    endif
 enddo
 close(nunit)
-call pgclos()
+!call pgclos()
 
 end program calcldco
 

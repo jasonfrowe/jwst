@@ -13,7 +13,6 @@ sat=75000.0d0 !e-
 !readnoise
 readnoise=20.0d0 !e-
 
-
 !find largest pixel value
 pmax=maxval(opixels(1:xout,1:yout))
 !scale
@@ -33,7 +32,8 @@ do i=1,xout
    enddo
 enddo
 
-
+!undo scaling
+opixels=opixels/sat*pmax
 
 
 end subroutine addshotnoise
