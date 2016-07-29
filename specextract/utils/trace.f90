@@ -175,9 +175,9 @@ do k=1,nTrace !loop over expected number of traces
    py=real(lpsf(nksd2-(i-xm):nksd2+(xp-i))*bf(nline,k)) !Y-axis
 !   pmin=minval(py)
 !   py=log10(py-pmin+1.0d0)
-   call pgsci(2+k)  !change plotting colour
+!   call pgsci(2+k)  !change plotting colour
 !   call pgline(size(line(xm:xp)),px,py) !plot a line
-   call pgsci(1) !change plotting colour back to default
+!   call pgsci(1) !change plotting colour back to default
    deallocate(px,py) !de-allocate plotting variables
 
 !  calculate S/N
@@ -249,9 +249,9 @@ call psfmodel1d(size(line),model,ntrace,sol)
 py=real(model) !Y-axis
 !   pmin=minval(py)
 !   py=log10(py-pmin+1.0d0)
-call pgsci(6)  !change plotting colour
-call pgline(size(line),px,py) !plot a line
-call pgsci(1) !change plotting colour back to default
+!cp call pgsci(6)  !change plotting colour
+!cp call pgline(size(line),px,py) !plot a line
+!cp call pgsci(1) !change plotting colour back to default
 deallocate(px,py) !de-allocate plotting variables
 deallocate(model)
 !write(0,*) "pause.."

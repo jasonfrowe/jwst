@@ -3,13 +3,13 @@ program specextract
 use precision
 implicit none
 integer :: nkeys,nkeysmax,nxmax,nymax,iargc,i,nline,nTrace,j,status,    &
-   nfit,dumi
+   nfit,dumi,nap,nsky
 integer, dimension(2) :: naxes
 real :: pmin
 integer :: nplot
 real, allocatable, dimension(:) :: px,py,bb
 real(double) :: Rmin,Rmax,bpix,tavg
-real(double), allocatable, dimension(:) :: posguess
+real(double), allocatable, dimension(:) :: posguess,flux
 real(double), allocatable, dimension(:,:) :: Image,tImage,dTrace,bf,solpsf
 character(80) :: Imagename,cline
 character(80), allocatable, dimension(:) :: header
@@ -49,12 +49,13 @@ interface
    end subroutine trace
 end interface
 interface
-   subroutine apflux(naxes,Image,bpix,nTrace,dTrace)
+   subroutine apflux(naxes,Image,bpix,nTrace,dTrace,nap,nsky,flux)
       use precision
       implicit none
-      integer, intent(inout) :: nTrace
+      integer, intent(inout) :: nTrace,nap,nsky
       integer, dimension(2), intent(inout) :: naxes
       real(double), intent(inout) :: bpix
+      real(double), dimension(:), intent(inout) :: flux
       real(double), dimension(:,:), intent(inout) :: Image,dTrace
    end subroutine apflux
 end interface
@@ -220,7 +221,35 @@ do i=1,naxes(1)
 enddo
 
 !extract aperture
-call apflux(naxes,Image,bpix,nTrace,dTrace)
+nap=20 !aperture for flux sums
+nsky=50 !aperture for sky estimate
+allocate(flux(naxes(1)))
+call apflux(naxes,Image,bpix,nTrace,dTrace,nap,nsky,flux)
+
+!plotting to have a look
+allocate(px(naxes(1)),py(naxes(1)))
+do i=1,naxes(1)
+   px(i)=real(i)
+enddo
+py=real(flux)
+!pmin=minval(py)
+!py=log10(py-pmin+1.000)
+call pgpage()
+call pgsci(1)
+call pgvport(0.10,0.95,0.15,0.95) !make room around the edges for labels
+bb(1)=minval(px)
+bb(2)=maxval(px)
+bb(3)=minval(py)
+bb(4)=maxval(py)
+call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
+call pgbox("BCNTS1",0.0,0,"BCNTS",0.0,0)
+!call pglabel("X (pixels)","Y (Counts)","")
+call pgptxt((bb(1)+bb(2))/2.0,bb(3)-0.16*(bb(4)-bb(3)),0.0,0.5,         &
+   "X (pixels)")
+call pgptxt(bb(1)-0.04*(bb(2)-bb(1)),(bb(4)+bb(3))/2,90.0,0.5,          &
+   "Y (counts)")
+call pgline(naxes(1),px,py)
+deallocate(px,py)
 
 !plot Image again
 call pgpanl(1,1)

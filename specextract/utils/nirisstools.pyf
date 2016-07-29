@@ -1,0 +1,79 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module nirisstools ! in 
+    interface  ! in :nirisstools
+        module precision ! in :nirisstools:precision.f90
+            integer, parameter,optional :: double_bn=8
+        end module precision
+        subroutine trace(naxes,image,bpix,nline,ntrace,dtrace,bf,solpsf,posguess) ! in :nirisstools:trace.f90
+            use precision
+            integer dimension(2), intent(in) :: naxes
+            real(kind=8) dimension(:,:), intent(in) :: image
+            real(kind=8) intent(in) :: bpix
+            integer intent(in) :: nline
+            integer intent(in) :: ntrace
+            real(kind=8) dimension(:,:), intent(inout) :: dtrace
+            real(kind=8) dimension(:,:), intent(inout) :: bf
+            real(kind=8) dimension(:,:), intent(inout) :: solpsf
+            real(kind=8) dimension(:), intent(in) :: posguess
+        end subroutine trace
+        subroutine apflux(naxes,image,bpix,ntrace,dtrace,nap,nsky,flux) ! in :nirisstools:apflux.f90
+            use precision
+            integer dimension(2), intent(in) :: naxes
+            real(kind=8) dimension(:,:), intent(in) :: image
+            real(kind=8), intent(in) :: bpix
+            integer intent(in) :: ntrace
+            real(kind=8) dimension(:,:), intent(in) :: dtrace
+            integer intent(in) :: nap
+            integer intent(in) :: nsky
+            real(kind=8) dimension(:), intent(inout) :: flux
+        end subroutine apflux
+        subroutine loadpsfinit(ntrace,sol,ncutpsf,nline,dtrace,line) ! in :nirisstools:loadpsfinit.f90
+            use precision
+            integer :: ntrace
+            real(kind=8) dimension(:) :: sol
+            integer :: ncutpsf
+            integer :: nline
+            real(kind=8) dimension(:,:) :: dtrace
+            real(kind=8) dimension(:) :: line
+        end subroutine loadpsfinit
+        subroutine psfmodel1d(npt,model,ntrace,sol) ! in :nirisstools:psfmodel1d.f90
+            use precision
+            integer :: npt
+            real(kind=8) dimension(:) :: model
+            integer :: ntrace
+            real(kind=8) dimension(:) :: sol
+        end subroutine psfmodel1d
+        subroutine modelline(npt,line,ntrace,sol,isol,ilinkpsf,nline) ! in :nirisstools:modelline.f90
+            use precision
+            use fittingmod
+            integer :: npt
+            real(kind=8), target,dimension(:) :: line
+            integer, target :: ntrace
+            real(kind=8), target,dimension(:) :: sol
+            integer, target,dimension(:) :: isol
+            integer, target :: ilinkpsf
+            integer, target :: nline
+        end subroutine modelline
+        subroutine fcn(m,n,x,fvec,iflag) ! in :nirisstools:modelline.f90
+            use precision
+            use fittingmod
+            integer, optional,check(len(fvec)>=m),depend(fvec) :: m=len(fvec)
+            integer, optional,check(len(x)>=n),depend(x) :: n=len(x)
+            real(kind=8) dimension(n) :: x
+            real(kind=8) dimension(m) :: fvec
+            integer :: iflag
+        end subroutine fcn
+        function getsky(naxes,image,std) ! in :nirisstools:getsky.f90
+            use precision
+            integer dimension(2) :: naxes
+            real(kind=8) dimension(:,:) :: image
+            real(kind=8) :: std
+            real(kind=8) :: getsky
+        end function getsky
+    end interface 
+end python module nirisstools
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
