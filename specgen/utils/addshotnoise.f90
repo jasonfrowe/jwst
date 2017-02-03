@@ -15,7 +15,7 @@ readnoise=20.0d0 !e-
 
 !find largest pixel value
 pmax=maxval(opixels(1:xout,1:yout))
-!scale
+!scale (undone below)
 opixels=opixels*sat/pmax
 
 !add shot-noise (Guassian)

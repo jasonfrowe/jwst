@@ -109,16 +109,16 @@ if(iargc().lt.3)then
    stop
 endif
 
-
 !image dimensions
 xout=2048  !dimensions for output image.
-yout=512
+yout=256
 
 !parameters that control the simulation
 snr=1000  !S/N of spectrum - move to commandline
 rv=0.0 !radial velocity shift (m/s)
 
-
+!parameter controling modeltype
+nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
 
 if(iargc().ge.4)then
    call getarg(4,cline)
@@ -138,9 +138,6 @@ if(iargc().ge.5)then
 else
    time=0.0d0
 endif
-
-!parameter controling modeltype
-nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
 
 
 noversample=1 !now a commandline-parameter
@@ -217,7 +214,7 @@ do !we do a loop.  If there are memory errors, we can get more this way
    exit !successively break from data read loop.
 enddo
 close(nunit) !close file.
-!write(0,*) "nmodel: ",nmodel  !report number of data points read.
+write(0,*) "Number of star model points: ",nmodel  !report number of data points read.
 
 fmod=fmod/maxval(fmod(1:nmodel))*65536d0 !scale input flux
 !write(0,*) "fbounds: ",minval(fmod(1:nmodel)),maxval(fmod(1:nmodel))
@@ -368,7 +365,7 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
    enddo
 enddo
 !Now we can add noise.
-call addshotnoise(xout,yout,opixels,seed)
+!call addshotnoise(xout,yout,opixels,seed)
 !call addgnoise(xout,yout,opixels,snr,seed)
 !Export final image to FITS
 fileout="spgen_c.fits" !write out convolved 2D spectrum
@@ -404,7 +401,7 @@ do i=2,nc
    !polynomial fit to trace. Good to about 1-2 pix
    ptrace=ptrace+opx**dble(i-1)*c(i)
 enddo
-ptrace=ptrace*dble(noversample) !account for oversampling
+ptrace=(ptrace-80.0d0)*dble(noversample) !account for oversampling
 
 return
 end

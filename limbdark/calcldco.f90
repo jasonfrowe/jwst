@@ -21,7 +21,7 @@ dnbin=dble(nbin)
 nmu=17 !number of surface angles
 
 !parameters for fitting limb-darkening..
-nfit=2
+nfit=4
 allocate(sol(nfit),fvec(nmu),iwa(nfit))
 if(nfit.eq.4)then
    sol(1)=0.0d0
@@ -83,6 +83,8 @@ rdIn=0.0d0
 nstep=0 !count number of steps
 do
    read(nunit,*,iostat=filestatus) wv,(dIn(i),i=1,nmu)
+   wv=wv*10.0 !nm -> A
+   dIn=4*dIn*2.99792458d18/(wv*wv) !convert to ergs s-1 cm-2 A-1
    if(filestatus == 0) then
       nstep=nstep+1 !count number of steps
       write(pname,'(A1,I9.9,A8)') "p",nstep,".png/png"
@@ -162,7 +164,7 @@ endif
          call pgline(nmu,px,py)
          call pgslw(1)
          call pgsci(1)
-      read(5,*)
+!      read(5,*)
 !         call pgeras()
 !         call sleepqq(30)
 !         call pgclos()

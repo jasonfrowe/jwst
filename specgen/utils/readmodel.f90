@@ -61,7 +61,6 @@ do
       return
    endif
    read(nunit,*,iostat=filestatus) wv(i),(nll(i,j),j=1,4),flux(i)
-   wv(i)=wv(i)*10.0d0 !convert to angstrom
    flux(i)=-flux(i)*pi*(42.0d0*nll(i,1)+70.0d0*nll(i,2)+90.0d0*nll(i,3)+&
      105.0d0*nll(i,4)-210.0d0)/210.0d0
    flux(i)=max(0.0d0,flux(i))

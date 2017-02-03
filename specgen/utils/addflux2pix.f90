@@ -15,7 +15,7 @@ pymh=py-0.5d0
 
 !start with reference pixel
 dx=floor(px+0.5)-pxmh !find edge of square
-dy=floor(px+0.5)-pxmh
+dy=floor(py+0.5)-pymh
 npx=int(pxmh)
 npy=int(pymh)
 !check that pixel location is valid part of array
