@@ -16,7 +16,8 @@ real(double), allocatable, dimension(:) :: wmod,fmod,wmod2,fmod2,       &
 real(double), allocatable, dimension(:,:) :: pixels,Kernel,cpixels,     &
    opixels,wKernel,wpixels,wcpixels,nll,nll2
 real(double), allocatable, dimension(:,:,:) :: rKernel
-character(80) :: modelfile,fileout,cline,pmodelfile
+character(80) :: modelfile,fileout,fileout_m,fileout_c,cline,pmodelfile,&
+   prefix
 
 interface
    subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
@@ -105,7 +106,8 @@ if(iargc().lt.3)then
    write(0,*) " <noversample> - is new sampling for Kernel (must be > 0)"
    write(0,*) " <planetmodel> - name of planet model (A, rprs)"
    write(0,*) "           [b] - impact parameter - optional (must be > 0)"
-   write(0,*) "        [time] - observation timestamp to imbed in header"
+   write(0,*) "        [time] - observation timestamp to embed in header"
+   write(0,*) " [output.fits] - filename for output"
    stop
 endif
 
@@ -138,7 +140,14 @@ if(iargc().ge.5)then
 else
    time=0.0d0
 endif
-
+if(iargc().ge.6)then
+   call getarg(6,prefix)
+else
+   prefix="spgen"
+endif
+fileout=trim(prefix)//".fits"
+fileout_m=trim(prefix)//"_m.txt"
+fileout_c=trim(prefix)//"_c.fits"
 
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline
@@ -318,7 +327,7 @@ do ntrace=1,ntracemax !loop over all traces
 
 !  quick hack to dump the NIRISS native resolution model to a file
    if(ntrace.eq.1)then
-      open(unit=10,file="spgen_m.txt")
+      open(unit=10,file=fileout_m)
          do i=noversample,xmax,noversample
             write(10,*) p2w(dble(i-noversample/2),noversample,1),Sum(wpixels(i-noversample+1:i,1:ymax))
          enddo
@@ -351,7 +360,7 @@ do i=noversample,xmax,noversample
 !         opixels(i/noversample,j/noversample)/dnossq
    enddo
 enddo
-fileout="spgen.fits"  !write out un-convolved 2D spectrum
+!write out un-convolved 2D spectrum
 call writefits(xout,yout,opixels,fileout,time) !make fits file.
 
 opixels=0.0d0 !reinitialize the array
@@ -367,9 +376,9 @@ enddo
 !Now we can add noise.
 !call addshotnoise(xout,yout,opixels,seed)
 !call addgnoise(xout,yout,opixels,snr,seed)
+
 !Export final image to FITS
-fileout="spgen_c.fits" !write out convolved 2D spectrum
-call writefits(xout,yout,opixels,fileout,time) !make fits file.
+call writefits(xout,yout,opixels,fileout_c,time) !make fits file.
 
 end program spgen
 
