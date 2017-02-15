@@ -6,7 +6,7 @@ integer :: iargc,nkeysmax,nxmax,nymax,status,nkeys,dumi,filestatus,     &
    nunit,ntrace,nlines,nfit,i,j,k,nplot,nfitline,nbin
 integer, dimension(2) :: naxes
 real, allocatable, dimension(:) :: px,py
-real(double) :: bpix,Rmin,Rmax,tavg,avgsplitlength,tilt
+real(double) :: bpix,Rmin,Rmax,tavg,avgsplitlength,tilt,sigscale
 real(double), allocatable, dimension(:) :: psf
 real(double), allocatable, dimension(:,:) :: Image,tImage,solpsf,dTrace,&
    apfluxl,apfluxu
@@ -125,7 +125,8 @@ call pgsubp(1,4)
 call pgpage()
 
 tavg=0.0 !displays a time on the image
-call displayfits(nxmax,nymax,Image,bpix,tavg)
+sigscale=0.0
+call displayfits(nxmax,nymax,Image,bpix,tavg,sigscale)
 
 !read in trace
 nunit=10 !unit number for file list

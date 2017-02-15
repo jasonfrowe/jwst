@@ -31,7 +31,7 @@ calcldco: $(calcldcosrc)calcldco.f90 $(calcldcoincl)
 	$(F90) $(FFLAGS) -o $(BIN)$@ $(calcldcosrc)calcldco.f90 $(calcldcoincl) $(LFLAGS) $(XFLAGS) $(PFLAGS)
 
 spgensrc = specgen/
-spgenincl = $(spgensrc)precision.o $(spgensrc)response.o $(spgensrc)readmodel.o $(spgensrc)writefits.o $(spgensrc)deletefile.o $(spgensrc)binmodel.o $(spgensrc)rqsort.o $(spgensrc)addflux2pix.o $(spgensrc)readkernels.o $(spgensrc)getfits.o $(spgensrc)genkernel.o $(spgensrc)spline.o $(spgensrc)convolveft.o $(spgensrc)ovrwrt.o $(spgensrc)readresponse.o $(spgensrc)readheader.o
+spgenincl = $(spgensrc)precision.o $(spgensrc)response.o $(spgensrc)readmodel.o $(spgensrc)writefits.o $(spgensrc)deletefile.o $(spgensrc)binmodel.o $(spgensrc)rqsort.o $(spgensrc)addflux2pix.o $(spgensrc)readkernels.o $(spgensrc)getfits.o $(spgensrc)genkernel.o $(spgensrc)spline.o $(spgensrc)convolveft.o $(spgensrc)ovrwrt.o $(spgensrc)readresponse.o $(spgensrc)readheader.o $(spgensrc)ran2.o $(spgensrc)tmodel.o $(spgensrc)mandelagol.o $(spgensrc)readpmodel.o $(spgensrc)spline.o $(spgensrc)addshotnoise.o
 spgen: $(spgensrc)spgen.f90 $(spgenincl)
 	$(F90) $(FFLAGS) -o $(BIN)$@ $(spgensrc)spgen.f90 $(spgenincl) $(LFLAGS) $(CFLAGS) $(FFTFLAGS)
 
@@ -131,6 +131,16 @@ $(spgensrc)convolveft.o: $(spgensrc)$(UTILS)convolveft.f90
 	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)convolveft.f90
 $(spgensrc)ovrwrt.o: $(spgensrc)$(UTILS)ovrwrt.f
 	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)ovrwrt.f
+$(spgensrc)ran2.o: $(spgensrc)$(UTILS)ran2.f
+	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)ran2.f
+$(spgensrc)tmodel.o: $(spgensrc)$(UTILS)tmodel.f90
+	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)tmodel.f90
+$(spgensrc)mandelagol.o: $(spgensrc)$(UTILS)mandelagol.f
+	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)mandelagol.f
+$(spgensrc)readpmodel.o: $(spgensrc)$(UTILS)readpmodel.f90
+	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)readpmodel.f90
+$(spgensrc)addshotnoise.o: $(spgensrc)$(UTILS)addshotnoise.f90
+	cd $(spgensrc) ; $(F90) -c $(FFLAGS) $(UTILS)addshotnoise.f90
 	
 # Removing object files
 .PHONY : clean

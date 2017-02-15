@@ -35,6 +35,10 @@ UTILS = utils/
 #Listing of programs to create.
 all: spgen
 
+makecubeincl = precision.o getfits.o writedatacube.o deletefile.o
+makecube: makecube.f90 $(makecubeincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ makecube.f90 $(makecubeincl) $(LIBS2)
+
 rescaleincl = precision.o
 rescale: rescale.f90 $(rescaleincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ rescale.f90 $(rescaleincl) $(LIBS2)
@@ -52,6 +56,8 @@ spgen: spgen.f90 $(spgenincl)
 
 
 #building object libraries
+writedatacube.o: $(UTILS)writedatacube.f90
+	$(F90) $(FFLAGS) $(UTILS)writedatacube.f90
 addshotnoise.o: $(UTILS)addshotnoise.f90
 	$(F90) $(FFLAGS) $(UTILS)addshotnoise.f90
 readpmodel.o: $(UTILS)readpmodel.f90

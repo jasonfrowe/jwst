@@ -187,7 +187,7 @@ if(filestatus>0)then !trap missing file errors
    stop
 endif
 
-nmodelmax=1500000 !initital guess at the number of data points
+nmodelmax=2000000 !initital guess at the number of data points
 allocate(wmod(nmodelmax),fmod(nmodelmax))
 allocate(nll(nmodelmax,4)) !limb-darkening co-efficients
 
