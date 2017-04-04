@@ -2,10 +2,10 @@
 CCMPL = gcc
 #Name of Fortran compiler
 FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
-F77 = $(FPATH)ifort
 F90 = $(FPATH)ifort
+F77 = $(FPATH)ifort
 #compiling object file flags
-OPT1 = -O3 -fast -parallel -ipo
+OPT1 = -O3 -ipo
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 =
@@ -21,37 +21,32 @@ FITSIODIR = /usr/local/lib
 #Pgplot plot libraries
 PGPLOTDIR = /usr/local/lib
 #X11 libraries
-X11DIR = /usr/X11/lib
+X11DIR = /usr/X11R6/lib
 # libraries for linking PGPLOT
 PLPLOTDIR = -I/usr/local/Cellar/plplot/5.9.11/lib/fortran/modules/plplot -I/usr/local/Cellar/plplot/5.9.11/include/plplot -L/usr/local/Cellar/plplot/5.9.11/lib
 LIBS = $(PLPLOTDIR) -lplplotf95d -lplplotf95cd
-LIBSP = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng
+#LIBS = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng
 # libraries for linking CFITSIO
 LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng
 #Directory where executable are placed
-BIN = /Users/rowe/Documents/smodels/limbdarkening/
+BIN = /Users/rowe/Documents/jwst/sptransitfit/
 #utils source directory
 UTILS = utils/
 
 #Listing of programs to create.
-all: calcldco,limbdarkpars
+all: transitfit8
 
-limbdarkparsincl = precision.o minpack.o fittingmod.o
-limbdarkpars: limbdarkpars.f90 $(limbdarkparsincl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ limbdarkpars.f90 $(limbdarkparsincl) $(LIBSP)
-
-calcldcoincl = precision.o minpack.o fittingmod.o
-calcldco: calcldco.f90 $(calcldcoincl)
-	$(F90) $(LFLAGS) -o $(BIN)/$@ calcldco.f90 $(calcldcoincl) $(LIBSP)
+transitfit8incl = precision.o readdata.o getfitpars.o
+transitfit8: transitfit8.f90 $(transitfit8incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl)
 
 #building object libraries
-
+getfitpars.o: $(UTILS)getfitpars.f90
+	$(F90) $(FFLAGS) $(UTILS)getfitpars.f90
+readdata.o: $(UTILS)readdata.f90
+	$(F90) $(FFLAGS) $(UTILS)readdata.f90
 precision.o: $(UTILS)precision.f90
 	$(F90) $(FFLAGS) $(UTILS)precision.f90
-minpack.o: $(UTILS)minpack.f
-	$(F90) $(FFLAGS) $(UTILS)minpack.f
-fittingmod.o: $(UTILS)fittingmod.f90
-	$(F90) $(FFLAGS) $(UTILS)fittingmod.f90
 
 # Removing object files
 .PHONY : clean

@@ -1,8 +1,9 @@
 #Name of C compiler
 CCMPL = gcc
 #Name of Fortran compiler
-F90 = ifort
-F77 = ifort
+FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
+F90 = $(FPATH)ifort
+F77 = $(FPATH)ifort
 #compiling object file flags
 OPT1 = -O3 -ipo
 #OPT1 = -O0 -g -CB
@@ -34,6 +35,10 @@ UTILS = utils/
 
 #Listing of programs to create.
 all: spgen
+
+gentimeseriesincl = precision.o
+gentimeseries: gentimeseries.f90 $(gentimeseriesincl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ gentimeseries.f90 $(gentimeseriesincl)
 
 makecubeincl = precision.o getfits.o writedatacube.o deletefile.o
 makecube: makecube.f90 $(makecubeincl)

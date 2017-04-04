@@ -1,0 +1,75 @@
+program gentimeseries
+use precision
+implicit none
+integer i,j,n1,n2,nobs,nwv,nunit,filestatus
+real(double) :: wv,fl,dt,time,d2s
+real(double), allocatable, dimension(:) :: spwave
+real(double), allocatable, dimension(:,:) :: spflux
+character(80) :: filename
+
+n1=1   !filename number to start with
+n2=333 !filename number to finish with
+
+dt=16.473 !delta time between data points
+
+d2s=86400.0 !number of seconds in a day.
+
+nobs=n2-n1+1 !number of observations
+nwv=2048     !number of wavelengths observed
+
+allocate(spwave(nwv),spflux(nwv,nobs))
+
+do i=n1,n2
+   write(filename,500) "spgen_m_",i,".txt"
+   500 format(A8,I5.5,A4)
+
+   nunit=10
+   open(unit=nunit,file=filename,iostat=filestatus,status='old')
+   if(filestatus>0)then !trap missing file errors
+      write(0,*) "Cannot open ",filename
+      stop
+   endif
+
+   j=0
+   do
+      if(j.gt.nwv)then
+         write(0,*) "Increase nwv to match data points"
+         write(0,*) "nwv: ",nwv
+         stop
+      endif
+      read(nunit,*,iostat=filestatus) wv,fl
+      !if sucessfully read in file, then assign to array
+      if(filestatus == 0) then
+         j=j+1
+         !assuming the wavelengths are the same of every file
+         spwave(j)=wv
+         !first indice is for wavelength, second is for flux
+         spflux(j,i)=fl
+      elseif(filestatus == -1) then
+         exit  !successively break from data read loop.
+      else
+         write(0,*) "File Error!! Line:",j+1
+         write(0,900) "iostat: ",filestatus
+         900 format(A8,I3)
+         stop
+      endif
+   enddo
+   close(nunit) !close file
+   !write(0,*) filename,j
+enddo
+
+!now we can write out the contents.
+write(6,504) "#nwv",nwv  !number of bandpasses (spectral elements)
+504 format(A4,1X,I8)
+write(6,502) "#Wavelength ", (spwave(i),i=1,nwv)
+502 format(A11,2048(1X,1PE17.10))
+
+time=0.0
+do i=1,nobs
+   !write out time in days and un-normalized flux for each wavelength
+   write(6,503) time/d2s,(spflux(j,i),j=1,nwv)
+   503 format(2048(1PE17.10,1X,1PE17.10))
+   time=time+dt
+enddo
+
+end program gentimeseries
