@@ -2,9 +2,9 @@ program transitfit8
 !(c) Jason Rowe 2017 jason.rowe@ubishops.ca
 use precision
 implicit none
-integer iargc,nobsmax,nwvmax,nunit,nobs,nwv
-real(double), allocatable, dimension(:) :: time
-real(double), allocatable, dimension(:,:) :: flux
+integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax
+real(double), allocatable, dimension(:) :: time,sol
+real(double), allocatable, dimension(:,:) :: flux,solerr
 character(80) :: obsfile,parsfile
 
 if(iargc().lt.1)then
@@ -44,7 +44,11 @@ close(nunit)
 call openfile(nunit,parsfile)
 
 !calculate the number of parameters we are fitting
-call getnumfitpars(nunit)
+call getnumfitpars(nunit,nparsmax)
+write(0,*) "Maximum number of model parameters"
+
+!allocate variables for model parameters
+allocate(sol(nparsmax),solerr(nparsmax,4))
 
 !read in model parameters
 call getfitpars()
