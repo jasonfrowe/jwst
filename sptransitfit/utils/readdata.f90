@@ -1,16 +1,16 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-subroutine readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux)
+subroutine readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,exptime)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !(c) Jason Rowe 2017
 use precision
 implicit none
 !input vars
 integer nunit,nobsmax,nwvmax,nobs,nwv
-real(double), dimension(nobsmax) :: time
+real(double), dimension(nobsmax) :: time,exptime
 real(double), dimension(nwvmax,nobsmax) :: flux
 !local vars
 integer i,j,filestatus
-real(double) :: t
+real(double) :: t,et
 real(double), allocatable, dimension(:) :: f
 character(80) dumc
 
@@ -31,11 +31,12 @@ do
       write(0,*) "nobsmax: ",nobsmax,i
       stop
    endif
-   read(nunit,*,iostat=filestatus) t,(f(j),j=1,nwvmax)
+   read(nunit,*,iostat=filestatus) t,(f(j),j=1,nwvmax),et
    if(filestatus == 0) then
       i=i+1
       time(i)=t !assign observation time to array
       flux(:,i)=f(:) !assign flux measurements to array
+      exptime(i)=t
    elseif(filestatus == -1) then
       exit  !successively break from data read loop.
    else

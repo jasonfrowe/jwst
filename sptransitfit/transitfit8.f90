@@ -19,11 +19,11 @@ interface
       real(double), dimension(:,:) :: solerr,solrange
    end subroutine getfitpars
    subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,  &
-      sptmodel)
+      exptime,sptmodel)
       use precision
       implicit none
       integer :: nplanet,npars,nwv,nobs
-      real(double), dimension(:) :: sol,time
+      real(double), dimension(:) :: sol,time,exptime
       real(double), dimension(:,:) :: solrange,sptmodel
    end subroutine sptransitmodel
 end interface
@@ -49,10 +49,10 @@ call getnobsnwv(nunit,nobsmax,nwvmax)
 !write(0,*) "Maximum number of observations: ",nobsmax
 
 !now we can allocate arrays to contain observation times and fluxes
-allocate(time(nobsmax),flux(nwvmax,nobsmax))
+allocate(time(nobsmax),flux(nwvmax,nobsmax),exptime(nobsmax))
 
 !read in data
-call readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux)
+call readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,exptime)
 write(0,*) "Number of bandpasses:   ",nwv
 write(0,*) "Number of observations: ",nobs
 
@@ -96,6 +96,7 @@ close(nunit)
 
 !make a transit-model to compare to the data
 allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
-call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,sptmodel)
+call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
+   sptmodel)
 
 end program transitfit8
