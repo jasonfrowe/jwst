@@ -5,7 +5,8 @@ implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
  nplanetmax,nplanet
 real(double), allocatable, dimension(:) :: time,sol
-real(double), allocatable, dimension(:,:) :: flux,solerr,solrange
+real(double), allocatable, dimension(:,:) :: flux,solerr,solrange,      &
+ sptmodel
 character(80) :: obsfile,parsfile
 
 interface
@@ -17,6 +18,14 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: solerr,solrange
    end subroutine getfitpars
+   subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,  &
+      sptmodel)
+      use precision
+      implicit none
+      integer :: nplanet,npars,nwv,nobs
+      real(double), dimension(:) :: sol,time
+      real(double), dimension(:,:) :: solrange,sptmodel
+   end subroutine sptransitmodel
 end interface
 
 if(iargc().lt.1)then
@@ -84,5 +93,9 @@ write(0,*) "Number of planets in model: ",nplanet
 
 !close parameter file
 close(nunit)
+
+!make a transit-model to compare to the data
+allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
+call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,sptmodel)
 
 end program transitfit8
