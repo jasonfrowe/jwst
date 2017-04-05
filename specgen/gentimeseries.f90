@@ -11,6 +11,7 @@ n1=1   !filename number to start with
 n2=333 !filename number to finish with
 
 dt=16.473 !delta time between data points
+itime=dt  !integration time
 
 d2s=86400.0 !number of seconds in a day.
 
@@ -68,7 +69,7 @@ time=0.0
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
    write(6,503) time/d2s,(spflux(j,i),j=1,nwv)
-   503 format(2048(1PE17.10,1X,1PE17.10))
+   503 format(2050(1PE17.10,1X))
    time=time+dt
 enddo
 
