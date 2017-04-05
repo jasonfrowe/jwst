@@ -1,6 +1,7 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 subroutine getnumfitpars(nunit,npars,nplanetmax)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!(c) Jason Rowe 2017
 use precision
 implicit none
 !input vars
@@ -53,14 +54,15 @@ end subroutine getnumfitpars
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 subroutine getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,      &
- solerr)
+ solerr,solrange)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!(c) Jason Rowe 2017
 use precision
 implicit none
 !import vars
 integer :: nunit,nparsmax,npars,nplanet,nplanetmax
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solerr
+real(double), dimension(:,:) :: solerr,solrange
 !local vars
 integer :: i,j,k,iltype,nvar,filestatus,np
 real(double), allocatable, dimension(:) :: parsin

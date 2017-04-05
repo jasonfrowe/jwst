@@ -5,17 +5,17 @@ implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
  nplanetmax,nplanet
 real(double), allocatable, dimension(:) :: time,sol
-real(double), allocatable, dimension(:,:) :: flux,solerr
+real(double), allocatable, dimension(:,:) :: flux,solerr,solrange
 character(80) :: obsfile,parsfile
 
 interface
    subroutine getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,   &
-    solerr)
+    solerr,solrange)
       use precision
       implicit none
       integer :: nparsmax,npars,nunit,nplanet,nplanetmax
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solerr
+      real(double), dimension(:,:) :: solerr,solrange
    end subroutine getfitpars
 end interface
 
@@ -61,10 +61,20 @@ call getnumfitpars(nunit,nparsmax,nplanetmax)
 !write(0,*) "Maximum number of planets in model: ",nplanetmax
 
 !allocate variables for model parameters
-allocate(sol(nparsmax),solerr(nparsmax,4))
+!sol contains the nominal values of the model
+!solerr(,1) dicates whether a parameter is fit. 0=no.
+!           Also controls Gibbs for MCMC
+!solerr(,2) is mode for prior
+!solerr(,3) is +1sig for prior
+!solerr(,4) is -1sig for prior (value should be negative)
+!solrange() gives inclusive range of indices for specific parameter
+!           1:RHO,2:NL1,3:NL2,4:NL3,5:NL4,6:DIL,7:VOF,8:ZPT,9:EP,
+!           10:PE,11:BB,12:RD,13:EC,14:ES,15:KR,16:TE,17:EL,18:AL
+allocate(sol(nparsmax),solerr(nparsmax,4),solrange(8+10*nplanetmax,2))
 
 !read in model parameters
-call getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,solerr)
+call getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,solerr,     &
+ solrange)
 write(0,*) "Number of model parameters read: ",npars
 write(0,*) "Number of planets in model: ",nplanet
 !do i=1,npars
