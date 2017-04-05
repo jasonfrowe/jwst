@@ -2,7 +2,7 @@ program gentimeseries
 use precision
 implicit none
 integer i,j,n1,n2,nobs,nwv,nunit,filestatus
-real(double) :: wv,fl,dt,time,d2s
+real(double) :: wv,fl,dt,time,d2s,exptime
 real(double), allocatable, dimension(:) :: spwave
 real(double), allocatable, dimension(:,:) :: spflux
 character(80) :: filename
@@ -11,7 +11,7 @@ n1=1   !filename number to start with
 n2=333 !filename number to finish with
 
 dt=16.473 !delta time between data points
-itime=dt  !integration time
+exptime=dt  !integration time
 
 d2s=86400.0 !number of seconds in a day.
 
@@ -68,7 +68,7 @@ write(6,502) "#Wavelength ", (spwave(i),i=1,nwv)
 time=0.0
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
-   write(6,503) time/d2s,(spflux(j,i),j=1,nwv)
+   write(6,503) time/d2s,(spflux(j,i),j=1,nwv),exptime
    503 format(2050(1PE17.10,1X))
    time=time+dt
 enddo

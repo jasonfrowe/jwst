@@ -4,7 +4,7 @@ use precision
 implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
  nplanetmax,nplanet
-real(double), allocatable, dimension(:) :: time,sol
+real(double), allocatable, dimension(:) :: time,sol,exptime
 real(double), allocatable, dimension(:,:) :: flux,solerr,solrange,      &
  sptmodel
 character(80) :: obsfile,parsfile
