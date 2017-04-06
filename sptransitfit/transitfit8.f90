@@ -4,10 +4,11 @@ use precision
 implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
  nplanetmax,nplanet
+integer, allocatable, dimension(:) :: ntt
 real(double), allocatable, dimension(:) :: time,sol,exptime
 real(double), allocatable, dimension(:,:) :: flux,solerr,solrange,      &
- sptmodel
-character(80) :: obsfile,parsfile
+ sptmodel,tobs,omc
+character(80) :: obsfile,parsfile,ttfile
 
 interface
    subroutine getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,   &
@@ -19,19 +20,21 @@ interface
       real(double), dimension(:,:) :: solerr,solrange
    end subroutine getfitpars
    subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,  &
-      exptime,sptmodel)
+      exptime,ntt,tobs,omc,sptmodel)
       use precision
       implicit none
       integer :: nplanet,npars,nwv,nobs
+      integer, dimension(:) :: ntt
       real(double), dimension(:) :: sol,time,exptime
-      real(double), dimension(:,:) :: solrange,sptmodel
+      real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
    end subroutine sptransitmodel
 end interface
 
 if(iargc().lt.1)then
-   write(6,*) "Usage: transitfit5 <specfile> <modelpars>"
+   write(6,*) "Usage: transitfit5 <specfile> <modelpars> <ttfiles>"
    write(6,*) "  <specfile>  : file containing extracted time-series spectra"
    write(6,*) "  <modelpars> : file containing model parameters for fitting"
+   write(6,*) "  <ttfiles>   : file(s) containing TTVs. One for each planet"
    stop
 endif
 
@@ -94,9 +97,34 @@ write(0,*) "Number of planets in model: ",nplanet
 !close parameter file
 close(nunit)
 
+!read in transit timing variations
+!ntt contains number of TT measurements, tobs is the observer location
+!of the transit and OMC is the observed minus calculated measurement
+allocate(ntt(nplanet),tobs(nplanet,nobs),omc(nplanet,nobs))
+do i=1,nplanet
+   if(iargc().ge.2+i)then
+      call getarg(2+i,ttfile)
+      if(ttfile.eq.'null')then
+         ntt(i)=0
+      else
+         nunit=10
+         open(unit=nunit,file=ttfile,status='old',err=905)
+         goto 906
+          905 write(0,*) "Cannot open ", ttfile
+          stop
+         906 continue
+         call readttfile(nunit,nplanet,nobs,i,ntt,tobs,omc)
+         close(nunit)
+      endif
+   else
+      ntt(i)=0
+   endif
+enddo
+
+
 !make a transit-model to compare to the data
 allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-   sptmodel)
+   ntt,tobs,omc,sptmodel)
 
 end program transitfit8

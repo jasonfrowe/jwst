@@ -36,11 +36,15 @@ UTILS = utils/
 #Listing of programs to create.
 all: transitfit8
 
-transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o
+transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o
 transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl)
 
 #building object libraries
+keplerian.o: $(UTILS)keplerian.f
+	$(F90) $(FFLAGS) $(UTILS)keplerian.f
+ttcor.o: $(UTILS)ttcor.f
+	$(F90) $(FFLAGS) $(UTILS)ttcor.f
 sptransitmodel.o: $(UTILS)sptransitmodel.f90
 	$(F90) $(FFLAGS) $(UTILS)sptransitmodel.f90
 getfitpars.o: $(UTILS)getfitpars.f90
