@@ -8,12 +8,12 @@ integer, dimension(:) :: ntt
 real(double), dimension(:) :: sol,time,exptime
 real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
 !local vars
-integer :: nintg,iwv,ii,i,j
-real(double), allocatable, dimension(:) :: tflux,bt
+integer :: nintg,iwv,ii,i,j,caltran
+real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb
 real(double) :: Pi,tPi,pid2,G,Cs,fDB,c1,c2,c3,c4,dil,voff,zpt,rhostar,  &
  epoch,per,b,rprs,ecw,esw,K,ted,ell,ag,bs2,eccn,w,adrs,incl,dnintg,     &
  tdnintg,dnintgm1,Eanom,phi0,ttcor,jm1,t,phi,Manom,Tanom,drs,x2,y2,     &
- trueanomaly,distance
+ trueanomaly,distance,albedomod
 
 interface
    subroutine getbasicpars(iwv,sol,solrange,rhostar,c1,c2,c3,c4,dil,    &
@@ -56,9 +56,10 @@ fDB=1.0d0 !Doppler Boosting factor
 !init sptmodel to zero
 sptmodel=0.0d0
 
-!allocate array for calculating flux model and impact parameter over
-!exposure time
-allocate(tflux(nintg),bt(nintg))
+!allocate array for calculating flux model, impact parameter, radial
+!velocity, ellipodial variations and reflective/emission phase changes
+!over exposure time
+allocate(tflux(nintg),bt(nintg),vt(nintg),tide(nintg),alb(nintg))
 
 do iwv=1,nwv !loop over all bandpasses
 
@@ -114,7 +115,22 @@ do iwv=1,nwv !loop over all bandpasses
             !time specific impact parameter.
             bt(j)=sqrt(x2*x2+y2*y2)
 
+            !Radial velocity - used for Doppler Beaming
+            vt(j)=K*(cos(Tanom-w+pid2)+eccn*cos(-w+pid2))
+
+            !Ellipsodial variations
+            tide(j)=ell*(drs/adrs)**(1.0d0/3.0d0)*                      &
+             cos(2.0d0*(Pid2+Tanom-w))
+
+            !Albedo/thermal phase changes
+            alb(j)=albedomod(Pi,ag,Tanom-w)*adrs/drs
+
          enddo
+
+         if(y2.ge.0.0d0)then  !If we have a potential transit
+            caltran=0 !if zero, there is no transit
+
+         endif
 
          read(5,*) !simple pause statement
 
