@@ -36,7 +36,7 @@ do
       i=i+1
       time(i)=t !assign observation time to array
       flux(:,i)=f(:) !assign flux measurements to array
-      exptime(i)=t
+      exptime(i)=et/86400.0d0 !convert seconds to days to match time(i)
    elseif(filestatus == -1) then
       exit  !successively break from data read loop.
    else

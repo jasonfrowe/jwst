@@ -9,11 +9,12 @@ real(double), dimension(:) :: sol,time,exptime
 real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
 !local vars
 integer :: nintg,iwv,ii,i,j,caltran
-real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb
+real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb,mu,bp,  &
+ occ
 real(double) :: Pi,tPi,pid2,G,Cs,fDB,c1,c2,c3,c4,dil,voff,zpt,rhostar,  &
- epoch,per,b,rprs,ecw,esw,K,ted,ell,ag,bs2,eccn,w,adrs,incl,dnintg,     &
+ epoch,per,b,rprs,ecw,esw,K,ted,ell,ag,eccn,w,adrs,incl,dnintg,         &
  tdnintg,dnintgm1,Eanom,phi0,ttcor,jm1,t,phi,Manom,Tanom,drs,x2,y2,     &
- trueanomaly,distance,albedomod
+ trueanomaly,distance,albedomod,tm,ratio
 
 interface
    subroutine getbasicpars(iwv,sol,solrange,rhostar,c1,c2,c3,c4,dil,    &
@@ -59,7 +60,8 @@ sptmodel=0.0d0
 !allocate array for calculating flux model, impact parameter, radial
 !velocity, ellipodial variations and reflective/emission phase changes
 !over exposure time
-allocate(tflux(nintg),bt(nintg),vt(nintg),tide(nintg),alb(nintg))
+allocate(tflux(nintg),bt(nintg),vt(nintg),tide(nintg),alb(nintg),       &
+ mu(nintg),bp(nintg),occ(nintg))
 
 do iwv=1,nwv !loop over all bandpasses
 
@@ -70,12 +72,14 @@ do iwv=1,nwv !loop over all bandpasses
 
       call getplanetpars(iwv,ii,sol,solrange,epoch,per,b,rprs,ecw,esw,K,&
          ted,ell,ag)
-      bs2=b*b !b^2
       call geteccn(ecw,esw,eccn,w) !get e,w given ecosw,esinw
 
       !calculate scaled semi-major axis from mean stellar density
       adrs=1000.0*rhostar*G*(Per*86400.0d0)**2/(3.0d0*Pi)
       adrs=adrs**(1.0d0/3.0d0)
+
+      !inclination
+      incl=acos(b/adrs)
 
       !mean,eccentric anomalies and phase offset for transit center
       Eanom=tan(w/2.0d0)/sqrt((1.0d0+eccn)/(1.0d0-eccn)) !mean anomaly
@@ -108,7 +112,7 @@ do iwv=1,nwv !loop over all bandpasses
             Tanom=trueanomaly(eccn,Eanom)
             if(phi.gt.Pi) phi=phi-tPi
             drs=distance(adrs,eccn,Tanom)
-            incl=acos(b/drs)
+            incl=acos(b/drs) !angle at specific time step. (not orbital incl)
             x2=drs*Sin(Tanom-w)
             y2=drs*Cos(Tanom-w)*cos(incl)
 
@@ -129,16 +133,78 @@ do iwv=1,nwv !loop over all bandpasses
 
          if(y2.ge.0.0d0)then  !If we have a potential transit
             caltran=0 !if zero, there is no transit
+            !scan though all calculating bt and see if a transit occurs
+            do j=1,nintg
+               if(bt(j).le.1.0d0+RpRs)then !condition for a transit
+                  caltran=1
+               endif
+            enddo
+            if(caltran.eq.1) then
+               !quadratic co-efficients
+               if((c3.eq.0.0).and.(c4.eq.0.0))then
+                  call occultquad(bt,c1,c2,RpRs,tflux,mu,nintg)
+               !Kipping co-efficients
+               elseif((c1.eq.0.0).and.(c2.eq.0.0))then
+                  c1=2.0d0*sqrt(c3)*c4 !convert to regular LD
+                  c2=sqrt(c3)*(1.0d0-2.0d0*c4)
+                  call occultquad(bt,c1,c2,RpRs,tflux,mu,nintg)
+                  c1=0.0d0  !zero out entries.
+                  c2=0.0d0
+               !non-linear law.
+               else
+                  !non-linear code is buggy.  Use with caution
+                  !call occultnl(RpRs,c1,c2,c3,c4,bt,tflux,mulimbf,nintg)
+                  !using small planet approx. for now.  May not be great
+                  !for hot-Jupiters
+                  call occultsmall(RpRs,c1,c2,c3,c4,nintg,bt,tflux)
+               endif
 
-         endif
+            else !there is no transit. So init flux to 1.0
+               do j=1,nintg
+                  tflux(j)=1.0d0
+               enddo
+            endif
 
-         read(5,*) !simple pause statement
+            !now we sum up all the model fluxes across the exposure time
+            tm=0.0d0
+            do j=1,nintg
+               if(RpRs.le.0.0) tflux(j)=1.0d0 !make sure r/R* is sane
+!                 model=transit+doppler+ellipsodial
+               tm=tm+tflux(j)-fDB*vt(j)/Cs+tide(j)+alb(j)
+            enddo
+            tm=tm/dnintg !calculate average flux across integration time
 
-      enddo
+         else !We have an eclipse/occultation
+            tm=0.0d0
+            do j=1,nintg
+               bp(j)=bt(j)/RpRs !impact parameter of eclipse/occultation
+            enddo
+            call occultuniform(bp,1.0/RpRs,occ,nintg)
+            !integrate over exposure time
+            do j=1,nintg
+               ratio=1.0d0-occ(j) !scaling to modeled occultation depth
+               if(RpRs.le.0.0d0) ratio=0.0d0
+               !add in occultation, doppler, tidal and phase curve
+               tm=tm+(1.0d0-ted*ratio)-fDB*vt(j)/Cs+tide(j)+alb(j)
+            enddo
+            tm=tm/dnintg !average model flux over exposure time
+         endif !end of if statement for transit vs occult.
 
-   enddo
+         tm=tm+(1.0d0-tm)*dil-1.0d0 !add dilution
 
-enddo
+         !add flux for this planet to the overall model
+         sptmodel(iwv,i)=sptmodel(iwv,i)+tm
+         !write(6,'(2050(1PE17.10,1X))') time(i),tm,(bt(j),j=1,nintg)
+
+      enddo !end of looping over all time steps
+      !read(5,*)
+
+   enddo !end of looping over all planets
+
+   !adding in zeropoint.
+   sptmodel(iwv,:)=zpt*sptmodel(iwv,:)
+
+enddo !end of looping over all bandpasses
 
 
 return

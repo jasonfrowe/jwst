@@ -28,6 +28,13 @@ interface
       real(double), dimension(:) :: sol,time,exptime
       real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
    end subroutine sptransitmodel
+   subroutine fittransitmodel8(npars,sol,solerr)
+      use precision
+      implicit none
+      integer :: npars
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solerr
+   end subroutine fittransitmodel8
 end interface
 
 if(iargc().lt.1)then
@@ -121,10 +128,19 @@ do i=1,nplanet
    endif
 enddo
 
-
 !make a transit-model to compare to the data
 allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
    ntt,tobs,omc,sptmodel)
+
+!Fit the model to the observations
+call fittransitmodel8(npars,sol,solerr)
+
+!write out the model to stdout
+do i=1,nobs
+   !write out time in days and un-normalized flux for each wavelength
+   write(6,503) time(i),(sptmodel(j,i),j=1,nwv),exptime(i)
+   503 format(2050(1PE17.10,1X))
+enddo
 
 end program transitfit8
