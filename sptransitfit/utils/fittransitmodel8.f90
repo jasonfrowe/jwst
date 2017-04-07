@@ -1,14 +1,31 @@
-subroutine fittransitmodel8(npars,sol,solerr)
+subroutine fittransitmodel8(npars,sol,solerr,nwv,nobs,time,flux,exptime, &
+ ntt,tobs,omc)
 use precision
 implicit none
 !import vars
-integer :: npars
-real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solerr
+integer :: npars,nwv,nobs
+integer, dimension(:) :: ntt
+real(double), dimension(:) :: sol,time,exptime
+real(double), dimension(:,:) :: solerr,flux,tobs,omc
 !local vars
 integer :: n,i
 real(double) :: tol
 real(double), allocatable, dimension(:) :: solin
+
+interface
+   subroutine EstZpt(npars,sol,solerr,nwv,nobs,time,flux,exptime,ntt,   &
+    tobs,omc)
+      use precision
+      implicit none
+      integer :: npars,nwv,nobs
+      integer, dimension(:) :: ntt
+      real(double), dimension(:) :: sol,time,exptime
+      real(double), dimension(:,:) :: solerr,flux,tobs,omc
+   end subroutine EstZpt
+end interface
+
+!Get estimate for zero points.
+!call EstZpt(npars,sol,solerr,nwv,nobs,time,flux,exptime,ntt,tobs,omc)
 
 allocate(solin(npars))
 n=0

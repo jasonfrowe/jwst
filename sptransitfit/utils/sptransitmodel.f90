@@ -190,7 +190,7 @@ do iwv=1,nwv !loop over all bandpasses
             tm=tm/dnintg !average model flux over exposure time
          endif !end of if statement for transit vs occult.
 
-         tm=tm+(1.0d0-tm)*dil-1.0d0 !add dilution
+         tm=tm+(1.0d0-tm)*dil !add dilution
 
          !add flux for this planet to the overall model
          sptmodel(iwv,i)=sptmodel(iwv,i)+tm

@@ -28,12 +28,14 @@ interface
       real(double), dimension(:) :: sol,time,exptime
       real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
    end subroutine sptransitmodel
-   subroutine fittransitmodel8(npars,sol,solerr)
+   subroutine fittransitmodel8(npars,sol,solerr,nwv,nobs,time,flux,     &
+    exptime,ntt,tobs,omc)
       use precision
       implicit none
-      integer :: npars
-      real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solerr
+      integer :: npars,nwv,nobs
+      integer, dimension(:) :: ntt
+      real(double), dimension(:) :: sol,time,exptime
+      real(double), dimension(:,:) :: solerr,flux,tobs,omc
    end subroutine fittransitmodel8
 end interface
 
@@ -134,7 +136,8 @@ call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
    ntt,tobs,omc,sptmodel)
 
 !Fit the model to the observations
-call fittransitmodel8(npars,sol,solerr)
+!call fittransitmodel8(npars,sol,solerr,nwv,nobs,time,flux,exptime,ntt,  &
+! tobs,omc)
 
 !write out the model to stdout
 do i=1,nobs
