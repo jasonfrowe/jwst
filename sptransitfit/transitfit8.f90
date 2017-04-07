@@ -67,7 +67,7 @@ allocate(time(nwvmax,nobsmax),flux(nwvmax,nobsmax),ferr(nwvmax,nobsmax),&
  exptime(nwvmax,nobsmax))
 
 !read in data
-call readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,exptime)
+call readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,ferr,exptime)
 write(0,*) "Number of bandpasses:   ",nwv
 write(0,*) "Number of observations: ",nobs
 
