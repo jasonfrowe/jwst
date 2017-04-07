@@ -68,8 +68,8 @@ write(6,502) "#Wavelength ", (spwave(i),i=1,nwv)
 time=0.0
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
-   write(6,503) time/d2s,(spflux(j,i),j=1,nwv),exptime
-   503 format(2050(1PE17.10,1X))
+   write(6,503) (time/d2s,spflux(j,i),sqrt(spflux(j,i),exptime),j=1,nwv)
+   503 format(10000(1PE17.10,1X))
    time=time+dt
 enddo
 

@@ -1,17 +1,16 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-subroutine readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,exptime)
+subroutine readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,ferr,       &
+ exptime)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !(c) Jason Rowe 2017
 use precision
 implicit none
 !input vars
 integer nunit,nobsmax,nwvmax,nobs,nwv
-real(double), dimension(nobsmax) :: time,exptime
-real(double), dimension(nwvmax,nobsmax) :: flux
+real(double), dimension(nwvmax,nobsmax) :: time,flux,ferr,exptime
 !local vars
 integer i,j,filestatus
-real(double) :: t,et
-real(double), allocatable, dimension(:) :: f
+real(double), allocatable, dimension(:) :: t,f,fe,et
 character(80) dumc
 
 !first line contains info about number of bandpasses that we already
@@ -22,7 +21,7 @@ read(nunit,*) dumc
 
 !t and f are temp variables for reading in data and making sure we do
 !not run into errors
-allocate(f(nwvmax))
+allocate(t(nwvmax),f(nwvmax),fe(nwvmax),et(nwvmax))
 
 i=0 !counter for number of observations.
 do
@@ -31,12 +30,13 @@ do
       write(0,*) "nobsmax: ",nobsmax,i
       stop
    endif
-   read(nunit,*,iostat=filestatus) t,(f(j),j=1,nwvmax),et
+   read(nunit,*,iostat=filestatus) (t(j),f(j),fe(j),et(j),j=1,nwvmax)
    if(filestatus == 0) then
       i=i+1
-      time(i)=t !assign observation time to array
+      time(:,i)=t(:) !assign observation time to array
       flux(:,i)=f(:) !assign flux measurements to array
-      exptime(i)=et/86400.0d0 !convert seconds to days to match time(i)
+      ferr(:,i)=fe(:)
+      exptime(:,i)=et(:)/86400.0d0 !convert seconds to days to match time(i)
    elseif(filestatus == -1) then
       exit  !successively break from data read loop.
    else

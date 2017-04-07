@@ -36,11 +36,13 @@ UTILS = utils/
 #Listing of programs to create.
 all: transitfit8
 
-transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o
+transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o estzpt.o
 transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl)
 
 #building object libraries
+estzpt.o: $(UTILS)estzpt.f90
+	$(F90) $(FFLAGS) $(UTILS)estzpt.f90
 fittransitmodel8.o: $(UTILS)fittransitmodel8.f90
 	$(F90) $(FFLAGS) $(UTILS)fittransitmodel8.f90
 occultquad.o: $(UTILS)occultquad.f

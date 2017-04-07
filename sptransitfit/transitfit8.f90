@@ -5,9 +5,9 @@ implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
  nplanetmax,nplanet
 integer, allocatable, dimension(:) :: ntt
-real(double), allocatable, dimension(:) :: time,sol,exptime
-real(double), allocatable, dimension(:,:) :: flux,solerr,solrange,      &
- sptmodel,tobs,omc
+real(double), allocatable, dimension(:) :: sol
+real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
+ solerr,solrange,sptmodel,tobs,omc
 character(80) :: obsfile,parsfile,ttfile
 
 interface
@@ -25,17 +25,19 @@ interface
       implicit none
       integer :: nplanet,npars,nwv,nobs
       integer, dimension(:) :: ntt
-      real(double), dimension(:) :: sol,time,exptime
-      real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc,time,  &
+       exptime
    end subroutine sptransitmodel
-   subroutine fittransitmodel8(npars,sol,solerr,nwv,nobs,time,flux,     &
-    exptime,ntt,tobs,omc)
+   subroutine fittransitmodel8(npars,sol,solerr,solrange,nwv,nobs,time, &
+    flux,ferr,exptime,ntt,tobs,omc)
       use precision
       implicit none
       integer :: npars,nwv,nobs
       integer, dimension(:) :: ntt
-      real(double), dimension(:) :: sol,time,exptime
-      real(double), dimension(:,:) :: solerr,flux,tobs,omc
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
+       tobs,omc,solrange
    end subroutine fittransitmodel8
 end interface
 
@@ -61,7 +63,8 @@ call getnobsnwv(nunit,nobsmax,nwvmax)
 !write(0,*) "Maximum number of observations: ",nobsmax
 
 !now we can allocate arrays to contain observation times and fluxes
-allocate(time(nobsmax),flux(nwvmax,nobsmax),exptime(nobsmax))
+allocate(time(nwvmax,nobsmax),flux(nwvmax,nobsmax),ferr(nwvmax,nobsmax),&
+ exptime(nwvmax,nobsmax))
 
 !read in data
 call readdata(nunit,nobsmax,nwvmax,nobs,nwv,time,flux,exptime)
@@ -136,14 +139,14 @@ call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
    ntt,tobs,omc,sptmodel)
 
 !Fit the model to the observations
-!call fittransitmodel8(npars,sol,solerr,nwv,nobs,time,flux,exptime,ntt,  &
-! tobs,omc)
+call fittransitmodel8(npars,sol,solerr,solrange,nwv,nobs,time,flux,ferr,&
+ exptime,ntt,tobs,omc)
 
 !write out the model to stdout
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
-   write(6,503) time(i),(sptmodel(j,i),j=1,nwv),exptime(i)
-   503 format(2050(1PE17.10,1X))
+   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
+   503 format(10000(1PE17.10,1X))
 enddo
 
 end program transitfit8

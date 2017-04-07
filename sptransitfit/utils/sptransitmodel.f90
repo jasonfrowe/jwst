@@ -5,12 +5,12 @@ implicit none
 !import vars
 integer :: nplanet,npars,nwv,nobs
 integer, dimension(:) :: ntt
-real(double), dimension(:) :: sol,time,exptime
-real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc
+real(double), dimension(:) :: sol
+real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc,time,exptime
 !local vars
 integer :: nintg,iwv,ii,i,j,caltran
 real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb,mu,bp,  &
- occ
+ occ,time1
 real(double) :: Pi,tPi,pid2,G,Cs,fDB,c1,c2,c3,c4,dil,voff,zpt,rhostar,  &
  epoch,per,b,rprs,ecw,esw,K,ted,ell,ag,eccn,w,adrs,incl,dnintg,         &
  tdnintg,dnintgm1,Eanom,phi0,ttcor,jm1,t,phi,Manom,Tanom,drs,x2,y2,     &
@@ -62,6 +62,7 @@ sptmodel=0.0d0
 !over exposure time
 allocate(tflux(nintg),bt(nintg),vt(nintg),tide(nintg),alb(nintg),       &
  mu(nintg),bp(nintg),occ(nintg))
+allocate(time1(nobs)) !needed for lininterp.
 
 do iwv=1,nwv !loop over all bandpasses
 
@@ -88,10 +89,11 @@ do iwv=1,nwv !loop over all bandpasses
 
       !look over all time-steps for a single bandpass
 
+      time1(:)=time(iwv,:)
       do i=1,nobs
 
          !transit-time variations
-         call lininterp(tobs,omc,nplanet,nobs,ii,ntt,time(i),ttcor)
+         call lininterp(tobs,omc,nplanet,nobs,ii,ntt,time1(i),ttcor)
 
          !integrate over exposure time
          do j=1,nintg
@@ -99,8 +101,8 @@ do iwv=1,nwv !loop over all bandpasses
             tflux(j)=0.0 !initialize model flux to zero
 
             !sample small dt across exposure time for integration.
-            t=time(i)-exptime(i)*(0.5d0-1.0d0/tdnintg-jm1/dnintg)-      &
-               epoch-ttcor
+            t=time(iwv,i)-exptime(iwv,i)*                               &
+             (0.5d0-1.0d0/tdnintg-jm1/dnintg)-epoch-ttcor
 
             !get orbital position (mean anomaly)
             phi=t/per-floor(t/per)
@@ -194,7 +196,7 @@ do iwv=1,nwv !loop over all bandpasses
 
          !add flux for this planet to the overall model
          sptmodel(iwv,i)=sptmodel(iwv,i)+tm
-         !write(6,'(2050(1PE17.10,1X))') time(i),tm,(bt(j),j=1,nintg)
+         !write(6,'(2050(1PE17.10,1X))') time1(i),tm,(bt(j),j=1,nintg)
 
       enddo !end of looping over all time steps
       !read(5,*)
