@@ -1,12 +1,15 @@
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 subroutine getb(nwv,nplanet,npars,sol,solrange,nobs,time,ntt,tobs,omc,  &
-   bt)
+   bt,imarktrans)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!get impact parameter for each observation, bandpass and planet (min)
+!marks in-transit (imarktrans=0) and out of transit data (imarktrans=1)
 use precision
 implicit none
 !import vars
 integer :: nwv,nplanet,npars,nobs
 integer, dimension(:) :: ntt
+integer, dimension(:,:) :: imarktrans
 real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: bt,solrange,time,tobs,omc
 !local vars
@@ -100,6 +103,12 @@ do iwv=1,nwv !loop over all bandpasses
          bt(iwv,i)=min(bt(iwv,i),sqrt(x2*x2+y2*y2)) !report min value of bt.
          !write(0,*) "bt:",time(iwv,i),bt(iwv,i)
          !read(5,*)
+
+         if(bt(iwv,i).le.1.0d0+RpRs)then
+            imarktrans(iwv,i)=0 !in-transit data
+         else
+            imarktrans(iwv,i)=1 !out-of-transit data
+         endif
 
       enddo !end loop over all observations
 
