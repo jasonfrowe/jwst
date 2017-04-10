@@ -9,9 +9,12 @@ real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc, &
  solrange
 !local vars
-integer :: n,i
-real(double) :: tol
-real(double), allocatable, dimension(:) :: solin
+integer :: n,m,i,iprint,ikch,isave(44)
+integer, allocatable, dimension(:) :: nbd,iwa
+real(double) :: tol,factr,pgtol,dsave(29),f
+real(double), allocatable, dimension(:) :: solin,l,u,g,wa
+logical :: lsave(4)
+character(60) :: task,csave
 
 interface
    subroutine EstZpt(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,   &
@@ -24,14 +27,25 @@ interface
       real(double), dimension(:,:) :: solerr,time,flux,exptime,tobs,omc,&
        solrange
    end subroutine EstZpt
+   subroutine setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
+      use precision
+      implicit none
+      integer :: n,npars,nplanet
+      integer, dimension(:) :: nbd
+      real(double), dimension(:) :: l,u
+      real(double), dimension(:,:) :: solerr,solrange
+   end subroutine setbounds
 end interface
 
 !Get estimate for zero points.
 call EstZpt(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,flux,       &
  exptime,ntt,tobs,omc)
 
-allocate(solin(npars))
-n=0
+!pick off variables that are being fitted.
+ !solin contains only model parameters that are fitted
+ !sol1 contains full set of updated model parameters
+allocate(solin(npars),sol1(npars))
+n=0 !number of parameters that are fit
 do i=1,npars
    if(solerr(i,1).ne.0.0)then
       n=n+1
@@ -39,7 +53,149 @@ do i=1,npars
    endif
 enddo
 
-tol=1.0d-8 !tolerance parameter for fits
+allocate(nbd(n),l(n),u(n)) !allocate arrays that set bounds for fitted parameters
+nbd=0 !default is that parameters are unbounded.
+!set bounds for parameters
+call setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
+
+allocate(g(n)) !contains gradient information
+factr=1.0d+7 !1.d+12 for low, 1.d+7 for moderate, 1.d+1 for high accuracy
+pgtol=1.0d-5 !projected gradient tolerance
+m=5  !maximum number of variable metric corrections
+allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) ) !working array
+allocate ( iwa(3*n) )  !integer working array
+iprint=-1 !frequency and type of output generated
+
+!setting up loop conditions for lbfgsb
+task = 'START'
+ikch=0
+
+!loop for lbfgsb
+do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
+               task.eq.'START')
+
+   call setulb ( n, m, solin, l, u, nbd, f, g, factr, pgtol, &
+                       wa, iwa, task, iprint,&
+                       csave, lsave, isave, dsave )
+
+   write(0,'(A6,A6)') "task: ",task
+
+   if (task(1:2) .eq. 'FG') then
+
+
+   endif
+
+   read(5,*)
+
+enddo
 
 return
 end subroutine fittransitmodel8
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+subroutine setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+!import vars
+integer :: n,npars,nplanet
+integer, dimension(:) :: nbd
+real(double), dimension(:) :: l,u
+real(double), dimension(:,:) :: solerr,solrange
+!local vars
+integer :: i,j,k,ii,np
+
+k=0
+do i=1,8 !global parameters
+   if(solerr(i,1).ne.0.0)then
+      if(i.eq.1)then !bounds on mean-stellar density (0 < rhostar)
+         do j=solrange(i,1),solrange(i,2)
+            k=k+1
+            nbd(k)=1 !lower bound only
+            l(k)=0.0d0 !lower bound
+         enddo
+      elseif((i.eq.2).or.(i.eq.3).or.(i.eq.4).or.(i.eq.5))then !limb-darkening
+         do j=solrange(i,1),solrange(i,2)
+            k=k+1
+            nbd(k)=0 !unbounded.  Prior is handled by likelihood function
+         enddo
+      elseif(i.eq.6)then !dilution (0 < DIL < 1)
+         do j=solrange(i,1),solrange(i,2)
+            k=k+1
+            nbd(k)=2 !both upper and lower bound
+            l(k)=0.0d0 !lower bound
+            u(k)=1.0d0 !upper bound
+         enddo
+      elseif(i.eq.7)then !velocity offset VOF (unbounded)
+         do j=solrange(i,1),solrange(i,2)
+            k=k+1
+            nbd(k)=0 !unbounded.
+         enddo
+      elseif(i.eq.8)then !photometric offset ZPT (unbounded)
+         do j=solrange(i,1),solrange(i,2)
+            k=k+1
+            nbd(k)=0 !unbounded.
+         enddo
+      endif
+   endif
+enddo
+
+!planet parameters
+do np=1,nplanet !loop over each planet in transit model
+   do i=1,10    !loop over each parameter for a single planet
+     ii=8+i+nplanet*(np-1)
+      if(i.eq.1)then !EPO (unbounded)
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=0 !unbounded
+         enddo
+      elseif(i.eq.2)then !PER (unbounded)
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=0 !unbounded
+         enddo
+      elseif(i.eq.3)then !BB (0 < BB)
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=1 !lower bound only
+            l(k)=0.0d0  !lower bound
+         enddo
+      elseif(i.eq.4)then !RDR (0 < RDR)
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=1 !lower bound only
+            l(k)=0.0d0  !lower bound
+         enddo
+      elseif((i.eq.5).or.(i.eq.6))then !ECW/ESW (0 < ESW < 1)
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=2 !lower and upper bound
+            l(k)=0.0d0  !lower bound
+            u(k)=1.0d0  !upper bound - there is also an e<1 bound in likelihood
+         enddo
+      elseif(i.eq.7)then !KRV (unbounded) !radial velocity amplitude
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=0 !unbounded
+         enddo
+      elseif(i.eq.8)then !TED (unbounded) !occultation depth
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=0 !unbounded
+         enddo
+      elseif(i.eq.9)then !ELL (unbounded) !amplitude of ellipsodial variations
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=0 !unbounded
+         enddo
+      elseif(i.eq.10)then !ALB (unbounded) - amplitude of phase curve
+         do j=solrange(ii,1),solrange(ii,2)
+            k=k+1
+            nbd(k)=0 !unbounded
+         enddo
+      endif
+   enddo
+enddo
+
+return
+end

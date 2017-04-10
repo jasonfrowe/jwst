@@ -5,7 +5,7 @@ FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
 F90 = $(FPATH)ifort
 F77 = $(FPATH)ifort
 #compiling object file flags
-OPT1 = -O3 -ipo
+OPT1 = -O3 -ipo -mkl
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 =
@@ -36,11 +36,17 @@ UTILS = utils/
 #Listing of programs to create.
 all: transitfit8
 
-transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o estzpt.o getb.o rqsort.o
+transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o
 transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl)
 
 #building object libraries
+timer.o: $(UTILS)timer.f
+	$(F90) $(FFLAGS) $(UTILS)timer.f
+linpack.o: $(UTILS)linpack.f
+	$(F90) $(FFLAGS) $(UTILS)linpack.f
+lbfgsb.o: $(UTILS)lbfgsb.f
+	$(F90) $(FFLAGS) $(UTILS)lbfgsb.f
 rqsort.o: $(UTILS)rqsort.f
 	$(F90) $(FFLAGS) $(UTILS)rqsort.f
 getb.o: $(UTILS)getb.f90
