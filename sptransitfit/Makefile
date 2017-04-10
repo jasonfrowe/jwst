@@ -5,7 +5,7 @@ FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
 F90 = $(FPATH)ifort
 F77 = $(FPATH)ifort
 #compiling object file flags
-OPT1 = -O3 -ipo -mkl
+OPT1 = -O3 -ipo -mkl -parallel -qopenmp
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 =

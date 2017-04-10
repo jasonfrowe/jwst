@@ -47,16 +47,16 @@ interface
        tobs,omc
       real(double) :: loglikelihood
    end function loglikelihood
-   subroutine gradient(nwv,nobs,nplanet,npars,sol,solrange,time,flux,   &
-    ferr,exptime,ntt,tobs,omc,f,g)
+   subroutine gradient(nwv,nobs,nplanet,npars,sol,solerr,solrange,time, &
+    flux,ferr,exptime,ntt,tobs,omc,f,g)
       use precision
       implicit none
       integer :: nwv,nobs,nplanet,npars
       integer, dimension(:) :: ntt
       real(double) :: f
       real(double), dimension(:) :: sol,g
-      real(double), dimension(:,:) :: solrange,time,flux,ferr,exptime,  &
-         tobs,omc
+      real(double), dimension(:,:) :: solerr,solrange,time,flux,ferr,   &
+       exptime,tobs,omc
    end subroutine gradient
 end interface
 
@@ -121,12 +121,13 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       write(0,*) "F: ",f,twork
 
       !calculate gradient
-      call gradient(nwv,nobs,nplanet,npars,sol,solrange,time,flux,ferr, &
-       exptime,ntt,tobs,omc,f,g)
+      call gradient(nwv,nobs,nplanet,npars,sol,solerr,solrange,time,    &
+       flux,ferr,exptime,ntt,tobs,omc,f,g)
+      write(0,*) "G1: ",g(1)
 
    endif
 
-   read(5,*)
+!   read(5,*)
 
 enddo
 
@@ -267,6 +268,8 @@ do np=1,nplanet !loop over each planet in transit model
       endif
    enddo
 enddo
+
+write(0,*) 'k: ',k
 
 return
 end
