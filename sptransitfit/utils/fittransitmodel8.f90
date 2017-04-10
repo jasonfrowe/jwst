@@ -47,6 +47,17 @@ interface
        tobs,omc
       real(double) :: loglikelihood
    end function loglikelihood
+   subroutine gradient(nwv,nobs,nplanet,npars,sol,solrange,time,flux,   &
+    ferr,exptime,ntt,tobs,omc,f,g)
+      use precision
+      implicit none
+      integer :: nwv,nobs,nplanet,npars
+      integer, dimension(:) :: ntt
+      real(double) :: f
+      real(double), dimension(:) :: sol,g
+      real(double), dimension(:,:) :: solrange,time,flux,ferr,exptime,  &
+         tobs,omc
+   end subroutine gradient
 end interface
 
 !Get estimate for zero points.
@@ -110,7 +121,8 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       write(0,*) "F: ",f,twork
 
       !calculate gradient
-      call gradient()
+      call gradient(nwv,nobs,nplanet,npars,sol,solrange,time,flux,ferr, &
+       exptime,ntt,tobs,omc,f,g)
 
    endif
 
@@ -140,36 +152,44 @@ integer :: i,j,k,ii,np
 
 k=0
 do i=1,8 !global parameters
-   if(solerr(i,1).ne.0.0)then
-      if(i.eq.1)then !bounds on mean-stellar density (0 < rhostar)
-         do j=solrange(i,1),solrange(i,2)
+   if(i.eq.1)then !bounds on mean-stellar density (0 < rhostar)
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
             k=k+1
             nbd(k)=1 !lower bound only
             l(k)=0.0d0 !lower bound
-         enddo
-      elseif((i.eq.2).or.(i.eq.3).or.(i.eq.4).or.(i.eq.5))then !limb-darkening
-         do j=solrange(i,1),solrange(i,2)
+         endif
+      enddo
+   elseif((i.eq.2).or.(i.eq.3).or.(i.eq.4).or.(i.eq.5))then !limb-darkening
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
             k=k+1
             nbd(k)=0 !unbounded.  Prior is handled by likelihood function
-         enddo
-      elseif(i.eq.6)then !dilution (0 < DIL < 1)
-         do j=solrange(i,1),solrange(i,2)
+         endif
+      enddo
+   elseif(i.eq.6)then !dilution (0 < DIL < 1)
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
             k=k+1
             nbd(k)=2 !both upper and lower bound
             l(k)=0.0d0 !lower bound
             u(k)=1.0d0 !upper bound
-         enddo
-      elseif(i.eq.7)then !velocity offset VOF (unbounded)
-         do j=solrange(i,1),solrange(i,2)
+         endif
+      enddo
+   elseif(i.eq.7)then !velocity offset VOF (unbounded)
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
             k=k+1
             nbd(k)=0 !unbounded.
-         enddo
-      elseif(i.eq.8)then !photometric offset ZPT (unbounded)
-         do j=solrange(i,1),solrange(i,2)
+         endif
+      enddo
+   elseif(i.eq.8)then !photometric offset ZPT (unbounded)
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
             k=k+1
             nbd(k)=0 !unbounded.
-         enddo
-      endif
+         endif
+      enddo
    endif
 enddo
 
@@ -179,52 +199,70 @@ do np=1,nplanet !loop over each planet in transit model
      ii=8+i+nplanet*(np-1)
       if(i.eq.1)then !EPO (unbounded)
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=0 !unbounded
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=0 !unbounded
+            endif
          enddo
       elseif(i.eq.2)then !PER (unbounded)
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=0 !unbounded
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=0 !unbounded
+            endif
          enddo
       elseif(i.eq.3)then !BB (0 < BB)
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=1 !lower bound only
-            l(k)=0.0d0  !lower bound
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=1 !lower bound only
+               l(k)=0.0d0  !lower bound
+            endif
          enddo
       elseif(i.eq.4)then !RDR (0 < RDR)
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=1 !lower bound only
-            l(k)=0.0d0  !lower bound
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=1 !lower bound only
+               l(k)=0.0d0  !lower bound
+            endif
          enddo
       elseif((i.eq.5).or.(i.eq.6))then !ECW/ESW (0 < ESW < 1)
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=2 !lower and upper bound
-            l(k)=0.0d0  !lower bound
-            u(k)=1.0d0  !upper bound - there is also an e<1 bound in likelihood
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=2 !lower and upper bound
+               l(k)=0.0d0  !lower bound
+               u(k)=1.0d0  !upper bound - there is also an e<1 bound in likelihood
+            endif
          enddo
       elseif(i.eq.7)then !KRV (unbounded) !radial velocity amplitude
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=0 !unbounded
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=0 !unbounded
+            endif
          enddo
       elseif(i.eq.8)then !TED (unbounded) !occultation depth
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=0 !unbounded
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=0 !unbounded
+            endif
          enddo
       elseif(i.eq.9)then !ELL (unbounded) !amplitude of ellipsodial variations
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=0 !unbounded
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=0 !unbounded
+            endif
          enddo
       elseif(i.eq.10)then !ALB (unbounded) - amplitude of phase curve
          do j=solrange(ii,1),solrange(ii,2)
-            k=k+1
-            nbd(k)=0 !unbounded
+            if(solerr(j,1).ne.0.0)then
+               k=k+1
+               nbd(k)=0 !unbounded
+            endif
          enddo
       endif
    enddo
