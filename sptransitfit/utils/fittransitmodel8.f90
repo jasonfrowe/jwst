@@ -9,8 +9,9 @@ real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc, &
  solrange
 !local vars
-integer :: n,m,i,j,iprint,ikch,isave(44)
+integer :: n,m,i,j,iprint,isave(44)
 integer, allocatable, dimension(:) :: nbd,iwa
+real :: twork
 real(double) :: tol,factr,pgtol,dsave(29),f
 real(double), allocatable, dimension(:) :: solin,l,u,g,wa,sol1
 logical :: lsave(4)
@@ -35,6 +36,17 @@ interface
       real(double), dimension(:) :: l,u
       real(double), dimension(:,:) :: solerr,solrange
    end subroutine setbounds
+   function loglikelihood(nwv,nobs,nplanet,npars,sol,solrange,time,     &
+    flux,ferr,exptime,ntt,tobs,omc)
+      use precision
+      implicit none
+      integer :: nwv,nobs,nplanet,npars
+      integer, dimension(:) :: ntt
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solrange,time,flux,ferr,exptime,  &
+       tobs,omc
+      real(double) :: loglikelihood
+   end function loglikelihood
 end interface
 
 !Get estimate for zero points.
@@ -55,7 +67,7 @@ enddo
 
 allocate(nbd(n),l(n),u(n)) !allocate arrays that set bounds for fitted parameters
 nbd=0 !default is that parameters are unbounded.
-!set bounds for parameters
+!set bounds for parameters, source for subroutine is in this file.
 call setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
 
 allocate(g(n)) !contains gradient information
@@ -68,7 +80,6 @@ iprint=-1 !frequency and type of output generated
 
 !setting up loop conditions for lbfgsb
 task = 'START'
-ikch=0
 
 !loop for lbfgsb
 do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
@@ -91,11 +102,25 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
          endif
       enddo
 
+      !calculate log(likelihood) with current model solution
+      write(6,*) "Calling loglikelihood"
+      f=-loglikelihood(nwv,nobs,nplanet,npars,sol,solrange,time,flux,   &
+       ferr,exptime,ntt,tobs,omc)
+      CALL CPU_TIME(twork)
+      write(0,*) "F: ",f,twork
+
+      !calculate gradient
+      call gradient()
+
    endif
 
    read(5,*)
 
 enddo
+
+sol=sol1 !update solution.
+
+write(0,*) "Hey.. we made it!"
 
 return
 end subroutine fittransitmodel8
