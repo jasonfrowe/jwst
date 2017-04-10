@@ -9,10 +9,10 @@ real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc, &
  solrange
 !local vars
-integer :: n,m,i,iprint,ikch,isave(44)
+integer :: n,m,i,j,iprint,ikch,isave(44)
 integer, allocatable, dimension(:) :: nbd,iwa
 real(double) :: tol,factr,pgtol,dsave(29),f
-real(double), allocatable, dimension(:) :: solin,l,u,g,wa
+real(double), allocatable, dimension(:) :: solin,l,u,g,wa,sol1
 logical :: lsave(4)
 character(60) :: task,csave
 
@@ -81,7 +81,15 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
    write(0,'(A6,A6)') "task: ",task
 
    if (task(1:2) .eq. 'FG') then
-
+      j=0
+      do i=1,npars
+         if(solerr(i,1).ne.0.0)then
+            j=j+1
+            sol1(i)=solin(j) !if parameter if being fitted
+         else
+            sol1(i)=sol(i) !parameter is fixed, grab from master
+         endif
+      enddo
 
    endif
 
