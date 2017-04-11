@@ -120,7 +120,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       write(6,*) "Calling loglikelihood"
       if(iter.eq.1)then
          CALL CPU_TIME(twork)
-         write(0,*) "F: ",f,twork
+         write(0,*) "Fstart: ",twork
       endif
       f=-loglikelihood(nwv,nobs,nplanet,npars,sol1,solrange,time,flux,   &
        ferr,exptime,ntt,tobs,omc)

@@ -144,14 +144,14 @@ do i=1,nplanet
    endif
 enddo
 
-!!Fit the model to the observations
-!call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,  &
-! flux,ferr,exptime,ntt,tobs,omc)
+!Fit the model to the observations
+call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,  &
+ flux,ferr,exptime,ntt,tobs,omc)
 
-!!make a transit-model to compare to the data
-!allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
-!call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-!   ntt,tobs,omc,sptmodel)
+!make a transit-model to compare to the data
+allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
+call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
+   ntt,tobs,omc,sptmodel)
 
 !export fit
 newfitfile="newfit.dat"
