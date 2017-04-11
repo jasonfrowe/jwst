@@ -115,13 +115,13 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
       !calculate log(likelihood) with current model solution
       write(6,*) "Calling loglikelihood"
-      f=-loglikelihood(nwv,nobs,nplanet,npars,sol,solrange,time,flux,   &
+      f=-loglikelihood(nwv,nobs,nplanet,npars,sol1,solrange,time,flux,   &
        ferr,exptime,ntt,tobs,omc)
       CALL CPU_TIME(twork)
       write(0,*) "F: ",f,twork
 
       !calculate gradient
-      call gradient(nwv,nobs,nplanet,npars,sol,solerr,solrange,time,    &
+      call gradient(nwv,nobs,nplanet,npars,sol1,solerr,solrange,time,    &
        flux,ferr,exptime,ntt,tobs,omc,f,g)
       write(0,*) "G1: ",g(1)
 
