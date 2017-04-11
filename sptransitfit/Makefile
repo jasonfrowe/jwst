@@ -36,11 +36,13 @@ UTILS = utils/
 #Listing of programs to create.
 all: transitfit8
 
-transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o
+transitfit8incl = precision.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o
 transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl)
 
 #building object libraries
+exportfitpars.o: $(UTILS)exportfitpars.f90
+	$(F90) $(FFLAGS) $(UTILS)exportfitpars.f90
 gradient.o: $(UTILS)gradient.f90
 	$(F90) $(FFLAGS) $(UTILS)gradient.f90
 loglikelihood.o: $(UTILS)loglikelihood.f90

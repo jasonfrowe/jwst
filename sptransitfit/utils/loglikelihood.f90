@@ -5,8 +5,9 @@ implicit none
 !import vars
 integer :: nwv,nobs,nplanet,npars
 integer, dimension(:) :: ntt
+integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solrange,time,flux,ferr,exptime,tobs,omc
+real(double), dimension(:,:) :: time,flux,ferr,exptime,tobs,omc
 !function return type
 real(double) :: loglikelihood
 !local vars
@@ -21,8 +22,9 @@ interface
       implicit none
       integer :: nplanet,npars,nwv,nobs
       integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc,time,  &
+      real(double), dimension(:,:) :: sptmodel,tobs,omc,time,  &
        exptime
    end subroutine sptransitmodel
 end interface

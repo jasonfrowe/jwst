@@ -5,8 +5,9 @@ implicit none
 !import vars
 integer :: nplanet,npars,nwv,nobs
 integer, dimension(:) :: ntt
+integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc,time,exptime
+real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
 !local vars
 integer :: nintg,iwv,ii,i,j,caltran
 real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb,mu,bp,  &
@@ -22,9 +23,9 @@ interface
       use precision
       implicit none
       integer :: iwv
+      integer, dimension(:,:) :: solrange
       real(double) :: rhostar,c1,c2,c3,c4,dil,voff,zpt
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange
    end subroutine getbasicpars
 
    subroutine getplanetpars(iwv,nplanet,sol,solrange,epoch,per,b,rprs,  &
@@ -32,9 +33,9 @@ interface
       use precision
       implicit none
       integer iwv,nplanet
+      integer, dimension(:,:) :: solrange
       real(double) :: epoch,per,b,rprs,ecw,esw,K,ted,ell,ag
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange
    end subroutine getplanetpars
 end interface
 
@@ -256,9 +257,9 @@ use precision
 implicit none
 !import vars
 integer iwv,nplanet
+integer, dimension(:,:) :: solrange
 real(double) :: epoch,per,b,rprs,ecw,esw,K,ted,ell,ag
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solrange
 !local vars
 integer i,ii,j
 integer, parameter :: npars=10
@@ -297,9 +298,9 @@ use precision
 implicit none
 !import vars
 integer :: iwv
+integer, dimension(:,:) :: solrange
 real(double) :: rhostar,c1,c2,c3,c4,dil,voff,zpt
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solrange
 !local vars
 integer i
 integer, parameter :: npars=8

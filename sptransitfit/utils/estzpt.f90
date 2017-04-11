@@ -4,9 +4,9 @@ use precision
 implicit none
 integer :: npars,nwv,nobs,nplanet
 integer, dimension(:) :: ntt
+integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solerr,time,flux,exptime,tobs,omc,      &
-   solrange
+real(double), dimension(:,:) :: solerr,time,flux,exptime,tobs,omc
 !local vars
 integer i,j,k
 integer, allocatable, dimension(:) :: np
@@ -24,9 +24,9 @@ interface
       implicit none
       integer :: nwv,nplanet,npars,nobs
       integer, dimension(:) :: ntt
-      integer, dimension(:,:) :: imarktrans
+      integer, dimension(:,:) :: imarktrans,solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: bt,solrange,time,tobs,omc
+      real(double), dimension(:,:) :: bt,time,tobs,omc
    end subroutine getb
 end interface
 

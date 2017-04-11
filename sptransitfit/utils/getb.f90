@@ -9,9 +9,9 @@ implicit none
 !import vars
 integer :: nwv,nplanet,npars,nobs
 integer, dimension(:) :: ntt
-integer, dimension(:,:) :: imarktrans
+integer, dimension(:,:) :: imarktrans,solrange
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: bt,solrange,time,tobs,omc
+real(double), dimension(:,:) :: bt,time,tobs,omc
 !local vars
 integer :: i,ii,iwv
 real(double), allocatable, dimension(:) :: time1
@@ -28,19 +28,18 @@ interface
       use precision
       implicit none
       integer :: iwv
+      integer, dimension(:,:) :: solrange
       real(double) :: rhostar,c1,c2,c3,c4,dil,voff,zpt
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange
    end subroutine getbasicpars
-
    subroutine getplanetpars(iwv,nplanet,sol,solrange,epoch,per,b,rprs,  &
     ecw,esw,K,ted,ell,ag)
       use precision
       implicit none
       integer iwv,nplanet
+      integer, dimension(:,:) :: solrange
       real(double) :: epoch,per,b,rprs,ecw,esw,K,ted,ell,ag
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange
    end subroutine getplanetpars
 end interface
 

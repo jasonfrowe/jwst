@@ -5,11 +5,11 @@ implicit none
 !import vars
 integer :: npars,nwv,nobs,nplanet
 integer, dimension(:) :: ntt
+integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc, &
- solrange
+real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc
 !local vars
-integer :: n,m,i,j,iprint,isave(44)
+integer :: n,m,i,j,iprint,isave(44),iter
 integer, allocatable, dimension(:) :: nbd,iwa
 real :: twork
 real(double) :: tol,factr,pgtol,dsave(29),f
@@ -24,17 +24,18 @@ interface
       implicit none
       integer :: npars,nwv,nobs,nplanet
       integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solerr,time,flux,exptime,tobs,omc,&
-       solrange
+      real(double), dimension(:,:) :: solerr,time,flux,exptime,tobs,omc
    end subroutine EstZpt
    subroutine setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
       use precision
       implicit none
       integer :: n,npars,nplanet
       integer, dimension(:) :: nbd
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: l,u
-      real(double), dimension(:,:) :: solerr,solrange
+      real(double), dimension(:,:) :: solerr
    end subroutine setbounds
    function loglikelihood(nwv,nobs,nplanet,npars,sol,solrange,time,     &
     flux,ferr,exptime,ntt,tobs,omc)
@@ -42,9 +43,9 @@ interface
       implicit none
       integer :: nwv,nobs,nplanet,npars
       integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange,time,flux,ferr,exptime,  &
-       tobs,omc
+      real(double), dimension(:,:) :: time,flux,ferr,exptime,tobs,omc
       real(double) :: loglikelihood
    end function loglikelihood
    subroutine gradient(nwv,nobs,nplanet,npars,sol,solerr,solrange,time, &
@@ -53,9 +54,10 @@ interface
       implicit none
       integer :: nwv,nobs,nplanet,npars
       integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
       real(double) :: f
       real(double), dimension(:) :: sol,g
-      real(double), dimension(:,:) :: solerr,solrange,time,flux,ferr,   &
+      real(double), dimension(:,:) :: solerr,time,flux,ferr,   &
        exptime,tobs,omc
    end subroutine gradient
 end interface
@@ -93,6 +95,7 @@ iprint=-1 !frequency and type of output generated
 task = 'START'
 
 !loop for lbfgsb
+iter=1 !count number of iterations
 do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
                task.eq.'START')
 
@@ -115,6 +118,10 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
       !calculate log(likelihood) with current model solution
       write(6,*) "Calling loglikelihood"
+      if(iter.eq.1)then
+         CALL CPU_TIME(twork)
+         write(0,*) "F: ",f,twork
+      endif
       f=-loglikelihood(nwv,nobs,nplanet,npars,sol1,solrange,time,flux,   &
        ferr,exptime,ntt,tobs,omc)
       CALL CPU_TIME(twork)
@@ -127,6 +134,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
    endif
 
+   iter=iter+1 !increase counter for number of iterations
 !   read(5,*)
 
 enddo
@@ -146,8 +154,9 @@ implicit none
 !import vars
 integer :: n,npars,nplanet
 integer, dimension(:) :: nbd
+integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: l,u
-real(double), dimension(:,:) :: solerr,solrange
+real(double), dimension(:,:) :: solerr
 !local vars
 integer :: i,j,k,ii,np
 

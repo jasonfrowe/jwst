@@ -61,8 +61,9 @@ use precision
 implicit none
 !import vars
 integer :: nunit,nparsmax,npars,nplanet,nplanetmax
+integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
-real(double), dimension(:,:) :: solerr,solrange
+real(double), dimension(:,:) :: solerr
 !local vars
 integer :: i,j,k,iltype,nvar,filestatus,np,ipar,getparnum
 real(double), allocatable, dimension(:) :: parsin

@@ -3,12 +3,13 @@ program transitfit8
 use precision
 implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
- nplanetmax,nplanet
+ nplanetmax,nplanet,filestatus
 integer, allocatable, dimension(:) :: ntt
+integer, allocatable, dimension(:,:) :: solrange
 real(double), allocatable, dimension(:) :: sol
 real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
- solerr,solrange,sptmodel,tobs,omc
-character(80) :: obsfile,parsfile,ttfile
+ solerr,sptmodel,tobs,omc
+character(80) :: obsfile,parsfile,ttfile,newfitfile
 
 interface
    subroutine getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,   &
@@ -16,8 +17,9 @@ interface
       use precision
       implicit none
       integer :: nparsmax,npars,nunit,nplanet,nplanetmax
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solerr,solrange
+      real(double), dimension(:,:) :: solerr
    end subroutine getfitpars
    subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,  &
       exptime,ntt,tobs,omc,sptmodel)
@@ -25,9 +27,9 @@ interface
       implicit none
       integer :: nplanet,npars,nwv,nobs
       integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solrange,sptmodel,tobs,omc,time,  &
-       exptime
+      real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
    end subroutine sptransitmodel
    subroutine fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,   &
     nobs,time,flux,ferr,exptime,ntt,tobs,omc)
@@ -35,10 +37,19 @@ interface
       implicit none
       integer :: npars,nwv,nobs,nplanet
       integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
-       tobs,omc,solrange
+       tobs,omc
    end subroutine fittransitmodel8
+   subroutine exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+      use precision
+      implicit none
+      integer :: nunit,npars,nplanet
+      integer, dimension(:,:) :: solrange
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solerr
+   end subroutine exportfitpars
 end interface
 
 if(iargc().lt.1)then
@@ -133,20 +144,31 @@ do i=1,nplanet
    endif
 enddo
 
-!Fit the model to the observations
-call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,  &
- flux,ferr,exptime,ntt,tobs,omc)
+!!Fit the model to the observations
+!call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,  &
+! flux,ferr,exptime,ntt,tobs,omc)
 
-!make a transit-model to compare to the data
-allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
-call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-   ntt,tobs,omc,sptmodel)
+!!make a transit-model to compare to the data
+!allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
+!call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
+!   ntt,tobs,omc,sptmodel)
 
-!write out the model to stdout
-do i=1,nobs
-   !write out time in days and un-normalized flux for each wavelength
-   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
-   503 format(10000(1PE17.10,1X))
-enddo
+!export fit
+newfitfile="newfit.dat"
+nunit=10
+open(unit=nunit,file=newfitfile,iostat=filestatus)
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",obsfile
+   stop
+endif
+call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+close(nunit)
+
+!!write out the model to stdout
+!do i=1,nobs
+!   !write out time in days and un-normalized flux for each wavelength
+!   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
+!   503 format(10000(1PE17.10,1X))
+!enddo
 
 end program transitfit8
