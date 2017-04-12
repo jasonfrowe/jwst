@@ -10,6 +10,7 @@ real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
 !local vars
 integer :: nintg,iwv,ii,i,j,caltran
+real :: twork
 real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb,mu,bp,  &
  occ,time1
 real(double) :: Pi,tPi,pid2,G,Cs,fDB,c1,c2,c3,c4,dil,voff,zpt,rhostar,  &
@@ -27,7 +28,6 @@ interface
       real(double) :: rhostar,c1,c2,c3,c4,dil,voff,zpt
       real(double), dimension(:) :: sol
    end subroutine getbasicpars
-
    subroutine getplanetpars(iwv,nplanet,sol,solrange,epoch,per,b,rprs,  &
     ecw,esw,K,ted,ell,ag)
       use precision
@@ -40,7 +40,7 @@ interface
 end interface
 
 !Model parameters
-nintg=41 !number of samples to convolve integration time
+nintg=11 !number of samples to convolve integration time
 
 !precompute doubles and repeatitive math
 dnintg=dble(nintg) !convert integer to double
@@ -66,6 +66,9 @@ allocate(tflux(nintg),bt(nintg),vt(nintg),tide(nintg),alb(nintg),       &
 allocate(time1(nobs)) !needed for lininterp.
 
 do iwv=1,nwv !loop over all bandpasses
+
+   !CALL CPU_TIME(twork)
+   !write(0,*) "TWORK: ",iwv,twork
 
    !get parameters that do not depend on planet
    call getbasicpars(iwv,sol,solrange,rhostar,c1,c2,c3,c4,dil,voff,zpt)

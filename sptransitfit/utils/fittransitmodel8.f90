@@ -128,6 +128,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       write(0,*) "F: ",f,twork
 
       !calculate gradient
+      write(0,*) "Calculating g"
       call gradient(nwv,nobs,nplanet,npars,sol1,solerr,solrange,time,    &
        flux,ferr,exptime,ntt,tobs,omc,f,g)
       write(0,*) "G1: ",g(1)

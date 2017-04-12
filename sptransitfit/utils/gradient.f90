@@ -33,6 +33,7 @@ end interface
 allocate(soltest(npars),ifpar(npars)) !array to hold preturbed model solution
 
 small=1.0d-8
+
 j=0 !counter for number of fitted parameters
 do i=1,npars
    if(solerr(i,1).ne.0.0)then

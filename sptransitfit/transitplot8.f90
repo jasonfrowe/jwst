@@ -1,15 +1,15 @@
-program transitfit8
-!(c) Jason Rowe 2017 jason.rowe@ubishops.ca
+program sptransitplot8
 use precision
 implicit none
-integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
- nplanetmax,nplanet,filestatus
+integer :: iargc,nunit,nobsmax,nwvmax,nobs,nwv,nparsmax,nplanetmax,     &
+ npars,nplanet,i
 integer, allocatable, dimension(:) :: ntt
 integer, allocatable, dimension(:,:) :: solrange
-real(double), allocatable, dimension(:) :: sol
+real :: twork
+real(double),allocatable, dimension(:) :: sol
 real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
- solerr,sptmodel,tobs,omc
-character(80) :: obsfile,parsfile,ttfile,newfitfile
+ solerr,tobs,omc,sptmodel
+character(80) :: obsfile,parsfile,ttfile
 
 interface
    subroutine getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,   &
@@ -31,29 +31,10 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
    end subroutine sptransitmodel
-   subroutine fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,   &
-    nobs,time,flux,ferr,exptime,ntt,tobs,omc)
-      use precision
-      implicit none
-      integer :: npars,nwv,nobs,nplanet
-      integer, dimension(:) :: ntt
-      integer, dimension(:,:) :: solrange
-      real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
-       tobs,omc
-   end subroutine fittransitmodel8
-   subroutine exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
-      use precision
-      implicit none
-      integer :: nunit,npars,nplanet
-      integer, dimension(:,:) :: solrange
-      real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: solerr
-   end subroutine exportfitpars
 end interface
 
 if(iargc().lt.1)then
-   write(6,*) "Usage: sptransitfit8 <specfile> <modelpars> <ttfiles>"
+   write(6,*) "Usage: sptransitplot8 <specfile> <modelpars> <ttfiles>"
    write(6,*) "  <specfile>  : file containing extracted time-series spectra"
    write(6,*) "  <modelpars> : file containing model parameters for fitting"
    write(6,*) "  <ttfiles>   : file(s) containing TTVs. One for each planet"
@@ -112,13 +93,6 @@ call getfitpars(nunit,nparsmax,nplanetmax,npars,nplanet,sol,solerr,     &
  solrange)
 write(0,*) "Number of model parameters read: ",npars
 write(0,*) "Number of planets in model: ",nplanet
-!do i=1,npars
-!   write(6,500) sol(i),(solerr(i,j),j=1,4)
-!   500 format(40(1X,1PE17.10))
-!enddo
-
-!close parameter file
-close(nunit)
 
 !read in transit timing variations
 !ntt contains number of TT measurements, tobs is the observer location
@@ -144,31 +118,18 @@ do i=1,nplanet
    endif
 enddo
 
-!Fit the model to the observations
-call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,  &
- flux,ferr,exptime,ntt,tobs,omc)
+!close parameter file
+close(nunit)
 
 !make a transit-model to compare to the data
+!CALL CPU_TIME(twork)
+!write(0,*) "TWORK: ",twork
 allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
    ntt,tobs,omc,sptmodel)
+!CALL CPU_TIME(twork)
+!write(0,*) "TWORK: ",twork
 
-!export fit
-newfitfile="newfit.dat"
-nunit=10
-open(unit=nunit,file=newfitfile,iostat=filestatus)
-if(filestatus>0)then !trap missing file errors
-   write(0,*) "Cannot open ",obsfile
-   stop
-endif
-call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
-close(nunit)
 
-!!write out the model to stdout
-!do i=1,nobs
-!   !write out time in days and un-normalized flux for each wavelength
-!   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
-!   503 format(10000(1PE17.10,1X))
-!enddo
 
-end program transitfit8
+end program sptransitplot8
