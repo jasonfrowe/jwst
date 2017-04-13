@@ -31,7 +31,7 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
    end subroutine sptransitmodel
-   subroutine fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,   &
+   subroutine fittransitmodel8v2(npars,nplanet,sol,solerr,solrange,nwv, &
     nobs,time,flux,ferr,exptime,ntt,tobs,omc)
       use precision
       implicit none
@@ -41,7 +41,7 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
        tobs,omc
-   end subroutine fittransitmodel8
+   end subroutine fittransitmodel8v2
    subroutine exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
       use precision
       implicit none
@@ -145,7 +145,7 @@ do i=1,nplanet
 enddo
 
 !Fit the model to the observations
-call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,  &
+call fittransitmodel8v2(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,&
  flux,ferr,exptime,ntt,tobs,omc)
 
 !make a transit-model to compare to the data

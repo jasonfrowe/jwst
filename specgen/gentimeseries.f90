@@ -1,10 +1,11 @@
 program gentimeseries
 use precision
 implicit none
-integer i,j,n1,n2,nobs,nwv,nunit,filestatus
-real(double) :: wv,fl,dt,time,d2s,exptime
+integer i,j,n1,n2,nobs,nwv,nunit,filestatus,seed
+integer, dimension(3) :: now
+real(double) :: wv,fl,dt,time,d2s,exptime,ran2,gasdev,dumr
 real(double), allocatable, dimension(:) :: spwave
-real(double), allocatable, dimension(:,:) :: spflux
+real(double), allocatable, dimension(:,:) :: spflux,spfluxerr
 character(80) :: filename
 
 n1=1   !filename number to start with
@@ -18,7 +19,12 @@ d2s=86400.0 !number of seconds in a day.
 nobs=n2-n1+1 !number of observations
 nwv=2048     !number of wavelengths observed
 
-allocate(spwave(nwv),spflux(nwv,nobs))
+!Initialization of random number
+call itime(now)
+seed=abs(now(3)+now(1)*now(2)+now(1)*now(3)+now(2)*now(3)*100)
+dumr=ran2(-seed)
+
+allocate(spwave(nwv),spflux(nwv,nobs),spfluxerr(nwv,nobs))
 
 do i=n1,n2
    write(filename,500) "spgen_m_",i,".txt"
@@ -65,10 +71,18 @@ write(6,504) "#nwv",nwv  !number of bandpasses (spectral elements)
 write(6,502) "#Wavelength ", (spwave(i),i=1,nwv)
 502 format(A11,2048(1X,1PE17.10))
 
+!assign uncertainty
+spfluxerr=sqrt(spflux)/50.0
+do i=1,nobs
+   do j=1,nwv
+      spflux(j,i)=spflux(j,i)+spfluxerr(j,i)*gasdev(seed)
+   enddo
+enddo
+
 time=0.0
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
-   write(6,503) (time/d2s,spflux(j,i),sqrt(spflux(j,i)),exptime,j=1,20)!nwv)
+   write(6,503) (time/d2s,spflux(j,i),spfluxerr(j,i),exptime,j=1,nwv)
    503 format(10000(1PE17.10,1X))
    time=time+dt
 enddo

@@ -59,5 +59,9 @@ enddo
 
 loglikelihood=-0.5*(ll1+ll2+ll3)
 
+!need to add Priors and constraints.
+! * valid limb-darkening
+! * 0 < e < 1
+
 return
 end function loglikelihood

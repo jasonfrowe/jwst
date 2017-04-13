@@ -36,7 +36,7 @@ UTILS = utils/
 #Listing of programs to create.
 all: spgen
 
-gentimeseriesincl = precision.o
+gentimeseriesincl = precision.o ran2.o
 gentimeseries: gentimeseries.f90 $(gentimeseriesincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gentimeseries.f90 $(gentimeseriesincl)
 

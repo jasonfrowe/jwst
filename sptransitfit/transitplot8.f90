@@ -8,7 +8,7 @@ integer, allocatable, dimension(:,:) :: solrange
 real :: twork
 real(double),allocatable, dimension(:) :: sol
 real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
- solerr,tobs,omc,sptmodel
+ solerr,tobs,omc,sptmodel,res
 character(80) :: obsfile,parsfile,ttfile
 
 interface
@@ -31,6 +31,12 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
    end subroutine sptransitmodel
+   subroutine plotimg(nwv,nobs,res)
+      use precision
+      implicit none
+      integer :: nwv,nobs
+      real(double), dimension(:,:) :: res
+   end subroutine plotimg
 end interface
 
 if(iargc().lt.1)then
@@ -130,6 +136,17 @@ call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
 !CALL CPU_TIME(twork)
 !write(0,*) "TWORK: ",twork
 
+!calculate residuals
+allocate(res(nwv,nobs))
+res=flux-sptmodel !residuals
 
+!open PGPLOT device
+call pgopen('?')
+call PGPAP (8.0 ,1.0) !use a square 8" across
+call pgslw(3) !thicker lines
+!call pgsch(2.7) !bigger text
+!plot image of residuals
+call plotimg(nwv,nobs,res)
+call pgclos()
 
 end program sptransitplot8
