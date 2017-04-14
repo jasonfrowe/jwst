@@ -78,7 +78,7 @@ else !else calculate for each bandpass
          endif
          if(k.gt.0)then
             call rqsort(k,ootdata,np) !sort to find median
-            median=ootdata(k/2+1)
+            median=ootdata(np(k/2+1)) !get mid-point of sorted data
             sol(solrange(8,1)+i-1)=median  !change zpt to median
          else !if there are no observations then leave zpt alone
             median=1.0

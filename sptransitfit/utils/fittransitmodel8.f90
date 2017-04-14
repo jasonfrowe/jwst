@@ -163,7 +163,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
          write(0,*) "Cannot open ",newfitfile
          stop
       endif
-      call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+      call exportfitpars(nunit,npars,nplanet,sol1,solerr,solrange)
       close(nunit)
 
 
