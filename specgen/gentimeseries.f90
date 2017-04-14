@@ -66,7 +66,7 @@ do i=n1,n2
 enddo
 
 !now we can write out the contents.
-write(6,504) "#nwv",nwv  !number of bandpasses (spectral elements)
+write(6,504) "#nwv",20!nwv  !number of bandpasses (spectral elements)
 504 format(A4,1X,I8)
 write(6,502) "#Wavelength ", (spwave(i),i=1,nwv)
 502 format(A11,2048(1X,1PE17.10))
@@ -82,7 +82,7 @@ enddo
 time=0.0
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
-   write(6,503) (time/d2s,spflux(j,i),spfluxerr(j,i),exptime,j=1,nwv)
+   write(6,503) (time/d2s,spflux(j,i),spfluxerr(j,i),exptime,j=1,20)!nwv)
    503 format(10000(1PE17.10,1X))
    time=time+dt
 enddo

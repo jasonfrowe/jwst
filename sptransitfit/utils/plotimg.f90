@@ -9,6 +9,10 @@ integer :: i,j,ncol,ia1
 integer, allocatable, dimension(:,:) :: ia
 real:: r,g,b,bb(4)
 real(double) :: resmax,resmin
+real(double), allocatable, dimension(:,:) :: resback
+
+allocate(resback(nwv,nobs))
+resback=res
 
 !scale for plot (x,y)
 bb(1)=1
@@ -36,9 +40,12 @@ do i=1,ncol
    CALL PGSCR(I+15, R, G, B)
 enddo
 
+res=abs(res)
+res=log10(res+1.0e-6)
 !get max/min of plotting scale
 resmax=maxval(res)
 resmin=minval(res)
+
 
 allocate(ia(nobs,nwv))
 do i=1,nwv
@@ -52,6 +59,8 @@ enddo
 
 call pgpixl(ia,nobs,nwv,1,nobs,1,nwv,bb(1),bb(2),bb(3),bb(4))
 call pgbox("BCNTS",0.0,0,"BCNTS",0.0,0) !redraw boundary
+
+res=resback
 
 return
 end subroutine plotimg

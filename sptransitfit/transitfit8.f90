@@ -148,27 +148,29 @@ enddo
 call fittransitmodel8v2(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,&
  flux,ferr,exptime,ntt,tobs,omc)
 
-!make a transit-model to compare to the data
-allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
-call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-   ntt,tobs,omc,sptmodel)
-
 !export fit
 newfitfile="newfit.dat"
 nunit=10
 open(unit=nunit,file=newfitfile,iostat=filestatus)
 if(filestatus>0)then !trap missing file errors
-   write(0,*) "Cannot open ",obsfile
+   write(0,*) "Cannot open ",newfitfile
    stop
 endif
 call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
 close(nunit)
 
-!!write out the model to stdout
-!do i=1,nobs
-!   !write out time in days and un-normalized flux for each wavelength
-!   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
-!   503 format(10000(1PE17.10,1X))
-!enddo
+!make a transit-model to compare to the data
+allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
+call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
+   ntt,tobs,omc,sptmodel)
+
+
+
+!write out the model to stdout
+do i=1,nobs
+   !write out time in days and un-normalized flux for each wavelength
+   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
+   503 format(10000(1PE17.10,1X))
+enddo
 
 end program transitfit8

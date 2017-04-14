@@ -6,7 +6,7 @@ F90 = $(FPATH)ifort
 F77 = $(FPATH)ifort
 #compiling object file flags
 OPT1 = -O3 -ipo -mkl -parallel -qopenmp
-#OPT1 = -O0 -g -CB
+#OPT1 = -O0 -g -CB -mkl
 #OPT1 = -O3
 OPT2 =
 FFLAGS = -c $(OPT1) $(OPT2)
@@ -40,11 +40,15 @@ transitplot8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o 
 transitplot8: transitplot8.f90 $(transitplot8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitplot8.f90 $(transitplot8incl) $(LIBS)
 
-transitfit8incl = precision.o fittermod.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8v2.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o
+transitfit8incl = precision.o fittermod.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8v2.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o gaussj.o covsrt.o heatlut.o plotimg.o 
 transitfit8: transitfit8.f90 $(transitfit8incl)
-	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl) $(LIBS)
 
 #building object libraries
+covsrt.o: $(UTILS)covsrt.f
+	$(F90) $(FFLAGS) $(UTILS)covsrt.f
+gaussj.o: $(UTILS)gaussj.f
+	$(F90) $(FFLAGS) $(UTILS)gaussj.f
 fittermod.o: $(UTILS)fittermod.f90
 	$(F90) $(FFLAGS) $(UTILS)fittermod.f90
 fittransitmodel8v2.o: $(UTILS)fittransitmodel8v2.f90

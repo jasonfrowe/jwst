@@ -32,7 +32,7 @@ end interface
 
 allocate(soltest(npars),ifpar(npars)) !array to hold preturbed model solution
 
-small=1.0d-8
+small=1.0d-6
 
 j=0 !counter for number of fitted parameters
 do i=1,npars
@@ -45,7 +45,7 @@ inpar=j
 
 !now we calculate gradient for each fitted parameter.  This task is
 !highly parallelizable.
-!$OMP PARALLEL DO
+!$OMP PARALLEL DO PRIVATE(i,soltest,ftest1)
 do j=1,inpar
    i=ifpar(j)
    soltest=sol !make copy of original solution
@@ -53,8 +53,10 @@ do j=1,inpar
    ftest1=-loglikelihood(nwv,nobs,nplanet,npars,soltest,solrange,       &
     time,flux,ferr,exptime,ntt,tobs,omc)
    g(j)=(ftest1-f)/small
+   !if(j.eq.62) write(0,500) j,i,sol(i),soltest(i)
 enddo
 !$OMP END PARALLEL DO
+500 format(2(I3,1X),3(1PE17.10,1X))
 
 return
 end subroutine gradient
