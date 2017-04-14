@@ -11,8 +11,8 @@ real(double), dimension(:,:) :: time,flux,ferr,exptime,tobs,omc
 !function return type
 real(double) :: loglikelihood
 !local vars
-integer :: i,j
-real(double) Pi,tPi,ll1,ll2,ll3
+integer :: i,j,nld1,nld(4)
+real(double) Pi,tPi,ll1,ll2,ll3,ld(4),prior
 real(double),allocatable, dimension(:,:) :: sptmodel
 
 interface
@@ -60,8 +60,47 @@ enddo
 loglikelihood=-0.5*(ll1+ll2+ll3)
 
 !need to add Priors and constraints.
-! * valid limb-darkening
-! * 0 < e < 1
+! *** valid limb-darkening *** !
+nld1=0
+nld=0
+do i=1,4
+   nld(i)=solrange(i+1,2)-solrange(i+1,1)+1
+   nld1=max(nld(i),nld1) !how many LD pars vary (max)
+enddo
+do i=1,nld1
+   do j=1,4
+      if(nld(j).eq.nld1)then
+         ld(j)=sol(solrange(j+1,1)+i-1)
+      else
+         ld(j)=sol(solrange(j+1,1))
+      endif
+   enddo
+
+   prior=1.0
+   if((ld(1).eq.0.0).and.(ld(2).eq.0.0))then
+      if((ld(3).lt.0.0).or.(ld(3).gt.1.0).or.(ld(4).lt.0.0).or.         &
+       (ld(4).gt.1.0))then
+         prior=9.9d30
+      endif
+   elseif((ld(3).eq.0.0).and.(ld(4).eq.0.0))then
+   !write(0,*) "Quad..",c1,c2
+      if((ld(1)+ld(2).gt.1.0).or.(ld(1).lt.0).or.                       &
+       (ld(1)+2.0d0*ld(2).lt.0))then
+         !write(0,*) "invalid.."
+         prior=9.9d30
+      endif
+   endif
+!   write(0,500) ld,prior
+enddo
+!write(0,*) "prior: ",prior
+!read(5,*)
+
+500 format(10000(1PE17.10,1X))
+
+! *** 0 < e < 1 *** !
+
+!apply prior
+loglikelihood=loglikelihood*prior
 
 return
 end function loglikelihood

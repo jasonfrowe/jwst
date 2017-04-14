@@ -205,11 +205,37 @@ do i=1,8 !global parameters
             l(k)=0.0d0 !lower bound
          endif
       enddo
-   elseif((i.eq.2).or.(i.eq.3).or.(i.eq.4).or.(i.eq.5))then !limb-darkening
+   elseif(i.eq.2)then ! limb-darkening #1  0 < NL1
       do j=solrange(i,1),solrange(i,2)
          if(solerr(j,1).ne.0.0)then
             k=k+1
-            nbd(k)=0 !unbounded.  Prior is handled by likelihood function
+            nbd(k)=1 !lower bound only
+            l(k)=0.0d0 !lower bound
+         endif
+      enddo
+   elseif(i.eq.3)then ! limb-darkening #2 - unbounded (handled by prior)
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
+            k=k+1
+            nbd(k)=0 !lower bound only
+         endif
+      enddo
+   elseif(i.eq.4)then ! limb-darkening #3  0 < NL3 < 1
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
+            k=k+1
+            nbd(k)=2 !lower bound only
+            l(k)=0.0d0 !lower bound
+            u(k)=1.0d0 !upper bound
+         endif
+      enddo
+   elseif(i.eq.5)then ! limb-darkening #3  0 < NL4 < 1
+      do j=solrange(i,1),solrange(i,2)
+         if(solerr(j,1).ne.0.0)then
+            k=k+1
+            nbd(k)=2 !lower bound only
+            l(k)=0.0d0 !lower bound
+            u(k)=1.0d0 !upper bound
          endif
       enddo
    elseif(i.eq.6)then !dilution (0 < DIL < 1)
