@@ -40,7 +40,7 @@ transitplot8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o 
 transitplot8: transitplot8.f90 $(transitplot8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitplot8.f90 $(transitplot8incl) $(LIBS)
 
-transitfit8incl = precision.o fittermod.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8v2.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o gaussj.o covsrt.o heatlut.o plotimg.o 
+transitfit8incl = precision.o fittermod.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o gaussj.o covsrt.o heatlut.o plotimg.o 
 transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl) $(LIBS)
 

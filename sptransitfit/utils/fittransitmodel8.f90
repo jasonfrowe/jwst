@@ -16,6 +16,9 @@ real(double) :: tol,factr,pgtol,dsave(29),f
 real(double), allocatable, dimension(:) :: solin,l,u,g,wa,sol1
 logical :: lsave(4)
 character(60) :: task,csave
+!export fit
+integer :: nunit,filestatus
+character(80) :: newfitfile
 
 interface
    subroutine EstZpt(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,   &
@@ -60,11 +63,30 @@ interface
       real(double), dimension(:,:) :: solerr,time,flux,ferr,   &
        exptime,tobs,omc
    end subroutine gradient
+   subroutine exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+      use precision
+      implicit none
+      integer :: nunit,npars,nplanet
+      integer, dimension(:,:) :: solrange
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solerr
+   end subroutine exportfitpars
 end interface
 
 !Get estimate for zero points.
 call EstZpt(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,flux,       &
  exptime,ntt,tobs,omc)
+
+!export current fit
+newfitfile="newfit.dat"
+nunit=10
+open(unit=nunit,file=newfitfile,iostat=filestatus)
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",newfitfile
+   stop
+endif
+call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+close(nunit)
 
 !pick off variables that are being fitted.
  !solin contains only model parameters that are fitted
@@ -132,6 +154,18 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       call gradient(nwv,nobs,nplanet,npars,sol1,solerr,solrange,time,    &
        flux,ferr,exptime,ntt,tobs,omc,f,g)
       write(0,*) "G1: ",g(1)
+
+
+      newfitfile="newfit.dat"
+      nunit=10
+      open(unit=nunit,file=newfitfile,iostat=filestatus)
+      if(filestatus>0)then !trap missing file errors
+         write(0,*) "Cannot open ",newfitfile
+         stop
+      endif
+      call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+      close(nunit)
+
 
    endif
 
