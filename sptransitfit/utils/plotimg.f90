@@ -40,8 +40,9 @@ do i=1,ncol
    CALL PGSCR(I+15, R, G, B)
 enddo
 
-res=abs(res)
-res=log10(res+1.0e-6)
+!res=abs(res)
+!res=log10(res+1.0e-6)
+!res=res*abs(resback)/res
 !get max/min of plotting scale
 resmax=maxval(res)
 resmin=minval(res)

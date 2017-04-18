@@ -9,11 +9,12 @@ integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc
 !local vars
-integer :: n,m,i,j,iprint,isave(44),iter
+integer :: n,m,i,j,iprint,isave(44),iter,nwvc
 integer, allocatable, dimension(:) :: nbd,iwa
 real :: twork
 real(double) :: tol,factr,pgtol,dsave(29),f
 real(double), allocatable, dimension(:) :: solin,l,u,g,wa,sol1
+real(double), allocatable, dimension(:,:) :: sptmodel
 logical :: lsave(4)
 character(60) :: task,csave
 !export fit
@@ -41,18 +42,19 @@ interface
       real(double), dimension(:,:) :: solerr
    end subroutine setbounds
    function loglikelihood(nwv,nobs,nplanet,npars,sol,solrange,time,     &
-    flux,ferr,exptime,ntt,tobs,omc)
+    flux,ferr,exptime,ntt,tobs,omc,sptmodel,nwvc)
       use precision
       implicit none
-      integer :: nwv,nobs,nplanet,npars
+      integer :: nwv,nobs,nplanet,npars,nwvc
       integer, dimension(:) :: ntt
       integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
-      real(double), dimension(:,:) :: time,flux,ferr,exptime,tobs,omc
+      real(double), dimension(:,:) :: time,flux,ferr,exptime,tobs,omc,  &
+       sptmodel
       real(double) :: loglikelihood
    end function loglikelihood
    subroutine gradient(nwv,nobs,nplanet,npars,sol,solerr,solrange,time, &
-    flux,ferr,exptime,ntt,tobs,omc,f,g)
+    flux,ferr,exptime,ntt,tobs,omc,f,g,sptmodel)
       use precision
       implicit none
       integer :: nwv,nobs,nplanet,npars
@@ -61,7 +63,7 @@ interface
       real(double) :: f
       real(double), dimension(:) :: sol,g
       real(double), dimension(:,:) :: solerr,time,flux,ferr,   &
-       exptime,tobs,omc
+       exptime,tobs,omc,sptmodel
    end subroutine gradient
    subroutine exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
       use precision
@@ -105,6 +107,11 @@ nbd=0 !default is that parameters are unbounded.
 !set bounds for parameters, source for subroutine is in this file.
 call setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
 
+!log-likelihood is calculated for all bandpasses
+nwvc=0
+!allocate sptmodel to hold global model solution
+allocate(sptmodel(nwv,nobs))
+
 allocate(g(n)) !contains gradient information
 factr=1.0d+7 !1.d+12 for low, 1.d+7 for moderate, 1.d+1 for high accuracy
 pgtol=1.0d-5 !projected gradient tolerance
@@ -145,14 +152,14 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
          write(0,*) "Fstart: ",twork
       endif
       f=-loglikelihood(nwv,nobs,nplanet,npars,sol1,solrange,time,flux,   &
-       ferr,exptime,ntt,tobs,omc)
+       ferr,exptime,ntt,tobs,omc,sptmodel,nwvc)
       CALL CPU_TIME(twork)
       write(0,*) "F: ",f,twork
 
       !calculate gradient
       write(0,*) "Calculating g"
       call gradient(nwv,nobs,nplanet,npars,sol1,solerr,solrange,time,    &
-       flux,ferr,exptime,ntt,tobs,omc,f,g)
+       flux,ferr,exptime,ntt,tobs,omc,f,g,sptmodel)
       write(0,*) "G1: ",g(1)
 
 

@@ -3,7 +3,7 @@ program transitfit8
 use precision
 implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
- nplanetmax,nplanet,filestatus
+ nplanetmax,nplanet,filestatus,nwvc
 integer, allocatable, dimension(:) :: ntt
 integer, allocatable, dimension(:,:) :: solrange
 real(double), allocatable, dimension(:) :: sol
@@ -22,10 +22,10 @@ interface
       real(double), dimension(:,:) :: solerr
    end subroutine getfitpars
    subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,  &
-      exptime,ntt,tobs,omc,sptmodel)
+      exptime,ntt,tobs,omc,sptmodel,nwvc)
       use precision
       implicit none
-      integer :: nplanet,npars,nwv,nobs
+      integer :: nplanet,npars,nwv,nobs,nwvc
       integer, dimension(:) :: ntt
       integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
@@ -161,8 +161,9 @@ close(nunit)
 
 !make a transit-model to compare to the data
 allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
+nwvc=0 !calculate model for all bandpasses
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-   ntt,tobs,omc,sptmodel)
+   ntt,tobs,omc,sptmodel,nwvc)
 
 
 

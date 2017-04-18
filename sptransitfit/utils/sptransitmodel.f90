@@ -1,15 +1,15 @@
 subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,     &
- exptime,ntt,tobs,omc,sptmodel)
+ exptime,ntt,tobs,omc,sptmodel,nwvc)
 use precision
 implicit none
 !import vars
-integer :: nplanet,npars,nwv,nobs
+integer :: nplanet,npars,nwv,nobs,nwvc
 integer, dimension(:) :: ntt
 integer, dimension(:,:) :: solrange
 real(double), dimension(:) :: sol
 real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
 !local vars
-integer :: nintg,iwv,ii,i,j,caltran
+integer :: nintg,iwv,ii,i,j,caltran,nwv1,nwv2
 real :: twork
 real(double), allocatable, dimension(:) :: tflux,bt,vt,tide,alb,mu,bp,  &
  occ,time1
@@ -65,7 +65,17 @@ allocate(tflux(nintg),bt(nintg),vt(nintg),tide(nintg),alb(nintg),       &
  mu(nintg),bp(nintg),occ(nintg))
 allocate(time1(nobs)) !needed for lininterp.
 
-do iwv=1,nwv !loop over all bandpasses
+!added ability to calcalate likelihood for only a single bandpass
+!this can significantly speed up calculations
+if(nwvc.eq.0)then !loop over all bandpasses
+   nwv1=1
+   nwv2=nwv
+else              !loop over single bandpass
+   nwv1=nwvc
+   nwv2=nwvc
+endif
+
+do iwv=nwv1,nwv2 !loop over all bandpasses
 
    !CALL CPU_TIME(twork)
    !write(0,*) "TWORK: ",iwv,twork
