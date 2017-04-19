@@ -36,15 +36,6 @@ allocate(soltest(npars),ifpar(npars),inwv(npars)) !array to hold preturbed model
 
 small=1.0d-6
 
-!j=0 !counter for number of fitted parameters
-!do i=1,npars
-!   if(solerr(i,1).ne.0.0)then
-!      j=j+1 !increase counter to track number of fitted parameters
-!      ifpar(j)=i !precompute with parameters have gradient calc. to paral.
-!   endif
-!enddo
-!inpar=j
-
 j=0 !number of fitted parameters
 l=0 !counter as we walk though model parameters
 do i=1,8
