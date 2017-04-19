@@ -75,7 +75,7 @@ do np=1,nplanet !loop over each planet in transit model
          if(solerr(l,1).ne.0.0)then
             j=j+1
             ifpar(j)=l
-            if((solrange(i,2)-solrange(i,1)).eq.0)then
+            if((solrange(ii,2)-solrange(ii,1)).eq.0)then
                inwv(j)=0  !parameter applied to all bandpasses
             else
                inwv(j)=kk  !parameter only applies to a single bandpass
@@ -88,6 +88,7 @@ inpar=j
 
 !used to make new likelihood model
 allocate(sptmodel1(nwv,nobs))
+sptmodel1=0.0d0
 
 !now we calculate gradient for each fitted parameter.  This task is
 !highly parallelizable.
@@ -96,11 +97,13 @@ do j=1,inpar
    i=ifpar(j)
    soltest=sol !make copy of original solution
    soltest(i)=soltest(i)+small !add small perturbation
-   nwvc=0!inwv(j)
+   nwvc=inwv(j)
    sptmodel1=sptmodel
    ftest1=-loglikelihood(nwv,nobs,nplanet,npars,soltest,solrange,       &
     time,flux,ferr,exptime,ntt,tobs,omc,sptmodel1,nwvc)
    g(j)=(ftest1-f)/small
+   !write(0,*) j,inwv(j),g(j)
+   !read(5,*)
    !if(j.eq.62) write(0,500) j,i,sol(i),soltest(i)
 enddo
 !$OMP END PARALLEL DO

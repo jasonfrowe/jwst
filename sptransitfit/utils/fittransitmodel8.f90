@@ -162,6 +162,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
        flux,ferr,exptime,ntt,tobs,omc,f,g,sptmodel)
       write(0,*) "G1: ",g(1)
 
+      !read(5,*)
 
       newfitfile="newfit.dat"
       nunit=10

@@ -78,9 +78,9 @@ enddo
 allocate(sptmodel1(nwv,nobs))
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
    ntt,tobs,omc,sptmodel1,nwvc)
-if(nwvc.eq.0)then
+if(nwvc.eq.0)then !entire model was calculated
    sptmodel=sptmodel1
-else
+else  !only a single bandpass was calculated
    sptmodel(nwvc,:)=sptmodel1(nwvc,:)
 endif
 
