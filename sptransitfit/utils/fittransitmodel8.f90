@@ -12,7 +12,7 @@ real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,tobs,omc
 integer :: n,m,i,j,iprint,isave(44),iter,nwvc
 integer, allocatable, dimension(:) :: nbd,iwa
 real :: twork
-real(double) :: tol,factr,pgtol,dsave(29),f
+real(double) :: tol,factr,pgtol,dsave(29),f,fold
 real(double), allocatable, dimension(:) :: solin,l,u,g,wa,sol1
 real(double), allocatable, dimension(:,:) :: sptmodel
 logical :: lsave(4)
@@ -120,6 +120,8 @@ allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) ) !working array
 allocate ( iwa(3*n) )  !integer working array
 iprint=-1 !frequency and type of output generated
 
+fold=1.0e30
+
 !setting up loop conditions for lbfgsb
 task = 'START'
 
@@ -174,6 +176,10 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       call exportfitpars(nunit,npars,nplanet,sol1,solerr,solrange)
       close(nunit)
 
+   if(f.lt.fold)then
+      sol=sol1 !update solution if better.
+      fold=f   !store old 'f' calculation for comparison
+   endif
 
    endif
 
@@ -182,7 +188,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
 enddo
 
-sol=sol1 !update solution.
+
 
 write(0,*) "Hey.. we made it!"
 
@@ -232,7 +238,7 @@ do i=1,8 !global parameters
       do j=solrange(i,1),solrange(i,2)
          if(solerr(j,1).ne.0.0)then
             k=k+1
-            nbd(k)=2 !lower bound only
+            nbd(k)=2 !both bounds set
             l(k)=0.0d0 !lower bound
             u(k)=1.0d0 !upper bound
          endif
@@ -241,7 +247,7 @@ do i=1,8 !global parameters
       do j=solrange(i,1),solrange(i,2)
          if(solerr(j,1).ne.0.0)then
             k=k+1
-            nbd(k)=2 !lower bound only
+            nbd(k)=2 !both bounds set
             l(k)=0.0d0 !lower bound
             u(k)=1.0d0 !upper bound
          endif

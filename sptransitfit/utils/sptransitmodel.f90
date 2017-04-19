@@ -77,9 +77,6 @@ endif
 
 do iwv=nwv1,nwv2 !loop over all bandpasses
 
-   !CALL CPU_TIME(twork)
-   !write(0,*) "TWORK: ",iwv,twork
-
    !get parameters that do not depend on planet
    call getbasicpars(iwv,sol,solrange,rhostar,c1,c2,c3,c4,dil,voff,zpt)
 

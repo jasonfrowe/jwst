@@ -34,7 +34,7 @@ end interface
 
 allocate(soltest(npars),ifpar(npars),inwv(npars)) !array to hold preturbed model solution
 
-small=1.0d-6
+small=1.0d-9
 
 j=0 !number of fitted parameters
 l=0 !counter as we walk though model parameters

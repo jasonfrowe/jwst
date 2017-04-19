@@ -2,11 +2,11 @@ program sptransitplot8
 use precision
 implicit none
 integer :: iargc,nunit,nobsmax,nwvmax,nobs,nwv,nparsmax,nplanetmax,     &
- npars,nplanet,i
+ npars,nplanet,i,nwvc
 integer, allocatable, dimension(:) :: ntt
 integer, allocatable, dimension(:,:) :: solrange
-real :: twork
-real(double),allocatable, dimension(:) :: sol
+real(double) :: chisq
+real(double),allocatable, dimension(:) :: sol,rdr
 real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
  solerr,tobs,omc,sptmodel,res
 character(80) :: obsfile,parsfile,ttfile
@@ -22,10 +22,10 @@ interface
       real(double), dimension(:,:) :: solerr
    end subroutine getfitpars
    subroutine sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,  &
-      exptime,ntt,tobs,omc,sptmodel)
+      exptime,ntt,tobs,omc,sptmodel,nwvc)
       use precision
       implicit none
-      integer :: nplanet,npars,nwv,nobs
+      integer :: nplanet,npars,nwv,nobs,nwvc
       integer, dimension(:) :: ntt
       integer, dimension(:,:) :: solrange
       real(double), dimension(:) :: sol
@@ -37,6 +37,18 @@ interface
       integer :: nwv,nobs
       real(double), dimension(:,:) :: res
    end subroutine plotimg
+   subroutine plotrdr(nwv,rdr)
+      use precision
+      implicit none
+      integer :: nwv
+      real(double), dimension(:) :: rdr
+   end subroutine plotrdr
+   subroutine plotres(nwv,nobs,res)
+      use precision
+      implicit none
+      integer :: nwv,nobs
+      real(double),dimension(:,:) :: res
+   end subroutine plotres
 end interface
 
 if(iargc().lt.1)then
@@ -127,26 +139,41 @@ enddo
 !close parameter file
 close(nunit)
 
-!make a transit-model to compare to the data
-!CALL CPU_TIME(twork)
-!write(0,*) "TWORK: ",twork
-allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
-call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-   ntt,tobs,omc,sptmodel)
-!CALL CPU_TIME(twork)
-!write(0,*) "TWORK: ",twork
+!open PGPLOT device
+call pgopen('?')
+call pgsubp(2,2)
+call pgpage()
+call PGPAP (12.0 ,0.5) !use a rectangle 8" long
+call pgslw(3) !thicker lines
+call pgsch(2.0) !bigger text
 
+allocate(sptmodel(nwv,nobs)) !array to hold the spectral transit model
+nwvc=0
+call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
+   ntt,tobs,omc,sptmodel,nwvc)
+
+!print out reduced chi-sq
+chisq=Sum((sptmodel-flux)**2.0d0/(ferr*ferr))
+write(0,*) "reduced chi-sq: ",chisq/dble(nwv*nobs)
+
+!plot image of residuals
 !calculate residuals
 allocate(res(nwv,nobs))
 res=flux-sptmodel !residuals
-
-!open PGPLOT device
-call pgopen('?')
-call PGPAP (8.0 ,1.0) !use a square 8" across
-call pgslw(3) !thicker lines
-!call pgsch(2.7) !bigger text
-!plot image of residuals
+call pgpanl(2,2)
 call plotimg(nwv,nobs,res)
+
+!alternate residual plot
+call pgpanl(1,2)
+call plotres(nwv,nobs,res)
+
+!plot r/R*
+!get time-series of RDR
+allocate(rdr(nwv))
+rdr=sol(solrange(12,1):solrange(12,2))
+call pgpanl(1,1)
+call plotrdr(nwv,rdr)
+
 call pgclos()
 
 end program sptransitplot8

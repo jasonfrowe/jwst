@@ -6,6 +6,7 @@ integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
  nplanetmax,nplanet,filestatus,nwvc
 integer, allocatable, dimension(:) :: ntt
 integer, allocatable, dimension(:,:) :: solrange
+real(double) :: chisq
 real(double), allocatable, dimension(:) :: sol
 real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
  solerr,sptmodel,tobs,omc
@@ -165,6 +166,9 @@ nwvc=0 !calculate model for all bandpasses
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
    ntt,tobs,omc,sptmodel,nwvc)
 
+!print out reduced chi-sq
+chisq=Sum((sptmodel-flux)**2.0d0/(ferr*ferr))
+write(0,*) "reduced chi-sq: ",chisq/dble(nwv*nobs)
 
 
 !write out the model to stdout

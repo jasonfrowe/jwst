@@ -33,8 +33,33 @@ end interface
 Pi=acos(-1.d0) !define Pi
 tPi=2.0d0*Pi   !and 2*Pi
 
-!check model constraints, no point calculating a model if parameter
-!is out of bounds
+500 format(10000(1PE17.10,1X))
+
+! *** 0 < e < 1 *** !
+
+!make a transit-model to compare to the data
+allocate(sptmodel1(nwv,nobs))
+call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
+   ntt,tobs,omc,sptmodel1,nwvc)
+if(nwvc.eq.0)then !entire model was calculated
+   sptmodel=sptmodel1
+else  !only a single bandpass was calculated
+   sptmodel(nwvc,:)=sptmodel1(nwvc,:)
+endif
+
+!begin calculating log loglikelihood
+!this assumes all data is valid.
+ll1=npars*nwv*log(tPi) !number of observations
+
+allocate(ferr2(nwv,nobs))
+ferr2=ferr*ferr
+ll2=Sum(log(ferr2)) !vectorized (seems to be faster)
+
+allocate(smf(nwv,nobs))
+smf=sptmodel-flux
+ll3=Sum( smf*smf/(ferr2)) !vectorized
+
+loglikelihood=-0.5*(ll1+ll2+ll3)
 
 ! *** valid limb-darkening *** !
 nld1=0
@@ -55,49 +80,21 @@ do i=1,nld1
    if((ld(1).eq.0.0).and.(ld(2).eq.0.0))then
       if((ld(3).lt.0.0).or.(ld(3).gt.1.0).or.(ld(4).lt.0.0).or.         &
        (ld(4).gt.1.0))then
-         loglikelihood=9.9d30
-         return
+         loglikelihood=-9.9d30
+!         return
       endif
    elseif((ld(3).eq.0.0).and.(ld(4).eq.0.0))then
    !write(0,*) "Quad.."
       if((ld(1)+ld(2).gt.1.0).or.(ld(1).lt.0).or.                       &
        (ld(1)+2.0d0*ld(2).lt.0))then
          !write(0,*) "invalid.."
-         loglikelihood=9.9d30
-         return
+         loglikelihood=-9.9d30
+!         return
       endif
    endif
 enddo
 
 
-500 format(10000(1PE17.10,1X))
-
-! *** 0 < e < 1 *** !
-
-!make a transit-model to compare to the data
-allocate(sptmodel1(nwv,nobs))
-call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
-   ntt,tobs,omc,sptmodel1,nwvc)
-if(nwvc.eq.0)then !entire model was calculated
-   sptmodel=sptmodel1
-else  !only a single bandpass was calculated
-   sptmodel(nwvc,:)=sptmodel1(nwvc,:)
-endif
-
-
-!begin calculating log loglikelihood
-!this assumes all data is valid.
-ll1=npars*nwv*log(tPi) !number of observations
-
-allocate(ferr2(nwv,nobs))
-ferr2=ferr*ferr
-ll2=Sum(log(ferr2)) !vectorized (seems to be faster)
-
-allocate(smf(nwv,nobs))
-smf=sptmodel-flux
-ll3=Sum( smf*smf/(ferr2)) !vectorized
-
-loglikelihood=-0.5*(ll1+ll2+ll3)
 
 !need to add Priors
 prior=1.0d0

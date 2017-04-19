@@ -21,7 +21,7 @@ bb(3)=1
 bb(4)=real(nwv)
 
 call PGSCLP(0) !turn off clipping
-call pgvport(0.15,0.95,0.15,0.95) !make room around the edges for labels (-1.8)
+call pgvport(0.15,0.95,0.20,1.95) !make room around the edges for labels
 call pgsci(1)
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 call pgbox("BCNTS",0.0,0,"BCNTS",0.0,0)
@@ -60,6 +60,7 @@ enddo
 
 call pgpixl(ia,nobs,nwv,1,nobs,1,nwv,bb(1),bb(2),bb(3),bb(4))
 call pgbox("BCNTS",0.0,0,"BCNTS",0.0,0) !redraw boundary
+call pglabel("Time","Bandpass","")
 
 res=resback
 

@@ -34,9 +34,9 @@ BIN = /Users/rowe/Documents/jwst/sptransitfit/
 UTILS = utils/
 
 #Listing of programs to create.
-all: transitfit8
+all: transitfit8 transitplot8
 
-transitplot8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o keplerian.o albedomod.o mandelagol.o occultquad.o heatlut.o plotimg.o
+transitplot8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o keplerian.o albedomod.o mandelagol.o occultquad.o heatlut.o plotimg.o plotrdr.o plotres.o
 transitplot8: transitplot8.f90 $(transitplot8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitplot8.f90 $(transitplot8incl) $(LIBS)
 
@@ -45,6 +45,10 @@ transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl) $(LIBS)
 
 #building object libraries
+plotres.o: $(UTILS)plotres.f90
+	$(F90) $(FFLAGS) $(UTILS)plotres.f90
+plotrdr.o: $(UTILS)plotrdr.f90
+	$(F90) $(FFLAGS) $(UTILS)plotrdr.f90
 covsrt.o: $(UTILS)covsrt.f
 	$(F90) $(FFLAGS) $(UTILS)covsrt.f
 gaussj.o: $(UTILS)gaussj.f
