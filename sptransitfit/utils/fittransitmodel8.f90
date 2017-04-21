@@ -113,7 +113,7 @@ nwvc=0
 allocate(sptmodel(nwv,nobs))
 
 allocate(g(n)) !contains gradient information
-factr=1.0d+7 !1.d+12 for low, 1.d+7 for moderate, 1.d+1 for high accuracy
+factr=1.0d+1 !1.d+12 for low, 1.d+7 for moderate, 1.d+1 for high accuracy
 pgtol=1.0d-5 !projected gradient tolerance
 m=5  !maximum number of variable metric corrections
 allocate ( wa(2*m*n + 5*n + 11*m*m + 8*m) ) !working array
@@ -134,7 +134,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
                        wa, iwa, task, iprint,&
                        csave, lsave, isave, dsave )
 
-   write(0,'(A6,A6)') "task: ",task
+   !write(0,'(A6,A6)') "task: ",task
 
    if (task(1:2) .eq. 'FG') then
       j=0
@@ -148,38 +148,39 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
       enddo
 
       !calculate log(likelihood) with current model solution
-      write(6,*) "Calling loglikelihood"
+      !write(0,*) "Calling loglikelihood"
       if(iter.eq.1)then
          CALL CPU_TIME(twork)
-         write(0,*) "Fstart: ",twork
+         !write(0,*) "Fstart: ",twork
       endif
       f=-loglikelihood(nwv,nobs,nplanet,npars,sol1,solrange,time,flux,   &
        ferr,exptime,ntt,tobs,omc,sptmodel,nwvc)
       CALL CPU_TIME(twork)
-      write(0,*) "F: ",f,twork
+      !write(0,*) "F: ",f,twork
 
       !calculate gradient
-      write(0,*) "Calculating g"
+      !write(0,*) "Calculating g"
       call gradient(nwv,nobs,nplanet,npars,sol1,solerr,solrange,time,    &
        flux,ferr,exptime,ntt,tobs,omc,f,g,sptmodel)
-      write(0,*) "G1: ",g(1)
+      !write(0,*) "G1: ",g(1)
 
-      !read(5,*)
 
-      newfitfile="newfit.dat"
-      nunit=10
-      open(unit=nunit,file=newfitfile,iostat=filestatus)
-      if(filestatus>0)then !trap missing file errors
-         write(0,*) "Cannot open ",newfitfile
-         stop
+
+      if(f.lt.fold)then
+
+         newfitfile="newfit.dat"
+         nunit=10
+         open(unit=nunit,file=newfitfile,iostat=filestatus)
+         if(filestatus>0)then !trap missing file errors
+            write(0,*) "Cannot open ",newfitfile
+            stop
+         endif
+         call exportfitpars(nunit,npars,nplanet,sol1,solerr,solrange)
+         close(nunit)
+
+         sol=sol1 !update solution if better.
+         fold=f   !store old 'f' calculation for comparison
       endif
-      call exportfitpars(nunit,npars,nplanet,sol1,solerr,solrange)
-      close(nunit)
-
-   if(f.lt.fold)then
-      sol=sol1 !update solution if better.
-      fold=f   !store old 'f' calculation for comparison
-   endif
 
    endif
 
@@ -188,9 +189,7 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
 
 enddo
 
-
-
-write(0,*) "Hey.. we made it!"
+!write(0,*) "Hey.. we made it!"
 
 return
 end subroutine fittransitmodel8
@@ -231,7 +230,7 @@ do i=1,8 !global parameters
       do j=solrange(i,1),solrange(i,2)
          if(solerr(j,1).ne.0.0)then
             k=k+1
-            nbd(k)=0 !lower bound only
+            nbd(k)=0 !no bound
          endif
       enddo
    elseif(i.eq.4)then ! limb-darkening #3  0 < NL3 < 1
@@ -239,7 +238,7 @@ do i=1,8 !global parameters
          if(solerr(j,1).ne.0.0)then
             k=k+1
             nbd(k)=2 !both bounds set
-            l(k)=0.0d0 !lower bound
+            l(k)=0.0000001d0 !lower bound
             u(k)=1.0d0 !upper bound
          endif
       enddo
@@ -353,7 +352,7 @@ do np=1,nplanet !loop over each planet in transit model
    enddo
 enddo
 
-write(0,*) 'k: ',k
+!write(0,*) 'k: ',k
 
 return
 end

@@ -43,6 +43,28 @@ interface
       real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
        tobs,omc
    end subroutine fittransitmodel8
+   subroutine fitwhitelighttransit(npars,nplanet,sol,solerr,solrange,nwv, &
+    nobs,time,flux,ferr,exptime,ntt,tobs,omc)
+      use precision
+      implicit none
+      integer :: npars,nwv,nobs,nplanet
+      integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
+       tobs,omc
+   end subroutine fitwhitelighttransit
+   subroutine fiteachbandpass(npars,nplanet,sol,solerr,solrange,nwv, &
+    nobs,time,flux,ferr,exptime,ntt,tobs,omc)
+      use precision
+      implicit none
+      integer :: npars,nwv,nobs,nplanet
+      integer, dimension(:) :: ntt
+      integer, dimension(:,:) :: solrange
+      real(double), dimension(:) :: sol
+      real(double), dimension(:,:) :: solerr,time,flux,ferr,exptime,    &
+       tobs,omc
+   end subroutine fiteachbandpass
    subroutine exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
       use precision
       implicit none
@@ -145,6 +167,31 @@ do i=1,nplanet
    endif
 enddo
 
+!fit whitelight transit
+write(0,*) "Performing whitelight fit"
+call fitwhitelighttransit(npars,nplanet,sol,solerr,solrange,nwv,nobs,   &
+ time,flux,ferr,exptime,ntt,tobs,omc)
+
+!fit each individual bandpass
+if(nwv.gt.1)then !make sure we have more than a single bandpass
+   write(0,*) "Performing individual bandpass fit"
+   call fiteachbandpass(npars,nplanet,sol,solerr,solrange,nwv,nobs,     &
+    time,flux,ferr,exptime,ntt,tobs,omc)
+endif
+
+!export fit
+newfitfile="newfit1.dat"
+nunit=10
+open(unit=nunit,file=newfitfile,iostat=filestatus)
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",newfitfile
+   stop
+endif
+call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+close(nunit)
+write(0,*) "Ready..."
+read(5,*)
+
 !Fit the model to the observations
 call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,&
  flux,ferr,exptime,ntt,tobs,omc)
@@ -174,7 +221,8 @@ write(0,*) "reduced chi-sq: ",chisq/dble(nwv*nobs)
 !write out the model to stdout
 do i=1,nobs
    !write out time in days and un-normalized flux for each wavelength
-   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),exptime(j,i),j=1,nwv)
+   write(6,503) (time(j,i),sptmodel(j,i),ferr(j,i),                     &
+    exptime(j,i)*86400.0d0,j=1,nwv)
    503 format(10000(1PE17.10,1X))
 enddo
 

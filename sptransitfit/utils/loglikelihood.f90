@@ -49,11 +49,11 @@ endif
 
 !begin calculating log loglikelihood
 !this assumes all data is valid.
-ll1=npars*nwv*log(tPi) !number of observations
+ll1=0.0d0!npars*nwv*log(tPi) !number of observations
 
 allocate(ferr2(nwv,nobs))
 ferr2=ferr*ferr
-ll2=Sum(log(ferr2)) !vectorized (seems to be faster)
+ll2=0.0d0!Sum(log(ferr2)) !vectorized (seems to be faster)
 
 allocate(smf(nwv,nobs))
 smf=sptmodel-flux

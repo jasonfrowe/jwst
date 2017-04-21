@@ -36,6 +36,7 @@ allocate(bt(nwv,nobs),imarktrans(nwv,nobs))
 call getb(nwv,nplanet,npars,sol,solrange,nobs,time,ntt,tobs,omc,bt,     &
  imarktrans)
 
+
 !check if we have one zpt per bandpass, or just one.
 if(solrange(8,2)-solrange(8,1).eq.0)then !8 corresponds to zero-point
 
