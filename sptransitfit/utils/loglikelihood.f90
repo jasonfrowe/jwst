@@ -35,8 +35,6 @@ tPi=2.0d0*Pi   !and 2*Pi
 
 500 format(10000(1PE17.10,1X))
 
-! *** 0 < e < 1 *** !
-
 !make a transit-model to compare to the data
 allocate(sptmodel1(nwv,nobs))
 call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
@@ -60,41 +58,6 @@ smf=sptmodel-flux
 ll3=Sum( smf*smf/(ferr2)) !vectorized
 
 loglikelihood=-0.5*(ll1+ll2+ll3)
-
-! *** valid limb-darkening *** !
-nld1=0
-nld=0
-do i=1,4
-   nld(i)=solrange(i+1,2)-solrange(i+1,1)+1
-   nld1=max(nld(i),nld1) !how many LD pars vary (max)
-enddo
-do i=1,nld1
-   do j=1,4
-      if(nld(j).eq.nld1)then
-         ld(j)=sol(solrange(j+1,1)+i-1)
-      else
-         ld(j)=sol(solrange(j+1,1))
-      endif
-   enddo
-
-   if((ld(1).eq.0.0).and.(ld(2).eq.0.0))then
-      if((ld(3).lt.0.0).or.(ld(3).gt.1.0).or.(ld(4).lt.0.0).or.         &
-       (ld(4).gt.1.0))then
-         loglikelihood=-9.9d30
-!         return
-      endif
-   elseif((ld(3).eq.0.0).and.(ld(4).eq.0.0))then
-   !write(0,*) "Quad.."
-      if((ld(1)+ld(2).gt.1.0).or.(ld(1).lt.0).or.                       &
-       (ld(1)+2.0d0*ld(2).lt.0))then
-         !write(0,*) "invalid.."
-         loglikelihood=-9.9d30
-!         return
-      endif
-   endif
-enddo
-
-
 
 !need to add Priors
 prior=1.0d0

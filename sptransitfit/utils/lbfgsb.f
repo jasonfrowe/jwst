@@ -2567,7 +2567,7 @@ c     Determine the maximum step length.
          if (gd .ge. zero) then
 c                               the directional derivative >=0.
 c                               Line search is impossible.
-            write(6,*)' ascent direction in projection gd = ', gd
+            !write(6,*)' ascent direction in projection gd = ', gd
             info = -4
             return
          endif

@@ -177,22 +177,22 @@ if(nwv.gt.1)then !make sure we have more than a single bandpass
    write(0,*) "Performing individual bandpass fit"
    call fiteachbandpass(npars,nplanet,sol,solerr,solrange,nwv,nobs,     &
     time,flux,ferr,exptime,ntt,tobs,omc)
+   !export fit
+   newfitfile="newfit1.dat"
+   nunit=10
+   open(unit=nunit,file=newfitfile,iostat=filestatus)
+   if(filestatus>0)then !trap missing file errors
+      write(0,*) "Cannot open ",newfitfile
+      stop
+   endif
+   call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
+   close(nunit)
+   !write(0,*) "Ready..."
+   !read(5,*)
 endif
-
-!export fit
-newfitfile="newfit1.dat"
-nunit=10
-open(unit=nunit,file=newfitfile,iostat=filestatus)
-if(filestatus>0)then !trap missing file errors
-   write(0,*) "Cannot open ",newfitfile
-   stop
-endif
-call exportfitpars(nunit,npars,nplanet,sol,solerr,solrange)
-close(nunit)
-write(0,*) "Ready..."
-read(5,*)
 
 !Fit the model to the observations
+write(0,*) "Performing Global bandpass fit"
 call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,&
  flux,ferr,exptime,ntt,tobs,omc)
 

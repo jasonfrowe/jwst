@@ -108,7 +108,6 @@ do inwv=1,nwv
    !read(5,*)
 
 enddo
-write(0,*) " "
 
 return
 end subroutine fiteachbandpass
