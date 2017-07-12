@@ -5,8 +5,8 @@ integer :: iargc,nunit,nobsmax,nwvmax,nobs,nwv,nparsmax,nplanetmax,     &
  npars,nplanet,i,nwvc
 integer, allocatable, dimension(:) :: ntt
 integer, allocatable, dimension(:,:) :: solrange
-real(double) :: chisq
-real(double),allocatable, dimension(:) :: sol,rdr
+real(double) :: chisq,norm1,resfrac
+real(double),allocatable, dimension(:) :: sol,rdr,norm
 real(double), allocatable, dimension(:,:) :: time,flux,ferr,exptime,    &
  solerr,tobs,omc,sptmodel,res
 character(80) :: obsfile,parsfile,ttfile
@@ -31,10 +31,11 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: sptmodel,tobs,omc,time,exptime
    end subroutine sptransitmodel
-   subroutine plotimg(nwv,nobs,res)
+   subroutine plotimg(nwv,nobs,res,resfrac)
       use precision
       implicit none
       integer :: nwv,nobs
+      real(double) :: resfrac
       real(double), dimension(:,:) :: res
    end subroutine plotimg
    subroutine plotrdr(nwv,rdr)
@@ -156,12 +157,32 @@ call sptransitmodel(nplanet,npars,sol,solrange,nwv,nobs,time,exptime,   &
 chisq=Sum((sptmodel-flux)**2.0d0/(ferr*ferr))
 write(0,*) "reduced chi-sq: ",chisq/dble(nwv*nobs)
 
+!get normalization
+if (solrange(8,1).eq.solrange(8,2)) then
+   allocate(norm(1))
+   norm1=sol(solrange(8,1))
+else
+   allocate(norm(nwv))
+   norm(1:nwv) = sol(solrange(8,1):solrange(8,2))
+endif
+
 !plot image of residuals
 !calculate residuals
 allocate(res(nwv,nobs))
-res=flux-sptmodel !residuals
+res=(flux-sptmodel) !residuals
+
+!normalize residuals
+if(size(norm).gt.1)then
+   do i=1,nwv
+      res(i,:)=res(i,:)/norm(i)
+   enddo
+else
+   res=res/norm1
+endif
+
+resfrac=0.1 !range of data to display, must be between 0 and 1.0, 1.0 is to use all data
 call pgpanl(2,2)
-call plotimg(nwv,nobs,res)
+call plotimg(nwv,nobs,res,resfrac)
 
 !alternate residual plot
 call pgpanl(1,2)
@@ -172,7 +193,7 @@ call plotres(nwv,nobs,res)
 allocate(rdr(nwv))
 rdr=sol(solrange(12,1):solrange(12,2))
 call pgpanl(1,1)
-call plotrdr(nwv,rdr)
+call plotrdr(solrange(12,2)-solrange(12,1)+1,rdr)
 
 call pgclos()
 

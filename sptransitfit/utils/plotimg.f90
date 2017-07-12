@@ -1,14 +1,15 @@
-subroutine plotimg(nwv,nobs,res)
+subroutine plotimg(nwv,nobs,res,resfrac)
 use precision
 implicit none
 !import vars
 integer :: nwv,nobs
+real(double) :: resfrac
 real(double), dimension(:,:) :: res
 !local vars
 integer :: i,j,ncol,ia1
 integer, allocatable, dimension(:,:) :: ia
 real:: r,g,b,bb(4)
-real(double) :: resmax,resmin
+real(double) :: resmax,resmin,deltares
 real(double), allocatable, dimension(:,:) :: resback
 
 allocate(resback(nwv,nobs))
@@ -46,6 +47,9 @@ enddo
 !get max/min of plotting scale
 resmax=maxval(res)
 resmin=minval(res)
+deltares=resmax-resmin
+resmax=resmax-deltares*(1.0d0-resfrac)/2.0d0
+resmin=resmin+deltares*(1.0d0-resfrac)/2.0d0
 
 
 allocate(ia(nobs,nwv))
@@ -60,7 +64,7 @@ enddo
 
 call pgpixl(ia,nobs,nwv,1,nobs,1,nwv,bb(1),bb(2),bb(3),bb(4))
 call pgbox("BCNTS",0.0,0,"BCNTS",0.0,0) !redraw boundary
-call pglabel("Time","Bandpass","")
+call pglabel("Time Steps","Bandpass Channel","")
 
 res=resback
 

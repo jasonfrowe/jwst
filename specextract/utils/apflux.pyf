@@ -1,0 +1,24 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module apflux ! in 
+    interface  ! in :apflux
+        module precision ! in :apflux:precision.f90
+            integer, parameter,optional :: double_bn=8
+        end module precision
+        subroutine apflux(naxes,image,bpix,ntrace,dtrace,nap,nsky,flux) ! in :apflux:apflux.f90
+            use precision
+            integer dimension(2) :: naxes
+            real(kind=8) dimension(:,:) :: image
+            real(kind=8) :: bpix
+            integer :: ntrace
+            real(kind=8) dimension(:,:) :: dtrace
+            integer :: nap
+            integer :: nsky
+            real(kind=8) dimension(:) :: flux
+        end subroutine apflux
+    end interface 
+end python module apflux
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

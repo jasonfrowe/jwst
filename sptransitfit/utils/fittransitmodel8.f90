@@ -32,13 +32,13 @@ interface
       real(double), dimension(:) :: sol
       real(double), dimension(:,:) :: solerr,time,flux,exptime,tobs,omc
    end subroutine EstZpt
-   subroutine setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
+   subroutine setbounds(n,nbd,l,u,nplanet,npars,sol,solerr,solrange)
       use precision
       implicit none
       integer :: n,npars,nplanet
       integer, dimension(:) :: nbd
       integer, dimension(:,:) :: solrange
-      real(double), dimension(:) :: l,u
+      real(double), dimension(:) :: l,u,sol
       real(double), dimension(:,:) :: solerr
    end subroutine setbounds
    function loglikelihood(nwv,nobs,nplanet,npars,sol,solrange,time,     &
@@ -105,7 +105,7 @@ enddo
 allocate(nbd(n),l(n),u(n)) !allocate arrays that set bounds for fitted parameters
 nbd=0 !default is that parameters are unbounded.
 !set bounds for parameters, source for subroutine is in this file.
-call setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
+call setbounds(n,nbd,l,u,nplanet,npars,sol,solerr,solrange)
 
 !log-likelihood is calculated for all bandpasses
 nwvc=0
@@ -164,8 +164,6 @@ do while(task(1:2).eq.'FG'.or.task.eq.'NEW_X'.or. &
        flux,ferr,exptime,ntt,tobs,omc,f,g,sptmodel)
       !write(0,*) "G1: ",g(1)
 
-
-
       if(f.lt.fold)then
 
          newfitfile="newfit.dat"
@@ -195,7 +193,7 @@ return
 end subroutine fittransitmodel8
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-subroutine setbounds(n,nbd,l,u,nplanet,npars,solerr,solrange)
+subroutine setbounds(n,nbd,l,u,nplanet,npars,sol,solerr,solrange)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 use precision
 implicit none
@@ -203,10 +201,10 @@ implicit none
 integer :: n,npars,nplanet
 integer, dimension(:) :: nbd
 integer, dimension(:,:) :: solrange
-real(double), dimension(:) :: l,u
+real(double), dimension(:) :: l,u,sol
 real(double), dimension(:,:) :: solerr
 !local vars
-integer :: i,j,k,ii,np
+integer :: i,j,k,ii,kk,np
 
 k=0
 do i=1,8 !global parameters
@@ -295,12 +293,16 @@ do np=1,nplanet !loop over each planet in transit model
                nbd(k)=0 !unbounded
             endif
          enddo
-      elseif(i.eq.3)then !BB (0 < BB)
+      elseif(i.eq.3)then !BB (0 < BB < 1+rprs)
+         kk=0 !counter for bandpass so we can get corresponding RDR
          do j=solrange(ii,1),solrange(ii,2)
+            kk=kk+1
             if(solerr(j,1).ne.0.0)then
                k=k+1
-               nbd(k)=1 !lower bound only
+               nbd(k)=2 !lower and upper bound
                l(k)=0.0d0  !lower bound
+               u(k)=1.0d0+sol(solrange(ii+1,1)+kk) !1+RDR
+               !write(0,*) 'bu: ',u(k),sol(solrange(ii+1,1)+kk)
             endif
          enddo
       elseif(i.eq.4)then !RDR (0 < RDR)

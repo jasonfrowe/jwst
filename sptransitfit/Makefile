@@ -1,7 +1,8 @@
 #Name of C compiler
 CCMPL = gcc
 #Name of Fortran compiler
-FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
+#FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
+FPATH = 
 F90 = $(FPATH)ifort
 F77 = $(FPATH)ifort
 #compiling object file flags
@@ -34,77 +35,34 @@ BIN = /Users/rowe/Documents/jwst/sptransitfit/
 UTILS = utils/
 
 #Listing of programs to create.
-all: transitfit8 transitplot8
+all: transitfit8 transitplot8 transitmcmc8
 
-transitplot8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o keplerian.o albedomod.o mandelagol.o occultquad.o heatlut.o plotimg.o plotrdr.o plotres.o
+transitmcmc8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o \
+ keplerian.o albedomod.o mandelagol.o occultquad.o ran2.o initran.o mhgmcmc.o \
+ loglikelihood.o
+transitmcmc8: transitmcmc8.f90 $(transitmcmc8incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ transitmcmc8.f90 $(transitmcmc8incl)
+
+transitplot8incl = precision.o readdata.o getfitpars.o ttcor.o sptransitmodel.o \
+ keplerian.o albedomod.o mandelagol.o occultquad.o heatlut.o plotimg.o plotrdr.o \
+ plotres.o
 transitplot8: transitplot8.f90 $(transitplot8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitplot8.f90 $(transitplot8incl) $(LIBS)
 
-transitfit8incl = precision.o fittermod.o readdata.o getfitpars.o sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o fittransitmodel8.o fittransitmodel8v2.o  estzpt.o getb.o rqsort.o lbfgsb.o linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o gaussj.o covsrt.o heatlut.o plotimg.o fitwhitelighttransit.o fiteachbandpass.o ovrwrt.o
+transitfit8incl = precision.o fittermod.o readdata.o getfitpars.o \
+ sptransitmodel.o ttcor.o keplerian.o albedomod.o mandelagol.o occultquad.o \
+ fittransitmodel8.o fittransitmodel8v2.o  estzpt.o getb.o rqsort.o lbfgsb.o \
+ linpack.o timer.o loglikelihood.o gradient.o exportfitpars.o gaussj.o covsrt.o \
+ heatlut.o plotimg.o fitwhitelighttransit.o fiteachbandpass.o ovrwrt.o
 transitfit8: transitfit8.f90 $(transitfit8incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ transitfit8.f90 $(transitfit8incl) $(LIBS)
 
 #building object libraries
-ovrwrt.o: $(UTILS)ovrwrt.f
-	$(F90) $(FFLAGS) $(UTILS)ovrwrt.f
-fiteachbandpass.o: $(UTILS)fiteachbandpass.f90
-	$(F90) $(FFLAGS) $(UTILS)fiteachbandpass.f90
-fitwhitelighttransit.o: $(UTILS)fitwhitelighttransit.f90
-	$(F90) $(FFLAGS) $(UTILS)fitwhitelighttransit.f90
-plotres.o: $(UTILS)plotres.f90
-	$(F90) $(FFLAGS) $(UTILS)plotres.f90
-plotrdr.o: $(UTILS)plotrdr.f90
-	$(F90) $(FFLAGS) $(UTILS)plotrdr.f90
-covsrt.o: $(UTILS)covsrt.f
-	$(F90) $(FFLAGS) $(UTILS)covsrt.f
-gaussj.o: $(UTILS)gaussj.f
-	$(F90) $(FFLAGS) $(UTILS)gaussj.f
-fittermod.o: $(UTILS)fittermod.f90
-	$(F90) $(FFLAGS) $(UTILS)fittermod.f90
-fittransitmodel8v2.o: $(UTILS)fittransitmodel8v2.f90
-	$(F90) $(FFLAGS) $(UTILS)fittransitmodel8v2.f90 
-heatlut.o: $(UTILS)heatlut.f90
-	$(F90) $(FFLAGS) $(UTILS)heatlut.f90
-plotimg.o: $(UTILS)plotimg.f90
-	$(F90) $(FFLAGS) $(UTILS)plotimg.f90
-exportfitpars.o: $(UTILS)exportfitpars.f90
-	$(F90) $(FFLAGS) $(UTILS)exportfitpars.f90
-gradient.o: $(UTILS)gradient.f90
-	$(F90) $(FFLAGS) $(UTILS)gradient.f90
-loglikelihood.o: $(UTILS)loglikelihood.f90
-	$(F90) $(FFLAGS) $(UTILS)loglikelihood.f90
-timer.o: $(UTILS)timer.f
-	$(F90) $(FFLAGS) $(UTILS)timer.f
-linpack.o: $(UTILS)linpack.f
-	$(F90) $(FFLAGS) $(UTILS)linpack.f
-lbfgsb.o: $(UTILS)lbfgsb.f
-	$(F90) $(FFLAGS) $(UTILS)lbfgsb.f
-rqsort.o: $(UTILS)rqsort.f
-	$(F90) $(FFLAGS) $(UTILS)rqsort.f
-getb.o: $(UTILS)getb.f90
-	$(F90) $(FFLAGS) $(UTILS)getb.f90
-estzpt.o: $(UTILS)estzpt.f90
-	$(F90) $(FFLAGS) $(UTILS)estzpt.f90
-fittransitmodel8.o: $(UTILS)fittransitmodel8.f90
-	$(F90) $(FFLAGS) $(UTILS)fittransitmodel8.f90
-occultquad.o: $(UTILS)occultquad.f
-	$(F90) $(FFLAGS) $(UTILS)occultquad.f
-mandelagol.o: $(UTILS)mandelagol.f
-	$(F90) $(FFLAGS) $(UTILS)mandelagol.f
-albedomod.o: $(UTILS)albedomod.f90
-	$(F90) $(FFLAGS) $(UTILS)albedomod.f90
-keplerian.o: $(UTILS)keplerian.f
-	$(F90) $(FFLAGS) $(UTILS)keplerian.f
-ttcor.o: $(UTILS)ttcor.f
-	$(F90) $(FFLAGS) $(UTILS)ttcor.f
-sptransitmodel.o: $(UTILS)sptransitmodel.f90
-	$(F90) $(FFLAGS) $(UTILS)sptransitmodel.f90
-getfitpars.o: $(UTILS)getfitpars.f90
-	$(F90) $(FFLAGS) $(UTILS)getfitpars.f90
-readdata.o: $(UTILS)readdata.f90
-	$(F90) $(FFLAGS) $(UTILS)readdata.f90
-precision.o: $(UTILS)precision.f90
-	$(F90) $(FFLAGS) $(UTILS)precision.f90
+%.o : $(UTILS)%.f90
+	$(F90) $(FFLAGS) -o $@ $<
+
+%.o : $(UTILS)%.f
+	$(F90) $(FFLAGS) -o $@ $<
 
 # Removing object files
 .PHONY : clean

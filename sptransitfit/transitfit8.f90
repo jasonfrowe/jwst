@@ -1,9 +1,9 @@
 program transitfit8
-!(c) Jason Rowe 2017 jason.rowe@ubishops.ca
+!(c) Jason Rowe 2017 jason.rowe@ubishops.ca  - test
 use precision
 implicit none
 integer iargc,nobsmax,nwvmax,nunit,nobs,nwv,npars,nparsmax,i,j,         &
- nplanetmax,nplanet,filestatus,nwvc
+ nplanetmax,nplanet,filestatus,nwvc,nwlfit,nbdfit,ngbfit
 integer, allocatable, dimension(:) :: ntt
 integer, allocatable, dimension(:,:) :: solrange
 real(double) :: chisq
@@ -75,11 +75,16 @@ interface
    end subroutine exportfitpars
 end interface
 
+!options to move to commandline
+nwlfit=1 !0=fit whitelight, 1=do not fit whitelight
+nbdfit=1 !0=fit individual bandpasses, 1=do not fit individual bandpasses
+ngbfit=0 !0=fit global solution, 1=do not fit global solution
+
 if(iargc().lt.1)then
-   write(6,*) "Usage: sptransitfit8 <specfile> <modelpars> <ttfiles>"
-   write(6,*) "  <specfile>  : file containing extracted time-series spectra"
-   write(6,*) "  <modelpars> : file containing model parameters for fitting"
-   write(6,*) "  <ttfiles>   : file(s) containing TTVs. One for each planet"
+   write(0,*) "Usage: transitfit8 <specfile> <modelpars> <ttfiles>"
+   write(0,*) "  <specfile>  : file containing extracted time-series spectra"
+   write(0,*) "  <modelpars> : file containing model parameters for fitting"
+   write(0,*) "  <ttfiles>   : file(s) containing TTVs. One for each planet"
    stop
 endif
 
@@ -168,12 +173,14 @@ do i=1,nplanet
 enddo
 
 !fit whitelight transit
-write(0,*) "Performing whitelight fit"
-call fitwhitelighttransit(npars,nplanet,sol,solerr,solrange,nwv,nobs,   &
- time,flux,ferr,exptime,ntt,tobs,omc)
+if(nwlfit.eq.0)then
+   write(0,*) "Performing whitelight fit"
+   call fitwhitelighttransit(npars,nplanet,sol,solerr,solrange,nwv,nobs,   &
+   time,flux,ferr,exptime,ntt,tobs,omc)
+endif
 
 !fit each individual bandpass
-if(nwv.gt.1)then !make sure we have more than a single bandpass
+if((nwv.gt.1).and.(nbdfit.eq.0))then !make sure we have more than a single bandpass
    write(0,*) "Performing individual bandpass fit"
    call fiteachbandpass(npars,nplanet,sol,solerr,solrange,nwv,nobs,     &
     time,flux,ferr,exptime,ntt,tobs,omc)
@@ -192,9 +199,11 @@ if(nwv.gt.1)then !make sure we have more than a single bandpass
 endif
 
 !Fit the model to the observations
-write(0,*) "Performing Global bandpass fit"
-call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,&
- flux,ferr,exptime,ntt,tobs,omc)
+if(ngbfit.eq.0)then
+   write(0,*) "Performing Global bandpass fit"
+   call fittransitmodel8(npars,nplanet,sol,solerr,solrange,nwv,nobs,time,&
+    flux,ferr,exptime,ntt,tobs,omc)
+endif
 
 !export fit
 newfitfile="newfit.dat"

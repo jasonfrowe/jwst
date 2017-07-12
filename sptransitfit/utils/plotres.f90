@@ -23,7 +23,7 @@ call pgvport(0.15,0.95,0.20,0.95) !make room around the edges for labels (-1.8)
 call pgsci(1) !plotting colour
 call pgwindow(bb(1),bb(2),bb(3),bb(4)) !plot scale
 call pgbox("BCNTS",0.0,0,"BCNTS",0.0,0) !draw axes and tics
-call pglabel("Time","Residuals","")
+call pglabel("Time Steps","Normalized Flux","")
 
 !set up plot colours
 ncol=64 !number of colours for display
@@ -43,7 +43,7 @@ do i=1,nobs
    xp(i)=real(i)
 enddo
 
-do i=1,nwv
+do i=nwv,1,-1  !reversing colours to have dark points on top.
 
    ia1= int(real(i-1)/real(nwv-1)*real(ncol-1))+16
    if(i.lt.1)   ia1=16
