@@ -1,0 +1,12 @@
+/Debug/
+*.o
+*.mod
+/.cproject
+/.project
+/.DS_Store
+/.gitignore/
+/Makefile
+/config.log
+/config.status
+/autom4te.cache/
+/bin/
