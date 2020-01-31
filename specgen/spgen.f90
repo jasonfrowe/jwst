@@ -356,8 +356,6 @@ do i=noversample,xmax,noversample
    do j=noversample,ymax,noversample
       opixels(i/noversample,j/noversample)=                             &
          Sum(pixels(i-noversample+1:i,j-noversample+1:j))
-!      opixels(i/noversample,j/noversample)=                             &
-!         opixels(i/noversample,j/noversample)/dnossq
    enddo
 enddo
 !write out un-convolved 2D spectrum

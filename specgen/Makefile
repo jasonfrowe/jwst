@@ -1,7 +1,7 @@
 #Name of C compiler
 CCMPL = gcc
 #Name of Fortran compiler
-FPATH = /opt/intel/compilers_and_libraries_2017.2.163/mac/bin/intel64/
+FPATH = 
 F90 = $(FPATH)ifort
 F77 = $(FPATH)ifort
 #compiling object file flags
@@ -21,7 +21,7 @@ FITSIODIR = /usr/local/lib
 #Pgplot plot libraries
 PGPLOTDIR = /usr/local/lib
 #X11 libraries
-X11DIR = /usr/X11R6/lib
+X11DIR = /usr/X11/lib
 # libraries for linking PGPLOT
 PLPLOTDIR = -I/usr/local/Cellar/plplot/5.9.11/lib/fortran/modules/plplot -I/usr/local/Cellar/plplot/5.9.11/include/plplot -L/usr/local/Cellar/plplot/5.9.11/lib
 LIBS = $(PLPLOTDIR) -lplplotf95d -lplplotf95cd
@@ -29,7 +29,7 @@ LIBS = $(PLPLOTDIR) -lplplotf95d -lplplotf95cd
 # libraries for linking CFITSIO
 LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng
 #Directory where executable are placed
-BIN = /Users/rowe/Documents/jwst/specgen/
+BIN = /Users/rowe/Documents/workspace/jwst/bin/
 #utils source directory
 UTILS = utils/
 
