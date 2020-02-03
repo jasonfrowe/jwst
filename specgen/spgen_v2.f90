@@ -13,8 +13,9 @@ character(8) :: detectorname,prodtype
 integer, dimension(3) :: now
 integer :: seed
 !local vars
-integer :: i,iargc
-real(double) :: xout, yout,rv
+integer :: i,noversample,nunit,filestatus,nmodeltype,iargc
+real(double) :: xout, yout,rv,b
+character(80) :: cline,modelfile
 
 interface
 	subroutine writefitsphdu(fileout,funit)
@@ -105,7 +106,7 @@ prodtype='cal'
 call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,detectorname,prodtype,fileout)
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!create FITS files and insert primary HDU for each data type. 
+!create FITS files and insert primary HDU for each output data product. 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! 1 - simulation with no convolution,  Native resolution
 ! 2 - simulation with convolution, native resolution
