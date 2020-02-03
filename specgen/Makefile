@@ -36,6 +36,11 @@ UTILS = utils/
 #Listing of programs to create.
 all: spgen
 
+spgenV2incl = precision.o getfilename.o writefits_phdu.o closefits.o\
+	      deletefile.o
+spgenV2: spgen_v2.f90 $(spgenV2incl)
+	$(F90) $(LFLAGS) -o $(BIN)$@ spgen_v2.f90 $(spgenV2incl) $(LIBS2) -lfftw3
+
 gentimeseriesincl = precision.o ran2.o
 gentimeseries: gentimeseries.f90 $(gentimeseriesincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ gentimeseries.f90 $(gentimeseriesincl)
@@ -61,54 +66,17 @@ spgen: spgen.f90 $(spgenincl)
 
 
 #building object libraries
-writedatacube.o: $(UTILS)writedatacube.f90
-	$(F90) $(FFLAGS) $(UTILS)writedatacube.f90
-addshotnoise.o: $(UTILS)addshotnoise.f90
-	$(F90) $(FFLAGS) $(UTILS)addshotnoise.f90
-readpmodel.o: $(UTILS)readpmodel.f90
-	$(F90) $(FFLAGS) $(UTILS)readpmodel.f90
-mandelagol.o: $(UTILS)mandelagol.f
-	$(F90) $(FFLAGS) $(UTILS)mandelagol.f
-tmodel.o: $(UTILS)tmodel.f90
-	$(F90) $(FFLAGS) $(UTILS)tmodel.f90
-ran2.o: $(UTILS)ran2.f
-	$(F90) $(FFLAGS) $(UTILS)ran2.f
-addgnoise.o: $(UTILS)addgnoise.f90
-	$(F90) $(FFLAGS) $(UTILS)addgnoise.f90
-convolveft.o: $(UTILS)convolveft.f90
-	$(F90) $(FFLAGS) $(UTILS)convolveft.f90
-response.o: $(UTILS)response.f90
-	$(F90) $(FFLAGS) $(UTILS)response.f90
-readheader.o: $(UTILS)readheader.f
-	$(F90) $(FFLAGS) $(UTILS)readheader.f
-readresponse.o: $(UTILS)readresponse.f90
-	$(F90) $(FFLAGS) $(UTILS)readresponse.f90
-precision.o: $(UTILS)precision.f90
-	$(F90) $(FFLAGS) $(UTILS)precision.f90
-readmodel.o: $(UTILS)readmodel.f90
-	$(F90) $(FFLAGS) $(UTILS)readmodel.f90
-writefits.o: $(UTILS)writefits.f90
-	$(F90) $(FFLAGS) $(UTILS)writefits.f90
-deletefile.o: $(UTILS)deletefile.f
-	$(F90) $(FFLAGS) $(UTILS)deletefile.f
-binmodel.o: $(UTILS)binmodel.f90
-	$(F90) $(FFLAGS) $(UTILS)binmodel.f90
-rqsort.o: $(UTILS)rqsort.f
-	$(F90) $(FFLAGS) $(UTILS)rqsort.f
-addflux2pix.o: $(UTILS)addflux2pix.f90
-	$(F90) $(FFLAGS) $(UTILS)addflux2pix.f90
-readkernels.o: $(UTILS)readkernels.f90
-	$(F90) $(FFLAGS) $(UTILS)readkernels.f90
-getfits.o: $(UTILS)getfits.f90
-	$(F90) $(FFLAGS) $(UTILS)getfits.f90
-genkernel.o: $(UTILS)genkernel.f90
-	$(F90) $(FFLAGS) $(UTILS)genkernel.f90
-spline.o: $(UTILS)spline.f
-	$(F90) $(FFLAGS) $(UTILS)spline.f
-convolve.o: $(UTILS)convolve.f90
-	$(F90) $(FFLAGS) $(UTILS)convolve.f90
-ovrwrt.o: $(UTILS)ovrwrt.f
-	$(F90) $(FFLAGS) $(UTILS)ovrwrt.f
+%_mp.o : $(UTILS)%.f90
+	$(F90) $(FFLAGS) $(LMP) -o $@ $(UTILS)$*.f90
+
+%_mp.o : $(UTILS)%.f
+	$(F77) $(FFLAGS) $(LMP) -o $@ $(UTILS)$*.f
+
+%.o : $(UTILS)%.f90
+	$(F90) $(FFLAGS) -o $@ $<
+
+%.o : $(UTILS)%.f
+	$(F77) $(FFLAGS) -o $@ $<
 
 # Removing object files
 .PHONY : clean
