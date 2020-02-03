@@ -7,10 +7,10 @@ implicit none
 integer :: funit !Unit used for FITS writing (In/Out)
 character(200), dimension(3) :: fileout
 !local vars
-integer :: j
+integer :: i,j
 integer :: status,blocksize,bitpix,naxis
-integer :: npixels,group,firstpix,nbuf
-real(double), dimension(:), allocatable :: naxes
+integer :: npixels,group,firstpix,nbuf,nbuffer
+real(double), dimension(:), allocatable :: naxes,buffer,parray
 logical :: simple,extend
 
 
@@ -39,8 +39,9 @@ endif
 simple=.true.
 bitpix=-32
 naxis=1
-allocate(naxes(1))
+allocate(naxes(1),parray(1))
 naxes(1)=1
+parray(1)=0.0d0
 extend=.true.
 
 !Write the required header keywords to the file
