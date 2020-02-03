@@ -7,7 +7,9 @@ implicit none
 integer :: funit !Unit used for FITS writing (In/Out)
 character(200), dimension(3) :: fileout
 !local vars
+integer :: j
 integer :: status,blocksize,bitpix,naxis
+integer :: npixels,group,firstpix,nbuf
 real(double), dimension(:), allocatable :: naxes
 logical :: simple,extend
 
@@ -43,6 +45,33 @@ extend=.true.
 
 !Write the required header keywords to the file
 call ftphpr(funit,simple,bitpix,naxis,naxes,0,1,extend,status)
+
+!Write the array to the FITS file.
+npixels=naxes(1)
+group=1
+firstpix=1
+nbuf=naxes(1)
+j=0
+
+allocate(buffer(nbuf))
+do while (npixels.gt.0)
+!read in 1 column at a time
+   nbuffer=min(nbuf,npixels)
+
+   j=j+1
+!find max and min values
+   do i=1,nbuffer
+      buffer(i)=parray(i,j)
+   enddo
+
+   call ftpprd(funit,group,firstpix,nbuffer,buffer,status)
+
+!update pointers and counters
+
+   npixels=npixels-nbuffer
+   firstpix=firstpix+nbuffer
+
+enddo
 
 !write(6,*) "ftprec:",status
 
