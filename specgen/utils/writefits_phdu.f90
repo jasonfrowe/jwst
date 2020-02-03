@@ -62,7 +62,7 @@ do while (npixels.gt.0)
    j=j+1
 !find max and min values
    do i=1,nbuffer
-      buffer(i)=parray(i,j)
+      buffer(i)=parray(i)
    enddo
 
    call ftpprd(funit,group,firstpix,nbuffer,buffer,status)
