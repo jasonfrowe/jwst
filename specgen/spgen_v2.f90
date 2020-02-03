@@ -12,6 +12,7 @@ character(8) :: detectorname,prodtype
 !random number vars
 integer, dimension(3) :: now
 integer :: seed
+real(double) :: ran2,dumr
 !local vars
 integer :: i,noversample,nunit,filestatus,nmodeltype,iargc
 real(double) :: xout, yout,rv,b
