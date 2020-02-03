@@ -13,6 +13,9 @@ character(8) :: detectorname,prodtype
 integer, dimension(3) :: now
 integer :: seed
 real(double) :: ran2,dumr
+!Kernel vars
+integer :: nrK,nKs
+real(double), dimension(:,:,:), allocatable :: rKernel
 !local vars
 integer :: i,noversample,nunit,filestatus,nmodeltype,iargc
 real(double) :: xout, yout,rv,b
@@ -123,7 +126,13 @@ call itime(now)
 seed=abs(now(3)+now(1)*now(2)+now(1)*now(3)+now(2)*now(3)*100)
 dumr=ran2(-seed)
 
-
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!read in Kernels
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+nrK=30 !number of Kernels to readin
+nKs=64*noversample !natural size of Kernels times oversampling
+allocate(rKernel(nrK,nKs,nKs))
+call readKernels(nrK,nKs,rKernel,noversample)
 
 
 !close the FITS file

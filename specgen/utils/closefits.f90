@@ -8,9 +8,7 @@ status=0
 
 !close fits file
 call ftclos(funit,status)
-write(0,*) funit,status
 call ftfiou(funit,status)
-write(0,*) funit,status
 
 return
 end subroutine
