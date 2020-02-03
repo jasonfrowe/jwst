@@ -2,6 +2,7 @@ program spgenV2
 !Version 2 of Spec-generator.  This version does time-series and get FITS formating correct. 
 !generates GR700-SOSS spectrum with 3-order traces + PSF + response
 use precision
+use response
 !use response
 implicit none
 integer, dimension(3) :: funit !number of FITS I/O
@@ -16,6 +17,9 @@ real(double) :: ran2,dumr
 !Kernel vars
 integer :: nrK,nKs
 real(double), dimension(:,:,:), allocatable :: rKernel
+!orders : traces and responces
+integer :: ntracemax
+real(double), allocatable, dimension(:) :: yres1,yres2,yres3
 !local vars
 integer :: i,noversample,nunit,filestatus,nmodeltype,iargc
 real(double) :: xout, yout,rv,b
@@ -133,6 +137,17 @@ nrK=30 !number of Kernels to readin
 nKs=64*noversample !natural size of Kernels times oversampling
 allocate(rKernel(nrK,nKs,nKs))
 call readKernels(nrK,nKs,rKernel,noversample)
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!read in response
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+ntracemax=3 !number of traces used
+call readresponse() !responce is returned via pointers from response.mod
+!use global variables: nres,ld,res1,res2,res3 for response function
+allocate(yres1(nres),yres2(nres),yres3(nres))
+call spline(ld,res1,nres,1.d30,1.d30,yres1) !set up cubic splines
+call spline(ld,res2,nres,1.d30,1.d30,yres2)
+call spline(ld,res3,nres,1.d30,1.d30,yres3)
 
 
 !close the FITS file
