@@ -23,13 +23,18 @@ real(double), allocatable, dimension(:) :: yres1,yres2,yres3
 !spectral model parameters
 integer :: nmodel !number of model points read in
 integer :: nmodelmax !guess for size of array (will be auto increased if too small)
+real(double) :: saturation !saturation of ADC.
 real(double), dimension(:), allocatable :: wmod,fmod,wmod2,fmod2 !contain wavelength, flux info
 real(double), dimension(:,:), allocatable :: nll,nll2 !limb-darkening co-efficients.
+character(80) :: modelfile
+!planet model parameters
+real(double), dimension(:), allocatable :: rprs
+character(80) :: pmodelfile
 !local vars
 integer :: i,j !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
 real(double) :: xout, yout,rv,b
-character(80) :: cline,modelfile
+character(80) :: cline !used to readin commandline parameters
 
 interface
 	subroutine writefitsphdu(fileout,funit)
@@ -56,6 +61,12 @@ interface
       implicit none
       integer,intent(inout) :: nrK,nK,noversample
       real(double), dimension(:,:,:), intent(inout) :: rKernel
+   end subroutine
+   subroutine readpmodel(nunit,nmodel,wmod,rprs)
+      use precision
+      implicit none
+      integer :: nunit,nmodel
+      real(double), dimension(:) :: rprs,wmod
    end subroutine
 end interface
 
@@ -118,11 +129,28 @@ endif
 xout=2048  !dimensions for output image.
 yout=256
 
+!max value for output.
+saturation=65536d0
+
 !parameters that control the simulation
 rv=0.0 !radial velocity shift (m/s)
 
 !parameter controling modeltype
 nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!file naming - for FITS file generation
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+pid = 1 !programID
+onum = 1 !observation number
+vnum = 1 !visit number
+gnum = 1 !group visit
+spseq = 1 !parallel sequence. (1=prime, 2-5=parallel)
+anumb = 1 !activity number
+enum = 1 !exposure number
+detectorname = 'NISRAPID' !convert this 
+prodtype='cal'
+call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,detectorname,prodtype,fileout)
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! Random Number Initialization
@@ -160,30 +188,6 @@ if(filestatus>0)then !trap missing file errors
    write(0,*) "Cannot open ",modelfile
    stop
 endif
-
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!file naming
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-pid = 1 !programID
-onum = 1 !observation number
-vnum = 1 !visit number
-gnum = 1 !group visit
-spseq = 1 !parallel sequence. (1=prime, 2-5=parallel)
-anumb = 1 !activity number
-enum = 1 !exposure number
-detectorname = 'NISRAPID' !convert this 
-prodtype='cal'
-call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,detectorname,prodtype,fileout)
-
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!create FITS files and insert primary HDU for each output data product. 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-! 1 - simulation with no convolution,  Native resolution
-! 2 - simulation with convolution, native resolution
-! 3 - simulation with convolution, over-sampled resolution
-call writefitsphdu(fileout(1),funit(1))
-call writefitsphdu(fileout(2),funit(2))
-call writefitsphdu(fileout(3),funit(3))
 
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -227,6 +231,42 @@ do !we do a loop.  If there are memory errors, we can get more this way
 enddo
 close(nunit) !close file.
 write(0,*) "Number of star model points: ",nmodel  !report number of data points read.
+
+fmod=fmod/maxval(fmod(1:nmodel))*saturation !scale input flux
+!write(0,*) "fbounds: ",minval(fmod(1:nmodel)),maxval(fmod(1:nmodel))
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Read in planet model
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+!Now we readin the planet model and interpolate onto the spectral model grid
+allocate(rprs(nmodel))
+
+!read in a planet model spectrum.  
+!the planet model is resampled on the stellar wavelength grid.  
+!wmod is used as input and it not changed on output. 
+call getarg(3,pmodelfile)
+nunit=11 !unit number for data spectrum
+open(unit=nunit,file=pmodelfile,iostat=filestatus,status='old')
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",modelfile
+   stop
+endif
+call readpmodel(nunit,nmodel,wmod,rprs)
+close(nunit)
+
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!create FITS files and insert primary HDU for each output data product. 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+! 1 - simulation with no convolution,  Native resolution
+! 2 - simulation with convolution, native resolution
+! 3 - simulation with convolution, over-sampled resolution
+call writefitsphdu(fileout(1),funit(1))
+call writefitsphdu(fileout(2),funit(2))
+call writefitsphdu(fileout(3),funit(3))
+
+
 
 !close the FITS file
 call closefits(funit(1))
