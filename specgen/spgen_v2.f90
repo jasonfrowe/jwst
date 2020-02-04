@@ -18,7 +18,9 @@ real(double) :: ran2,dumr
 integer :: nrK,nKs
 real(double), dimension(:,:,:), allocatable :: rKernel
 !orders : traces and responces
-integer :: ntracemax
+integer :: ntracemax,ntrace
+integer, dimension(2) :: ybounds
+real(double) :: w2p,p2w,ptrace
 real(double), allocatable, dimension(:) :: yres1,yres2,yres3
 !spectral model parameters
 integer :: nmodel !number of model points read in
@@ -34,6 +36,11 @@ character(80) :: pmodelfile
 integer :: npt
 real(double) :: dnpt
 real(double), dimension(:), allocatable :: wv, fmodbin
+!image model arrays
+integer :: xmax,ymax !size of oversampled grid
+integer :: npx,npy
+real(double) :: dxmaxp1,dymaxp1,px,py,awmod
+real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels 
 !local vars
 integer :: i,j !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
@@ -308,7 +315,65 @@ wmod=wv !copy work arrays
 fmod=fmodbin
 deallocate(wv,fmodbin) !get rid of work arrays
 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!lets fill in pixel values
+! Start by initializing arrays for pixel values
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+xmax=xout*noversample !size of over sampled detector array.
+ymax=yout*noversample
+!array to hold detector array values
+allocate(pixels(xmax,ymax),wpixels(xmax,ymax))
+pixels=0.0d0 !initialize array to zero
+dxmaxp1=dble(xmax+1) !xmax+1 converted to double
+dymaxp1=dble(ymax+1) !ymax+1 converted to double
+!allocate array for convolved image
+allocate(cpixels(xmax,ymax),wcpixels(xmax,ymax))
+cpixels=0.0d0 !initialize array to zero
 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Main loop that does drizzle and convolution for each spectral order.
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+do ntrace=1,ntracemax !loop over all traces
+   write(0,*) "Trace # ",ntrace
+   wpixels=0.0d0 !initialize array to zero
+   !trace parts of array used for spectrum (speeds up convolution later)
+   ybounds(1)=ymax !initalize to bad bounds for max/min search
+   ybounds(2)=1
+   do i=1,nmodel
+      px=w2p(wmod(i),noversample,ntrace) !get x-pixel value
+      !is the wavelength on the detector?
+      if((px.gt.1.0d0).and.(px.lt.dxmaxp1))then
+         py=ptrace(px,noversample,ntrace) !get y-pixel value
+!      write(0,*) px,py
+         if((py.gt.1.0d0).and.(py.lt.dymaxp1))then !check y-pixel value
+         	npx=int(px) !convert pixel values to integer
+            npy=int(py)
+            !find extremes of CCD use to speed up later
+            ybounds(1)=min(ybounds(1),npy)
+            ybounds(2)=max(ybounds(2),npy)
+!           wpixels(npx,npy)=wpixels(npx,npy)+fmod(i) !add flux to pixel
+!           add in response.
+
+!           wmod is in A.. convert to nm for easy comparision
+            awmod=wmod(i)/10.0d0
+
+
+
+         endif
+
+      endif
+
+
+
+
+   enddo
+
+
+
+
+
+enddo
+deallocate(wcpixels,wpixels,yres1,yres2,yres3) !work arrays no longer needed
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !create FITS files and insert primary HDU for each output data product. 
@@ -328,3 +393,112 @@ call closefits(funit(2))
 call closefits(funit(3))
 
 end program spgenV2
+
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function ptrace(px,noversample,ntrace)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+use precision
+implicit none
+integer noversample,i,ntrace
+integer, parameter :: nc=5
+real(double) :: ptrace,px,opx
+real(double), dimension(nc) :: c1,c2,c3,c
+data c1/275.685,0.0587943,-0.000109117,1.06605d-7,-3.87d-11/
+data c2/254.109,-0.00121072,-1.84106e-05,4.81603e-09,-2.14646e-11/
+data c3/203.104,-0.0483124,-4.79001e-05,0.0,0.0/
+
+select case(ntrace)
+   case(1)
+      c=c1
+   case(2)
+      c=c2
+   case(3)
+      c=c3
+end select
+
+opx=px/dble(noversample) !account for oversampling
+ptrace=c(1)
+do i=2,nc
+   !polynomial fit to trace. Good to about 1-2 pix
+   ptrace=ptrace+opx**dble(i-1)*c(i)
+enddo
+ptrace=(ptrace-80.0d0)*dble(noversample) !account for oversampling
+
+return
+end
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function p2w(p,noversample,ntrace)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!convert pixel to wavelength
+! n=1 polynomial fit
+!output is in Angstroms
+use precision
+implicit none
+integer :: i,noversample,ntrace
+integer, parameter :: nc=5
+real(double) :: pix,p,p2w
+real(double), dimension(nc) :: c1,c2,c3,c
+data c1/2.60188,-0.000984839,3.09333e-08,-4.19166e-11,1.66371e-14/
+data c2/1.30816,-0.000480837,-5.21539e-09,8.11258e-12,5.77072e-16/
+data c3/0.880545,-0.000311876,8.17443e-11,0.0,0.0/
+
+select case(ntrace)
+   case(1)
+      c=c1
+   case(2)
+      c=c2
+   case(3)
+      c=c3
+end select
+
+pix=p/dble(noversample)
+p2w=c(1)
+do i=2,nc
+   p2w=p2w+pix**dble(i-1)*c(i)
+enddo
+p2w=p2w*10000.0 !um->A
+
+!write(0,*) p2w,pix,p
+!read(5,*)
+
+return
+end
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+function w2p(w,noversample,ntrace)
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!convert wavelength to pixel
+! n=1 polynomial fit.
+! input is in angtroms
+use precision
+implicit none
+integer :: i,noversample,ntrace
+integer, parameter :: nc=5
+real(double) w2p,w,wum
+real(double), dimension(nc) :: c1,c2,c3,c
+data c1/2957.38,-1678.19,526.903,-183.545,23.4633/
+data c2/3040.35,-2891.28,682.155,-189.996,0.0/
+data c3/2825.46,-3211.14,2.69446,0.0,0.0/
+
+select case(ntrace)
+   case(1)
+      c=c1
+   case(2)
+      c=c2
+   case(3)
+      c=c3
+end select
+
+wum=w/10000.0 !A->um
+w2p=c(1)
+do i=2,nc
+   w2p=w2p+wum**dble(i-1)*c(i)  !polynomial fit to trace. Good to about 1-2 pix
+enddo
+w2p=w2p*dble(noversample) !account for oversampling
+!write(0,*) w2p,w/10000.0d0
+!read(5,*)
+
+return
+end
