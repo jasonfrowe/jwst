@@ -36,8 +36,9 @@ UTILS = utils/
 #Listing of programs to create.
 all: spgen
 
-spgenV2incl = precision.o getfilename.o writefits_phdu.o closefits.o\
-	      deletefile.o
+spgenV2incl = precision.o response.o getfilename.o writefits_phdu.o closefits.o\
+	      deletefile.o ran2.o readkernels.o getfits.o readresponse.o\
+              spline.o readheader.o readmodel.o
 spgenV2: spgen_v2.f90 $(spgenV2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ spgen_v2.f90 $(spgenV2incl) $(LIBS2) -lfftw3
 
