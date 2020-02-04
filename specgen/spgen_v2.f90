@@ -20,8 +20,14 @@ real(double), dimension(:,:,:), allocatable :: rKernel
 !orders : traces and responces
 integer :: ntracemax
 real(double), allocatable, dimension(:) :: yres1,yres2,yres3
+!spectral model parameters
+integer :: nmodel !number of model points read in
+integer :: nmodelmax !guess for size of array (will be auto increased if too small)
+real(double), dimension(:), allocatable :: wmod,fmod,wmod2,fmod2 !contain wavelength, flux info
+real(double), dimension(:,:), allocatable :: nll,nll2 !limb-darkening co-efficients.
 !local vars
-integer :: i,noversample,nunit,filestatus,nmodeltype,iargc
+integer :: i,j !counters
+integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
 real(double) :: xout, yout,rv,b
 character(80) :: cline,modelfile
 
@@ -100,30 +106,6 @@ rv=0.0 !radial velocity shift (m/s)
 nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!file naming
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-pid = 1 !programID
-onum = 1 !observation number
-vnum = 1 !visit number
-gnum = 1 !group visit
-spseq = 1 !parallel sequence. (1=prime, 2-5=parallel)
-anumb = 1 !activity number
-enum = 1 !exposure number
-detectorname = 'NISRAPID' !convert this 
-prodtype='cal'
-call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,detectorname,prodtype,fileout)
-
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!create FITS files and insert primary HDU for each output data product. 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-! 1 - simulation with no convolution,  Native resolution
-! 2 - simulation with convolution, native resolution
-! 3 - simulation with convolution, over-sampled resolution
-call writefitsphdu(fileout(1),funit(1))
-call writefitsphdu(fileout(2),funit(2))
-call writefitsphdu(fileout(3),funit(3))
-
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! Random Number Initialization
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC!Initialization of random number
 call itime(now)
@@ -149,6 +131,83 @@ call spline(ld,res1,nres,1.d30,1.d30,yres1) !set up cubic splines
 call spline(ld,res2,nres,1.d30,1.d30,yres2)
 call spline(ld,res3,nres,1.d30,1.d30,yres3)
 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!read in a model spectrum
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+call getarg(1,modelfile)
+nunit=11 !unit number for data spectrum
+open(unit=nunit,file=modelfile,iostat=filestatus,status='old')
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",modelfile
+   stop
+endif
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!file naming
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+pid = 1 !programID
+onum = 1 !observation number
+vnum = 1 !visit number
+gnum = 1 !group visit
+spseq = 1 !parallel sequence. (1=prime, 2-5=parallel)
+anumb = 1 !activity number
+enum = 1 !exposure number
+detectorname = 'NISRAPID' !convert this 
+prodtype='cal'
+call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,detectorname,prodtype,fileout)
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!create FITS files and insert primary HDU for each output data product. 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+! 1 - simulation with no convolution,  Native resolution
+! 2 - simulation with convolution, native resolution
+! 3 - simulation with convolution, over-sampled resolution
+call writefitsphdu(fileout(1),funit(1))
+call writefitsphdu(fileout(2),funit(2))
+call writefitsphdu(fileout(3),funit(3))
+
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Read in spectral model for star
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+nmodelmax=2000000 !initital guess at the number of data points
+allocate(wmod(nmodelmax),fmod(nmodelmax))
+allocate(nll(nmodelmax,4)) !limb-darkening co-efficients
+
+iflag=0 !flag traces data i/o
+nmodel=0   !initalize counter for number of data points
+do !we do a loop.  If there are memory errors, we can get more this way
+   if(nmodeltype.eq.1)then
+      call readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag) !read in spectrum
+      nll=0.0d0 !no limb-darkening
+   elseif(nmodeltype.eq.2)then
+      call readatlas(nunit,nmodelmax,nmodel,wmod,fmod,nll,iflag)
+   endif
+   if(iflag.eq.1) then !reallocate array space (we ran out of space)
+      allocate(wmod2(nmodelmax),fmod2(nmodelmax),nll2(nmodelmax,4)) !allocate temp arrays
+      wmod2=wmod   !copy over the data we read
+      fmod2=fmod
+      nll2=nll
+      deallocate(wmod,fmod,nll) !deallocate data arrays
+      nmodelmax=nmodelmax*2 !lets get more memory
+      write(0,*) "warning, increasing nmodelmax: ",nmodelmax
+      allocate(wmod(nmodelmax),fmod(nmodelmax),nll(nmodelmax,4)) !reallocate array
+      do i=1,nmodelmax/2  !copy data back into data arrays
+         wmod(i)=wmod2(i)
+         fmod(i)=fmod2(i)
+         do j=1,4
+            nll(i,j)=nll2(i,j)
+         enddo
+      enddo
+      deallocate(wmod2,fmod2,nll2) !deallocate temp arrays
+      iflag=2  !set flag that we are continuing to read in data
+      cycle !repeat data read loop
+   endif
+   exit !successively break from data read loop.
+enddo
+close(nunit) !close file.
+write(0,*) "Number of star model points: ",nmodel  !report number of data points read.
 
 !close the FITS file
 call closefits(funit(1))
