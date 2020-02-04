@@ -42,7 +42,7 @@ integer :: npx,npy
 real(double) :: dxmaxp1,dymaxp1,px,py,awmod,respond,fmodres
 real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
 !results that go into FITS files
-integer :: xout, yout, ngroup
+integer :: xout, yout, ngroup, nint
 real(double) :: dnossq
 real(double), dimension(:,:), allocatable :: opixels
 !local vars
@@ -99,6 +99,12 @@ interface
       real(double), dimension(:), intent(inout) :: wv,wmod,fmod
       real(double), dimension(:), intent(inout) :: fmodbin
    end subroutine
+   subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint)
+      use precision
+	  implicit none
+	  integer :: funit,xout,yout,ngroup,nint
+	  real(double), dimension(:,:) :: pixels
+   end subroutine writefitsdata
 end interface
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -420,7 +426,9 @@ do i=noversample,xmax,noversample
    enddo
 enddo
 
+nint=1
 !write out unconvolved file
+call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint)
 
 opixels=0.0d0 !reinitialize the array
 dnossq=noversample*noversample
@@ -434,6 +442,7 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
 enddo
 
 !write out convolved file
+call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint)
 
 !write out oversampled grid.
 
