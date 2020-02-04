@@ -39,12 +39,16 @@ real(double), dimension(:), allocatable :: wv, fmodbin
 !image model arrays
 integer :: xmax,ymax !size of oversampled grid
 integer :: npx,npy
-real(double) :: dxmaxp1,dymaxp1,px,py,awmod
-real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels 
+real(double) :: dxmaxp1,dymaxp1,px,py,awmod,respond,fmodres
+real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
+!results that go into FITS files
+integer :: xout, yout, ngroup
+real(double) :: dnossq
+real(double), dimension(:,:), allocatable :: opixels
 !local vars
 integer :: i,j !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
-real(double) :: xout, yout,rv,b
+real(double) :: rv,b
 character(80) :: cline !used to readin commandline parameters
 
 interface
@@ -165,6 +169,9 @@ rv=0.0 !radial velocity shift (m/s)
 !parameter controling modeltype
 nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
 
+!ngroup, gives the number of samples up the ramp.
+ngroup=10
+
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !file naming - for FITS file generation
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -283,6 +290,18 @@ call readpmodel(nunit,nmodel,wmod,rprs)
 close(nunit)
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!create FITS files and insert primary HDU for each output data product. 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+! 1 - simulation with no convolution,  Native resolution
+! 2 - simulation with convolution, native resolution
+! 3 - simulation with convolution, over-sampled resolution
+call writefitsphdu(fileout(1),funit(1))
+call writefitsphdu(fileout(2),funit(2))
+call writefitsphdu(fileout(3),funit(3))
+
+!!!!!! Good place to start a loop for different impact parameters
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !Set up transit model (rprs -> flux)
 ! The tmodel routine will modify fmod to include the planet transit.
 ! If there is no transit, then fmod is unmodified. 
@@ -356,35 +375,67 @@ do ntrace=1,ntracemax !loop over all traces
 
 !           wmod is in A.. convert to nm for easy comparision
             awmod=wmod(i)/10.0d0
-
-
-
+            if((awmod.lt.500.0).or.(awmod.gt.5500.0))then
+               respond=0.0d0
+            else
+            ! cubic interpolation of response along traces
+               select case(ntrace)
+                  case(1)
+                     call splint(ld,res1,yres1,nres,awmod,respond)
+                  case(2)
+                     call splint(ld,res2,yres2,nres,awmod,respond)
+                  case(3)
+                     call splint(ld,res3,yres3,nres,awmod,respond)
+               end select
+            endif
+            !the max statement makes sure we don't add negative flux.
+            fmodres=fmod(i)*max(respond,0.0d0) !flux to add to pixel
+            call addflux2pix(px,py,xmax,ymax,wpixels,fmodres)
          endif
-
       endif
-
-
-
-
    enddo
 
+   !Now we convolve the narrow spectra with the PSF kernel
+   write(0,*) minval(wpixels),maxval(wpixels)
+   wcpixels=0.0d0
+!   call convolve(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels,&
+!      ybounds,ntrace)
+   call convolveft(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels, &
+      ybounds,ntrace)
+   write(0,*) minval(wcpixels),maxval(wcpixels)
 
-
-
-
+   !copy trace to master array for output
+   pixels=pixels+wpixels !unconvolved image
+   cpixels=cpixels+wcpixels !convolved image
 enddo
 deallocate(wcpixels,wpixels,yres1,yres2,yres3) !work arrays no longer needed
 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!create FITS files and insert primary HDU for each output data product. 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-! 1 - simulation with no convolution,  Native resolution
-! 2 - simulation with convolution, native resolution
-! 3 - simulation with convolution, over-sampled resolution
-call writefitsphdu(fileout(1),funit(1))
-call writefitsphdu(fileout(2),funit(2))
-call writefitsphdu(fileout(3),funit(3))
+allocate(opixels(xout,yout)) !we resample the array for output
+opixels=0.0d0 !initalize the array
+dnossq=noversample*noversample
+do i=noversample,xmax,noversample
+   do j=noversample,ymax,noversample
+      opixels(i/noversample,j/noversample)=                             &
+         Sum(pixels(i-noversample+1:i,j-noversample+1:j))
+   enddo
+enddo
 
+!write out unconvolved file
+
+opixels=0.0d0 !reinitialize the array
+dnossq=noversample*noversample
+do i=noversample,xmax,noversample  !resample (bin) the array.
+   do j=noversample,ymax,noversample
+      opixels(i/noversample,j/noversample)=                             &
+         Sum(cpixels(i-noversample+1:i,j-noversample+1:j))
+!      opixels(i/noversample,j/noversample)=                             &
+!         opixels(i/noversample,j/noversample)/dnossq
+   enddo
+enddo
+
+!write out convolved file
+
+!write out oversampled grid.
 
 
 !close the FITS file
