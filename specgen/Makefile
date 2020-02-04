@@ -5,7 +5,7 @@ FPATH =
 F90 = $(FPATH)ifort
 F77 = $(FPATH)ifort
 #compiling object file flags
-OPT1 = -O3 -ipo
+OPT1 = -O3 
 #OPT1 = -O0 -g -CB
 #OPT1 = -O3
 OPT2 =
@@ -21,15 +21,15 @@ FITSIODIR = /usr/local/lib
 #Pgplot plot libraries
 PGPLOTDIR = /usr/local/lib
 #X11 libraries
-X11DIR = /usr/X11/lib
+X11DIR = /usr/X11R6/lib
 # libraries for linking PGPLOT
 PLPLOTDIR = -I/usr/local/Cellar/plplot/5.9.11/lib/fortran/modules/plplot -I/usr/local/Cellar/plplot/5.9.11/include/plplot -L/usr/local/Cellar/plplot/5.9.11/lib
 LIBS = $(PLPLOTDIR) -lplplotf95d -lplplotf95cd
 #LIBS = -L$(PGPLOTDIR) -L$(X11DIR) -lX11 -lpgplot -lpng
 # libraries for linking CFITSIO
-LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng
+LIBS2 = -L$(PGPLOTDIR) -L$(X11DIR) -L$(FITSIODIR) -lX11 -lpgplot -lcfitsio -lpng -lgfortran
 #Directory where executable are placed
-BIN = /Users/rowe/Documents/workspace/jwst/bin/
+BIN = /data/JWST/bin/
 #utils source directory
 UTILS = utils/
 
@@ -37,8 +37,8 @@ UTILS = utils/
 all: spgen
 
 spgenV2incl = precision.o response.o getfilename.o writefits_phdu.o closefits.o\
-	      deletefile.o ran2.o readkernels.o getfits.o readresponse.o\
-	      spline.o readheader.o readmodel.o
+              deletefile.o ran2.o readkernels.o getfits.o readresponse.o\
+              spline.o readheader.o readmodel.o
 spgenV2: spgen_v2.f90 $(spgenV2incl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ spgen_v2.f90 $(spgenV2incl) $(LIBS2) -lfftw3
 
@@ -61,7 +61,7 @@ genoskernelincl = precision.o readkernels.o getfits.o spline.o writefits.o delet
 genoskernel: genoskernel.f90 $(genoskernelincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ genoskernel.f90 $(genoskernelincl) $(LIBS2)
 
-spgenincl = precision.o response.o readmodel.o writefits.o deletefile.o binmodel.o rqsort.o addflux2pix.o readkernels.o getfits.o genkernel.o spline.o convolveft.o ovrwrt.o readresponse.o readheader.o addgnoise.o ran2.o tmodel.o mandelagol.o readpmodel.o spline.o addshotnoise.o
+spgenincl = precision.o response.o readmodel.o writefits.o deletefile.o binmodel.o rqsort.o addflux2pix.o readkernels.o getfits.o genkernel.o convolveft.o ovrwrt.o readresponse.o readheader.o addgnoise.o ran2.o tmodel.o mandelagol.o readpmodel.o spline.o addshotnoise.o
 spgen: spgen.f90 $(spgenincl)
 	$(F90) $(LFLAGS) -o $(BIN)$@ spgen.f90 $(spgenincl) $(LIBS2) -lfftw3
 
