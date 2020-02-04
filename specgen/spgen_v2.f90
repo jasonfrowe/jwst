@@ -38,6 +38,25 @@ interface
      	integer :: funit
      	character(200), dimension(3) :: fileout
 	end subroutine writefitsphdu
+	subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
+      use precision
+      implicit none
+      integer, intent(inout) :: nunit,nmodelmax,nmodel,iflag
+      real(double), dimension(:), intent(inout) :: wmod, fmod
+   end subroutine
+   subroutine readatlas(nunit,nmodelmax,nmodel,wmod,fmod,nll,iflag)
+      use precision
+      implicit none
+      integer, intent(inout) :: nunit,nmodelmax,nmodel,iflag
+      real(double), dimension(:), intent(inout) :: wmod, fmod
+      real(double), dimension(:,:), intent(inout) :: nll
+   end subroutine
+   subroutine readKernels(nrK,nK,rKernel,noversample)
+      use precision
+      implicit none
+      integer,intent(inout) :: nrK,nK,noversample
+      real(double), dimension(:,:,:), intent(inout) :: rKernel
+   end subroutine
 end interface
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
