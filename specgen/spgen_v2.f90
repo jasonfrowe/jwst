@@ -30,6 +30,10 @@ character(80) :: modelfile
 !planet model parameters
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
+!resampled spectral model
+integer :: npt
+real(double) :: dnpt
+real(double), dimension(:), allocatable :: wv, fmodbin
 !local vars
 integer :: i,j !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
@@ -67,6 +71,22 @@ interface
       implicit none
       integer :: nunit,nmodel
       real(double), dimension(:) :: rprs,wmod
+   end subroutine
+   subroutine tmodel(nmodel,fmod,rprs,nll,b)
+      use precision
+      implicit none
+      integer, intent(inout) :: nmodel
+      real(double), intent(inout) :: b
+      real(double), dimension(:), intent(inout) :: fmod,rprs
+      real(double), dimension(:,:), intent(inout) :: nll
+   end subroutine
+   subroutine binmodel(npt,wv,nmodel,wmod,fmod,fmodbin,rv)
+      use precision
+      implicit none
+      integer, intent(inout) :: npt,nmodel
+      real(double), intent(inout) :: rv
+      real(double), dimension(:), intent(inout) :: wv,wmod,fmod
+      real(double), dimension(:), intent(inout) :: fmodbin
    end subroutine
 end interface
 
@@ -254,6 +274,40 @@ if(filestatus>0)then !trap missing file errors
 endif
 call readpmodel(nunit,nmodel,wmod,rprs)
 close(nunit)
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Set up transit model (rprs -> flux)
+! The tmodel routine will modify fmod to include the planet transit.
+! If there is no transit, then fmod is unmodified. 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
+   call tmodel(nmodel,fmod,rprs,nll,b)
+endif
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Resample model onto a uniform grid
+!if full range is not covered, then model will be extrapolated. 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+npt=200000 !this sets the number of spectral points when resampled
+allocate(wv(npt),fmodbin(npt))
+!resample model spectra on a uniform grid from 1000-40000 A
+dnpt=dble(npt)
+do i=1,npt
+   wv(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
+!   write(0,*) i,wv(i)
+enddo
+!read(5,*)
+fmodbin=0.0d0 !initialize array
+!resample with equal spacing
+call binmodel(npt,wv,nmodel,wmod,fmod,fmodbin,rv)
+!write(0,*) "Done binning model"
+deallocate(wmod,fmod) !get rid of uneven sampled grid
+allocate(wmod(npt),fmod(npt)) !make new array with equal spaced grid
+nmodel=npt
+wmod=wv !copy work arrays
+fmod=fmodbin
+deallocate(wv,fmodbin) !get rid of work arrays
+
 
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
