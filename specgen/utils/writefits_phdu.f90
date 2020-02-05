@@ -80,9 +80,9 @@ enddo
 write(6,*) 'JWST cards..'
 call ftpkys(funit,'DATE-OBS','01/22/2020','/ [DD/MM/YYYY] Date of observation',status)
 call ftpkyj(funit,'NRSTSTRT',1,'/ the number of resets at the start of the exposure',status)
-call ftpkys(funit,'NRESETS',1,'/ the number of resets between integrations',status)
+call ftpkyj(funit,'NRESETS',1,'/ the number of resets between integrations',status)
 call ftpkys(funit,'DATE','2019-12-05T11:09:28.097', '/ [yyyy-mm-ddThh:mm:ss.ss] UTC date file cre',status)
-!FILENAME= 'smalloutput.fits'   / Name of the file                               
+call ftpkys(funit,'FILENAME',fileout,'/ Name of the file',status)                                  
 call ftpkys(funit,'DATAMODL','RampModel','/ Type of data model',status)                             
 call ftpkys(funit,'TELESCOP','JWST    ','/ Telescope used to acquire the data',status)
 !Observation identifiers                                            
