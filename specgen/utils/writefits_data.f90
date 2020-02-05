@@ -9,6 +9,8 @@ integer :: i,j,k,l !counters
 integer :: status,bitpix,naxis,npixels,group,firstpix,nbuf,nbuffer
 integer, dimension(:), allocatable :: naxes,buffer
 real(double) :: dngrpfac
+!pixels for writing
+real(double), dimension(:,:,:,:), allocatable :: pixelsout
 !plot arrrays
 real(double) :: bpix,tavg,sigscale
 
@@ -48,6 +50,13 @@ naxes(2) = yout
 naxes(3) = ngroup
 naxes(4) = nint
 
+
+allocate(pixelsout(xout,yout,ngroup,nint))
+do k=1,ngroup
+   dngrpfac=dble(ngroup-k+1) 
+   pixelsout(1:xout,1:yout,k,1)=pixels(1:xout,1:yout)/dngrpfac
+enddo
+
 !insert a new IMAGE extension immediately following the CHDU
 call FTIIMG(funit,bitpix,naxis,naxes,status)
 
@@ -57,7 +66,7 @@ npixels=1
 do i=1,naxis
 	npixels=npixels*naxes(i)
 enddo
-call ftpprd(funit,group,firstpix,npixels,pixels,status)
+call ftpprd(funit,group,firstpix,npixels,pixelsout,status)
 
 return
 end subroutine writefitsdata
