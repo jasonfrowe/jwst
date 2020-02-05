@@ -9,6 +9,25 @@ integer :: i,j,k,l !counters
 integer :: status,bitpix,naxis,npixels,group,firstpix,nbuf,nbuffer
 integer, dimension(:), allocatable :: naxes,buffer
 real(double) :: dngrpfac
+!plot arrrays
+real(double) :: bpix,tavg,sigscale
+
+interface
+	subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
+      use precision
+      implicit none
+      integer, intent(inout) :: nxmax,nymax
+      real(double), dimension(:,:), intent(inout) :: parray
+      real(double), intent(inout) :: bpix,tavg
+      real(double), intent(in) :: sigscale
+   end subroutine displayfits
+end interface
+bpix=1.0e30
+tavg=0.0
+sigscale=3.0
+call pgpage()
+call displayfits(xout,yout,pixels,bpix,tavg,sigscale)
+
 
 status=0 !tracks errors for FITSIO routines
 
