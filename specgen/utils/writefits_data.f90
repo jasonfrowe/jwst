@@ -51,43 +51,13 @@ naxes(4) = nint
 !insert a new IMAGE extension immediately following the CHDU
 call FTIIMG(funit,bitpix,naxis,naxes,status)
 
-!Write the array to the FITS file.
-allocate(buffer(yout))
 firstpix=1
 group=1 !this var does nothing, leave it alone
-l=1 !this controls nint (if we have multiple images or resets)
-do k=1,ngroup
-   dngrpfac=dble(ngroup-k+1) !we are implementing a strick linear ramp for this simulation
-
-   npixels=naxes(1)*naxes(2)
-
-   nbuf=yout
-
-   j=0
-
-   do while (npixels.gt.0)
-      !read in 1 column at a time
-      nbuffer=min(nbuf,npixels)
-
-      j=j+1
-      !write(0,*) j,xout,npixels
-      !find max and min values
-      do i=1,nbuffer
-         !if ((j.eq.1595).and.(i.eq.194)) then
-         !  write(0,*) j,i,k,pixels(j,i)/dngrpfac
-         !endif
-         buffer(i)=pixels(j,i)/dngrpfac !we are looping over naxis=2 to roate image.
-      enddo
-      call ftpprd(funit,group,firstpix,nbuffer,buffer,status)
-
-      !update pointers and counters
-
-      npixels=npixels-nbuffer
-      firstpix=firstpix+nbuffer
-   enddo
-
+npixels=1
+do i=1,naxis
+	npixels=npixels*naxes(i)
 enddo
-
+call ftpprd(funit,group,firstpix,npixels,pixels,status)
 
 return
 end subroutine writefitsdata
