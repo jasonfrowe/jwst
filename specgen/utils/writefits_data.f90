@@ -17,8 +17,8 @@ status=0 !tracks errors for FITSIO routines
 bitpix=-32 !using float-doubles. 
 naxis=4 !JWST obs have 4 axes
 allocate(naxes(naxis)) 
-naxes(1) = yout
-naxes(2) = xout
+naxes(1) = xout
+naxes(2) = yout
 naxes(3) = ngroup
 naxes(4) = nint
 
@@ -26,7 +26,7 @@ naxes(4) = nint
 call FTIIMG(funit,bitpix,naxis,naxes,status)
 
 !Write the array to the FITS file.
-allocate(buffer(yout))
+allocate(buffer(xout))
 firstpix=1
 group=1 !this var does nothing, leave it alone
 l=1 !this controls nint (if we have multiple images or resets)
@@ -50,7 +50,7 @@ do k=1,ngroup
          !if ((j.eq.1595).and.(i.eq.194)) then
          !  write(0,*) j,i,k,pixels(j,i)/dngrpfac
          !endif
-         buffer(i)=pixels(j,i)/dngrpfac !we are looping over naxis=2 to roate image.
+         buffer(i)=pixels(i,j)/dngrpfac !we are looping over naxis=2 to roate image.
       enddo
       call ftpprd(funit,group,firstpix,nbuffer,buffer,status)
 
