@@ -78,15 +78,15 @@ enddo
 
 !Adding required records for FITS file
 write(6,*) 'JWST cards..'
-call ftpkys(funit,'DATE-OBS','01/22/2020','/ [DD/MM/YYYY] Date of observation',status)
 call ftpkyj(funit,'NRSTSTRT',1,'/ the number of resets at the start of the exposure',status)
 call ftpkyj(funit,'NRESETS',1,'/ the number of resets between integrations',status)
 call ftpkys(funit,'DATE','2019-12-05T11:09:28.097', '/ [yyyy-mm-ddThh:mm:ss.ss] UTC date file cre',status)
 call ftpkys(funit,'FILENAME',fileout,'/ Name of the file',status)                                  
 call ftpkys(funit,'DATAMODL','RampModel','/ Type of data model',status)                             
 call ftpkys(funit,'TELESCOP','JWST    ','/ Telescope used to acquire the data',status)
-!Observation identifiers                                            
-call ftpkys(funit,'TIME-OBS','11:08:45','/ [hh:mm:ss.sss] UTC time at start of exposure',status)  
+!Observation identifiers    
+call ftpkys(funit,'DATE-OBS','2020/02/05','/ [yyyy-mm-dd] Date of observation',status)                                        
+call ftpkys(funit,'TIME-OBS','11:08:45.000','/ [hh:mm:ss.sss] UTC time at start of exposure',status)  
 !Target information                              
 call ftpkyg(funit,'TARG_RA',188.38685d0,5,'/ Target RA at mid time of exposure',status)
 call ftpkyg(funit,'TARG_DEC',-10.14617305555556d0,15,'/ Target Dec at mid time of exposure',status)  
