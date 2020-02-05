@@ -22,11 +22,18 @@ interface
       real(double), intent(in) :: sigscale
    end subroutine displayfits
 end interface
+!display fits file
+!call pgopen('?')
+call pgopen('/xserve')
+!call pgopen('trace.ps/vcps')
+call PGPAP (8.0 ,1.0) !use a square 8" across
+call pgsubp(1,4)
 bpix=1.0e30
 tavg=0.0
 sigscale=3.0
 call pgpage()
 call displayfits(xout,yout,pixels,bpix,tavg,sigscale)
+call pgclos()
 
 
 status=0 !tracks errors for FITSIO routines
