@@ -53,12 +53,14 @@ naxes(4) = nint
 
 allocate(pixelsout(xout,yout,ngroup,nint))
 do k=1,ngroup
-   dngrpfac=dble(ngroup-k+1) 
+   dngrpfac=dble(ngroup-k+1)
    pixelsout(1:xout,1:yout,k,1)=pixels(1:xout,1:yout)/dngrpfac
 enddo
 
 !insert a new IMAGE extension immediately following the CHDU
 call FTIIMG(funit,bitpix,naxis,naxes,status)
+!add EXTNAME card
+call ftpkys(funit,'EXTNAME','SCI','',status)
 
 firstpix=1
 group=1 !this var does nothing, leave it alone
