@@ -10,6 +10,8 @@ integer :: status,bitpix,naxis,npixels,group,firstpix,nbuf,nbuffer
 integer, dimension(:), allocatable :: naxes,buffer
 real(double) :: dngrpfac
 
+status=0 !tracks errors for FITSIO routines
+
 !BITPIX = 16 means that the image pixels will consist of 16-bit
 !integers.  The size of the image is given by the NAXES values.
 bitpix=-32 !using float-doubles. 
@@ -24,41 +26,39 @@ naxes(4) = nint
 call FTIIMG(funit,bitpix,naxis,naxes,status)
 
 !Write the array to the FITS file.
-npixels=naxes(1)
-do i=2,naxis
-	npixels=npixels*naxes(i)
-enddo
-
-group=1
+allocate(buffer(yout))
 firstpix=1
-nbuf=naxes(2)
-j=0
-
+group=1 !this var does nothing, leave it alone
 l=1 !this controls nint (if we have multiple images or resets)
-
-allocate(buffer(nbuf))
-
 do k=1,ngroup
+   dngrpfac=dble(ngroup-k+1) !we are implementing a strick linear ramp for this simulation
 
-	dngrpfac=dble(ngroup-k+1) !we are implementing a strick linear ramp for this simulation
-	do while (npixels.gt.0)
-	!read in 1 column at a time
-	   nbuffer=min(nbuf,npixels)
+   npixels=naxes(1)*naxes(2)
 
-	   j=j+1
-	   !find max and min values
-	   do i=1,nbuffer
-	      buffer(i)=pixels(j,i)/dngrpfac !we are looping over naxis=2 to roate image.
-	   enddo
+   nbuf=yout
 
-	   call ftpprd(funit,group,firstpix,nbuffer,buffer,status)
+   j=0
 
-	   !update pointers and counters
+   do while (npixels.gt.0)
+      !read in 1 column at a time
+      nbuffer=min(nbuf,npixels)
 
-	   npixels=npixels-nbuffer
-	   firstpix=firstpix+nbuffer
+      j=j+1
+      !write(0,*) j,xout,npixels
+      !find max and min values
+      do i=1,nbuffer
+         !if ((j.eq.1595).and.(i.eq.194)) then
+         !  write(0,*) j,i,k,pixels(j,i)/dngrpfac
+         !endif
+         buffer(i)=pixels(j,i)/dngrpfac !we are looping over naxis=2 to roate image.
+      enddo
+      call ftpprd(funit,group,firstpix,nbuffer,buffer,status)
 
-	enddo
+      !update pointers and counters
+
+      npixels=npixels-nbuffer
+      firstpix=firstpix+nbuffer
+   enddo
 
 enddo
 

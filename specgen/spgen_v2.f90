@@ -371,7 +371,7 @@ do ntrace=1,ntracemax !loop over all traces
          py=ptrace(px,noversample,ntrace) !get y-pixel value
 !      write(0,*) px,py
          if((py.gt.1.0d0).and.(py.lt.dymaxp1))then !check y-pixel value
-         	npx=int(px) !convert pixel values to integer
+            npx=int(px) !convert pixel values to integer
             npy=int(py)
             !find extremes of CCD use to speed up later
             ybounds(1)=min(ybounds(1),npy)
@@ -428,6 +428,7 @@ enddo
 
 nint=1
 !write out unconvolved file
+write(0,*) "Writing unconvolved data"
 call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint)
 
 opixels=0.0d0 !reinitialize the array
@@ -442,6 +443,7 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
 enddo
 
 !write out convolved file
+write(0,*) "Writing Convolved data"
 call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint)
 
 !write out oversampled grid.
