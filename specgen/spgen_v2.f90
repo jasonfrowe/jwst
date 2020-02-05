@@ -45,6 +45,8 @@ real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
 integer :: xout, yout, ngroup, nint
 real(double) :: dnossq
 real(double), dimension(:,:), allocatable :: opixels
+!displayfits
+real(double) :: bpix,tavg,sigscale
 !local vars
 integer :: i,j !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
@@ -105,6 +107,14 @@ interface
 	  integer :: funit,xout,yout,ngroup,nint
 	  real(double), dimension(:,:) :: pixels
    end subroutine writefitsdata
+   subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
+      use precision
+      implicit none
+      integer, intent(inout) :: nxmax,nymax
+      real(double), dimension(:,:), intent(inout) :: parray
+      real(double), intent(inout) :: bpix,tavg
+      real(double), intent(in) :: sigscale
+   end subroutine displayfits
 end interface
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -441,6 +451,19 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
 !         opixels(i/noversample,j/noversample)/dnossq
    enddo
 enddo
+
+bpix=1.0e30
+tavg=0.0
+sigscale=3.0
+!display fits file
+!call pgopen('?')
+call pgopen('/xserve')
+!call pgopen('trace.ps/vcps')
+call PGPAP (8.0 ,1.0) !use a square 8" across
+call pgsubp(1,4)
+call pgpage()
+call displayfits(xout,yout,opixels,bpix,tavg,sigscale)
+call pgclos()
 
 !write out convolved file
 write(0,*) "Writing Convolved data"
