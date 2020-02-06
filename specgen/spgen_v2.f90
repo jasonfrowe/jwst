@@ -452,22 +452,23 @@ do i=noversample,xmax,noversample  !resample (bin) the array.
    enddo
 enddo
 
-bpix=1.0e30
-tavg=0.0
-sigscale=3.0
-!display fits file
-!call pgopen('?')
-call pgopen('/xserve')
-!call pgopen('trace.ps/vcps')
-call PGPAP (8.0 ,1.0) !use a square 8" across
-call pgsubp(1,4)
-call pgpage()
-call displayfits(xout,yout,opixels,bpix,tavg,sigscale)
-call pgclos()
+!!display fits file
+!!call pgopen('?')
+!call pgopen('/xserve')
+!!call pgopen('trace.ps/vcps')
+!call PGPAP (8.0 ,1.0) !use a square 8" across
+!call pgsubp(1,4)
+!bpix=1.0e30
+!tavg=0.0
+!sigscale=3.0
+!call pgpage()
+!call displayfits(xout,yout,opixels,bpix,tavg,sigscale)
+!call pgclos()
 
 !write out convolved file
 write(0,*) "Writing Convolved data"
 call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint)
+
 
 !write out oversampled grid.
 
