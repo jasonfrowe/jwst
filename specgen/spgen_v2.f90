@@ -469,7 +469,6 @@ enddo
 write(0,*) "Writing Convolved data"
 call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint)
 
-
 !write out oversampled grid.
 
 
