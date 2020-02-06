@@ -85,7 +85,7 @@ call ftpkys(funit,'FILENAME',fileout,'/ Name of the file',status)
 call ftpkys(funit,'DATAMODL','RampModel','/ Type of data model',status)                             
 call ftpkys(funit,'TELESCOP','JWST    ','/ Telescope used to acquire the data',status)
 !Observation identifiers    
-call ftpkys(funit,'DATE-OBS','2020/02/05','/ [yyyy-mm-dd] Date of observation',status)                                        
+call ftpkys(funit,'DATE-OBS','2020-02-05','/ [yyyy-mm-dd] Date of observation',status)                                        
 call ftpkys(funit,'TIME-OBS','11:08:45.000','/ [hh:mm:ss.sss] UTC time at start of exposure',status)  
 !Target information                              
 call ftpkyg(funit,'TARG_RA',188.38685d0,5,'/ Target RA at mid time of exposure',status)
@@ -105,7 +105,7 @@ call ftpkyj(funit,'NFRAMES',1,'/ Number of frames per group',status)
 call ftpkyj(funit,'GROUPGAP',0,'/ Number of frames dropped between groups',status)
 call ftpkyg(funit,'TFRAME',5.491d0,3,'/ [s] Time between frames',status)                        
 call ftpkyg(funit,'TGROUP',5.491d0,3,'/ [s] Time between groups',status)                  
-call ftpkyg(funit,'DURATION',0.0d0,1,'/ [s] Total duration of exposure',status)                         
+call ftpkyg(funit,'DURATION',1.0d0,1,'/ [s] Total duration of exposure',status)                         
 !Subarray parameters                                                                           
 call ftpkys(funit,'SUBARRAY','SUBSTRIP256','/ Subarray used',status)                             
 call ftpkyj(funit,'SUBSTRT1',1,'/ Starting pixel in axis 1 direction',status)            
