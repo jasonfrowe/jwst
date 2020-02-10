@@ -29,8 +29,8 @@ naxes(4) = nint
 
 allocate(pixelsout(xout,yout,ngroup,nint))
 do k=1,ngroup
-   dngrpfac=dble(ngroup-k+1)
-   pixelsout(1:xout,1:yout,k,1)=pixels(1:xout,yout:1:-1)/dngrpfac
+   dngrpfac=dble(k)/dble(ngroup)
+   pixelsout(1:xout,1:yout,k,1)=pixels(1:xout,yout:1:-1)*dngrpfac
 enddo
 
 !insert a new IMAGE extension immediately following the CHDU
