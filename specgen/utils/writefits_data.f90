@@ -32,7 +32,7 @@ call FTIIMG(funit,bitpix,naxis,naxes,status)
 call ftpkys(funit,'EXTNAME','SCI','',status)
 
 !add NOVERSAMP card
-call ftpkyj(funit,'NOVERSAMP',nover,'/ Oversampling of image.  if ==1, then native resolution',status)
+call ftpkyj(funit,'NOVERSAM',nover,'/ Oversampling of image.  if ==1, then native resolution',status)
 
 firstpix=1
 group=1 !this var does nothing, leave it alone
