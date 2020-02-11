@@ -49,7 +49,7 @@ real(double), dimension(:,:), allocatable :: opixels
 real(double) :: bpix,tavg,sigscale
 !local vars
 integer :: i,j !counters
-integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag
+integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag,nover
 real(double) :: rv,b
 character(80) :: cline !used to readin commandline parameters
 
@@ -101,10 +101,10 @@ interface
       real(double), dimension(:), intent(inout) :: wv,wmod,fmod
       real(double), dimension(:), intent(inout) :: fmodbin
    end subroutine
-   subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint)
+   subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint,nover)
       use precision
 	  implicit none
-	  integer :: funit,xout,yout,ngroup,nint
+	  integer :: funit,xout,yout,ngroup,nint,nover
 	  real(double), dimension(:,:) :: pixels
    end subroutine writefitsdata
    subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
@@ -439,7 +439,8 @@ enddo
 nint=1
 !write out unconvolved file
 write(0,*) "Writing unconvolved data"
-call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint)
+nover=1
+call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint,nover)
 
 opixels=0.0d0 !reinitialize the array
 dnossq=noversample*noversample
@@ -467,11 +468,13 @@ enddo
 
 !write out convolved file
 write(0,*) "Writing Convolved data"
-call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint)
+nover=1
+call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint,nover)
 
 !write out oversampled grid.
 write(0,*) "Writing oversampled convolved data"
-call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint)
+nover=noversample
+call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover)
 
 !close the FITS file
 call closefits(funit(1))

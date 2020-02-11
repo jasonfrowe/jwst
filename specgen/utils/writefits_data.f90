@@ -1,8 +1,8 @@
-subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint)
+subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint,nover)
 use precision
 implicit none
 !import arrays
-integer :: funit,xout,yout,ngroup,nint
+integer :: funit,xout,yout,ngroup,nint,nover
 real(double), dimension(:,:) :: pixels
 !local arrays
 integer :: i,j,k,l !counters
@@ -30,6 +30,9 @@ naxes(4) = nint
 call FTIIMG(funit,bitpix,naxis,naxes,status)
 !add EXTNAME card
 call ftpkys(funit,'EXTNAME','SCI','',status)
+
+!add NOVERSAMP card
+call ftpkyj(funit,'NOVERSAMP',nover,'/ Oversampling of image.  if ==1, then native resolution',status)
 
 firstpix=1
 group=1 !this var does nothing, leave it alone
