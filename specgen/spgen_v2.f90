@@ -470,7 +470,8 @@ write(0,*) "Writing Convolved data"
 call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint)
 
 !write out oversampled grid.
-
+write(0,*) "Writing oversampled convolved data"
+call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint)
 
 !close the FITS file
 call closefits(funit(1))
