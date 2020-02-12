@@ -318,165 +318,167 @@ call writefitsphdu(fileout(2),funit(2))
 call writefitsphdu(fileout(3),funit(3))
 
 !!!!!! Good place to start a loop for different impact parameters
+nint=2
+do ii=1,nint
 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!Set up transit model (rprs -> flux)
-! The tmodel routine will modify fmod to include the planet transit.
-! If there is no transit, then fmod is unmodified. 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
-   call tmodel(nmodel,fmod,rprs,nll,b)
-endif
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   !Set up transit model (rprs -> flux)
+   ! The tmodel routine will modify fmod to include the planet transit.
+   ! If there is no transit, then fmod is unmodified. 
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
+      call tmodel(nmodel,fmod,rprs,nll,b)
+   endif
 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!Resample model onto a uniform grid
-!if full range is not covered, then model will be extrapolated. 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-npt=200000 !this sets the number of spectral points when resampled
-allocate(wv(npt),fmodbin(npt))
-!resample model spectra on a uniform grid from 1000-40000 A
-dnpt=dble(npt)
-do i=1,npt
-   wv(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
-!   write(0,*) i,wv(i)
-enddo
-!read(5,*)
-fmodbin=0.0d0 !initialize array
-!resample with equal spacing
-call binmodel(npt,wv,nmodel,wmod,fmod,fmodbin,rv)
-!write(0,*) "Done binning model"
-deallocate(wmod,fmod) !get rid of uneven sampled grid
-allocate(wmod(npt),fmod(npt)) !make new array with equal spaced grid
-nmodel=npt
-wmod=wv !copy work arrays
-fmod=fmodbin
-deallocate(wv,fmodbin) !get rid of work arrays
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   !Resample model onto a uniform grid
+   !if full range is not covered, then model will be extrapolated. 
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   npt=200000 !this sets the number of spectral points when resampled
+   allocate(wv(npt),fmodbin(npt))
+   !resample model spectra on a uniform grid from 1000-40000 A
+   dnpt=dble(npt)
+   do i=1,npt
+      wv(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
+   !   write(0,*) i,wv(i)
+   enddo
+   !read(5,*)
+   fmodbin=0.0d0 !initialize array
+   !resample with equal spacing
+   call binmodel(npt,wv,nmodel,wmod,fmod,fmodbin,rv)
+   !write(0,*) "Done binning model"
+   deallocate(wmod,fmod) !get rid of uneven sampled grid
+   allocate(wmod(npt),fmod(npt)) !make new array with equal spaced grid
+   nmodel=npt
+   wmod=wv !copy work arrays
+   fmod=fmodbin
+   deallocate(wv,fmodbin) !get rid of work arrays
 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!lets fill in pixel values
-! Start by initializing arrays for pixel values
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-xmax=xout*noversample !size of over sampled detector array.
-ymax=yout*noversample
-!array to hold detector array values
-allocate(pixels(xmax,ymax),wpixels(xmax,ymax))
-pixels=0.0d0 !initialize array to zero
-dxmaxp1=dble(xmax+1) !xmax+1 converted to double
-dymaxp1=dble(ymax+1) !ymax+1 converted to double
-!allocate array for convolved image
-allocate(cpixels(xmax,ymax),wcpixels(xmax,ymax))
-cpixels=0.0d0 !initialize array to zero
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   !lets fill in pixel values
+   ! Start by initializing arrays for pixel values
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   xmax=xout*noversample !size of over sampled detector array.
+   ymax=yout*noversample
+   !array to hold detector array values
+   allocate(pixels(xmax,ymax),wpixels(xmax,ymax))
+   pixels=0.0d0 !initialize array to zero
+   dxmaxp1=dble(xmax+1) !xmax+1 converted to double
+   dymaxp1=dble(ymax+1) !ymax+1 converted to double
+   !allocate array for convolved image
+   allocate(cpixels(xmax,ymax),wcpixels(xmax,ymax))
+   cpixels=0.0d0 !initialize array to zero
 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!Main loop that does drizzle and convolution for each spectral order.
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-do ntrace=1,ntracemax !loop over all traces
-   write(0,*) "Trace # ",ntrace
-   wpixels=0.0d0 !initialize array to zero
-   !trace parts of array used for spectrum (speeds up convolution later)
-   ybounds(1)=ymax !initalize to bad bounds for max/min search
-   ybounds(2)=1
-   do i=1,nmodel
-      px=w2p(wmod(i),noversample,ntrace) !get x-pixel value
-      !is the wavelength on the detector?
-      if((px.gt.1.0d0).and.(px.lt.dxmaxp1))then
-         py=ptrace(px,noversample,ntrace) !get y-pixel value
-!      write(0,*) px,py
-         if((py.gt.1.0d0).and.(py.lt.dymaxp1))then !check y-pixel value
-            npx=int(px) !convert pixel values to integer
-            npy=int(py)
-            !find extremes of CCD use to speed up later
-            ybounds(1)=min(ybounds(1),npy)
-            ybounds(2)=max(ybounds(2),npy)
-!           wpixels(npx,npy)=wpixels(npx,npy)+fmod(i) !add flux to pixel
-!           add in response.
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   !Main loop that does drizzle and convolution for each spectral order.
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   do ntrace=1,ntracemax !loop over all traces
+      write(0,*) "Trace # ",ntrace
+      wpixels=0.0d0 !initialize array to zero
+      !trace parts of array used for spectrum (speeds up convolution later)
+      ybounds(1)=ymax !initalize to bad bounds for max/min search
+      ybounds(2)=1
+      do i=1,nmodel
+         px=w2p(wmod(i),noversample,ntrace) !get x-pixel value
+         !is the wavelength on the detector?
+         if((px.gt.1.0d0).and.(px.lt.dxmaxp1))then
+            py=ptrace(px,noversample,ntrace) !get y-pixel value
+   !      write(0,*) px,py
+            if((py.gt.1.0d0).and.(py.lt.dymaxp1))then !check y-pixel value
+               npx=int(px) !convert pixel values to integer
+               npy=int(py)
+               !find extremes of CCD use to speed up later
+               ybounds(1)=min(ybounds(1),npy)
+               ybounds(2)=max(ybounds(2),npy)
+   !           wpixels(npx,npy)=wpixels(npx,npy)+fmod(i) !add flux to pixel
+   !           add in response.
 
-!           wmod is in A.. convert to nm for easy comparision
-            awmod=wmod(i)/10.0d0
-            if((awmod.lt.500.0).or.(awmod.gt.5500.0))then
-               respond=0.0d0
-            else
-            ! cubic interpolation of response along traces
-               select case(ntrace)
-                  case(1)
-                     call splint(ld,res1,yres1,nres,awmod,respond)
-                  case(2)
-                     call splint(ld,res2,yres2,nres,awmod,respond)
-                  case(3)
-                     call splint(ld,res3,yres3,nres,awmod,respond)
-               end select
+   !           wmod is in A.. convert to nm for easy comparision
+               awmod=wmod(i)/10.0d0
+               if((awmod.lt.500.0).or.(awmod.gt.5500.0))then
+                  respond=0.0d0
+               else
+               ! cubic interpolation of response along traces
+                  select case(ntrace)
+                     case(1)
+                        call splint(ld,res1,yres1,nres,awmod,respond)
+                     case(2)
+                        call splint(ld,res2,yres2,nres,awmod,respond)
+                     case(3)
+                        call splint(ld,res3,yres3,nres,awmod,respond)
+                  end select
+               endif
+               !the max statement makes sure we don't add negative flux.
+               fmodres=fmod(i)*max(respond,0.0d0) !flux to add to pixel
+               call addflux2pix(px,py,xmax,ymax,wpixels,fmodres)
             endif
-            !the max statement makes sure we don't add negative flux.
-            fmodres=fmod(i)*max(respond,0.0d0) !flux to add to pixel
-            call addflux2pix(px,py,xmax,ymax,wpixels,fmodres)
          endif
-      endif
+      enddo
+
+      !Now we convolve the narrow spectra with the PSF kernel
+      write(0,*) minval(wpixels),maxval(wpixels)
+      wcpixels=0.0d0
+   !   call convolve(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels,&
+   !      ybounds,ntrace)
+      call convolveft(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels, &
+         ybounds,ntrace)
+      write(0,*) minval(wcpixels),maxval(wcpixels)
+
+      !copy trace to master array for output
+      pixels=pixels+wpixels !unconvolved image
+      cpixels=cpixels+wcpixels !convolved image
+   enddo
+   deallocate(wcpixels,wpixels,yres1,yres2,yres3) !work arrays no longer needed
+
+   allocate(opixels(xout,yout)) !we resample the array for output
+   opixels=0.0d0 !initalize the array
+   dnossq=noversample*noversample
+   do i=noversample,xmax,noversample
+      do j=noversample,ymax,noversample
+         opixels(i/noversample,j/noversample)=                             &
+            Sum(pixels(i-noversample+1:i,j-noversample+1:j))
+      enddo
    enddo
 
-   !Now we convolve the narrow spectra with the PSF kernel
-   write(0,*) minval(wpixels),maxval(wpixels)
-   wcpixels=0.0d0
-!   call convolve(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels,&
-!      ybounds,ntrace)
-   call convolveft(xmax,ymax,wpixels,nrK,nKs,rKernel,noversample,wcpixels, &
-      ybounds,ntrace)
-   write(0,*) minval(wcpixels),maxval(wcpixels)
+   !write out unconvolved file
+   write(0,*) "Writing unconvolved data"
+   nover=1
+   call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint,nover,firstpix(1))
 
-   !copy trace to master array for output
-   pixels=pixels+wpixels !unconvolved image
-   cpixels=cpixels+wcpixels !convolved image
-enddo
-deallocate(wcpixels,wpixels,yres1,yres2,yres3) !work arrays no longer needed
-
-allocate(opixels(xout,yout)) !we resample the array for output
-opixels=0.0d0 !initalize the array
-dnossq=noversample*noversample
-do i=noversample,xmax,noversample
-   do j=noversample,ymax,noversample
-      opixels(i/noversample,j/noversample)=                             &
-         Sum(pixels(i-noversample+1:i,j-noversample+1:j))
+   opixels=0.0d0 !reinitialize the array
+   dnossq=noversample*noversample
+   do i=noversample,xmax,noversample  !resample (bin) the array.
+      do j=noversample,ymax,noversample
+         opixels(i/noversample,j/noversample)=                             &
+            Sum(cpixels(i-noversample+1:i,j-noversample+1:j))
+   !      opixels(i/noversample,j/noversample)=                             &
+   !         opixels(i/noversample,j/noversample)/dnossq
+      enddo
    enddo
-enddo
 
-nint=1
-!write out unconvolved file
-write(0,*) "Writing unconvolved data"
-nover=1
-call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint,nover,firstpix(1))
+   !!display fits file
+   !!call pgopen('?')
+   !call pgopen('/xserve')
+   !!call pgopen('trace.ps/vcps')
+   !call PGPAP (8.0 ,1.0) !use a square 8" across
+   !call pgsubp(1,4)
+   !bpix=1.0e30
+   !tavg=0.0
+   !sigscale=3.0
+   !call pgpage()
+   !call displayfits(xout,yout,opixels,bpix,tavg,sigscale)
+   !call pgclos()
 
-opixels=0.0d0 !reinitialize the array
-dnossq=noversample*noversample
-do i=noversample,xmax,noversample  !resample (bin) the array.
-   do j=noversample,ymax,noversample
-      opixels(i/noversample,j/noversample)=                             &
-         Sum(cpixels(i-noversample+1:i,j-noversample+1:j))
-!      opixels(i/noversample,j/noversample)=                             &
-!         opixels(i/noversample,j/noversample)/dnossq
-   enddo
-enddo
+   !write out convolved file
+   write(0,*) "Writing Convolved data"
+   nover=1
+   call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint,nover,firstpix(2))
 
-!!display fits file
-!!call pgopen('?')
-!call pgopen('/xserve')
-!!call pgopen('trace.ps/vcps')
-!call PGPAP (8.0 ,1.0) !use a square 8" across
-!call pgsubp(1,4)
-!bpix=1.0e30
-!tavg=0.0
-!sigscale=3.0
-!call pgpage()
-!call displayfits(xout,yout,opixels,bpix,tavg,sigscale)
-!call pgclos()
-
-!write out convolved file
-write(0,*) "Writing Convolved data"
-nover=1
-call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint,nover,firstpix(2))
-
-!write out oversampled grid.
-write(0,*) "Writing oversampled convolved data"
-nover=noversample
-call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
+   !write out oversampled grid.
+   write(0,*) "Writing oversampled convolved data"
+   nover=noversample
+   call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
+enddo !end main loop
 
 !close the FITS file
 call closefits(funit(1))
