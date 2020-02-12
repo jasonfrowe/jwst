@@ -428,7 +428,7 @@ do ii=1,nint
       pixels=pixels+wpixels !unconvolved image
       cpixels=cpixels+wcpixels !convolved image
    enddo
-   deallocate(wcpixels,wpixels,yres1,yres2,yres3) !work arrays no longer needed
+   deallocate(wcpixels,wpixels) !work arrays no longer needed
 
    allocate(opixels(xout,yout)) !we resample the array for output
    opixels=0.0d0 !initalize the array
@@ -478,7 +478,11 @@ do ii=1,nint
    write(0,*) "Writing oversampled convolved data"
    nover=noversample
    call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
+
+   deallocate(wmod,fmod,pixels,cpixels,opixels)
 enddo !end main loop
+
+deallocate(yres1,yres2,yres3) !free up memory space.
 
 !close the FITS file
 call closefits(funit(1))
