@@ -6,6 +6,7 @@ use response
 !use response
 implicit none
 integer, dimension(3) :: funit !number of FITS I/O
+integer, dimension(3) :: firstpix(3) !used for multiple writes to FITS
 character(200), dimension(3) :: fileout !name of FITS files
 !file name vars
 integer :: pid,onum,vnum,gnum,spseq,anumb,enum
@@ -101,10 +102,10 @@ interface
       real(double), dimension(:), intent(inout) :: wv,wmod,fmod
       real(double), dimension(:), intent(inout) :: fmodbin
    end subroutine
-   subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint,nover)
+   subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint,nover,firstpix)
       use precision
 	  implicit none
-	  integer :: funit,xout,yout,ngroup,nint,nover
+	  integer :: funit,xout,yout,ngroup,nint,nover,firstpix
 	  real(double), dimension(:,:) :: pixels
    end subroutine writefitsdata
    subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
@@ -187,6 +188,7 @@ nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
 
 !ngroup, gives the number of samples up the ramp.
 ngroup=10
+firstpix=1 !initalize firstpix to 1 for all FITS files. 
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !file naming - for FITS file generation
@@ -440,7 +442,7 @@ nint=1
 !write out unconvolved file
 write(0,*) "Writing unconvolved data"
 nover=1
-call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint,nover)
+call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint,nover,firstpix(1))
 
 opixels=0.0d0 !reinitialize the array
 dnossq=noversample*noversample
@@ -469,12 +471,12 @@ enddo
 !write out convolved file
 write(0,*) "Writing Convolved data"
 nover=1
-call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint,nover)
+call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint,nover,firstpix(2))
 
 !write out oversampled grid.
 write(0,*) "Writing oversampled convolved data"
 nover=noversample
-call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover)
+call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
 
 !close the FITS file
 call closefits(funit(1))
