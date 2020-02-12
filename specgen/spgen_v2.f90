@@ -49,7 +49,7 @@ real(double), dimension(:,:), allocatable :: opixels
 !displayfits
 real(double) :: bpix,tavg,sigscale
 !local vars
-integer :: i,j !counters
+integer :: i,j,ii !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag,nover
 real(double) :: rv,b
 character(80) :: cline !used to readin commandline parameters
