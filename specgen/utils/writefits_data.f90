@@ -16,7 +16,7 @@ real(double) :: bpix,tavg,sigscale
 
 status=0 !tracks errors for FITSIO routines
 
-if (firstpix.eq.1) them !if firstpix==1, then this is the first call. Initiate extension
+if (firstpix.eq.1) then !if firstpix==1, then this is the first call. Initiate extension
 
    !BITPIX = 16 means that the image pixels will consist of 16-bit
    !integers.  The size of the image is given by the NAXES values.
