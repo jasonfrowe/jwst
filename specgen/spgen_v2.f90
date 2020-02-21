@@ -27,16 +27,17 @@ real(double), allocatable, dimension(:) :: yres1,yres2,yres3
 integer :: nmodel !number of model points read in
 integer :: nmodelmax !guess for size of array (will be auto increased if too small)
 real(double) :: saturation !saturation of ADC.
-real(double), dimension(:), allocatable :: wmod,fmod,wmod2,fmod2 !contain wavelength, flux info
+!next line of variabiles contain wavelength, flux info
+real(double), dimension(:), allocatable :: wmod,fmod,wmod2,fmod2,fmod_not 
 real(double), dimension(:,:), allocatable :: nll,nll2 !limb-darkening co-efficients.
 character(80) :: modelfile
 !planet model parameters
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
 !resampled spectral model
-integer :: npt
+integer :: npt,nmodel_bin
 real(double) :: dnpt
-real(double), dimension(:), allocatable :: wv, fmodbin
+real(double), dimension(:), allocatable :: wmod_bin, fmod_bin
 !image model arrays
 integer :: xmax,ymax !size of oversampled grid
 integer :: npx,npy
@@ -55,13 +56,13 @@ real(double) :: rv,b
 character(80) :: cline !used to readin commandline parameters
 
 interface
-	subroutine writefitsphdu(fileout,funit)
-		use precision
+   subroutine writefitsphdu(fileout,funit)
+      use precision
      	implicit none
-     	integer :: funit
-     	character(200), dimension(3) :: fileout
+      integer :: funit
+      character(200), dimension(3) :: fileout
 	end subroutine writefitsphdu
-	subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
+   subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
       use precision
       implicit none
       integer, intent(inout) :: nunit,nmodelmax,nmodel,iflag
@@ -104,9 +105,9 @@ interface
    end subroutine
    subroutine writefitsdata(funit,xout,yout,pixels,ngroup,nint,nover,firstpix)
       use precision
-	  implicit none
-	  integer :: funit,xout,yout,ngroup,nint,nover,firstpix
-	  real(double), dimension(:,:) :: pixels
+     implicit none
+     integer :: funit,xout,yout,ngroup,nint,nover,firstpix
+     real(double), dimension(:,:) :: pixels
    end subroutine writefitsdata
    subroutine displayfits(nxmax,nymax,parray,bpix,tavg,sigscale)
       use precision
@@ -317,9 +318,30 @@ call writefitsphdu(fileout(1),funit(1))
 call writefitsphdu(fileout(2),funit(2))
 call writefitsphdu(fileout(3),funit(3))
 
+
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!initializing arrays for pixel values
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+xmax=xout*noversample !size of over sampled detector array.
+ymax=yout*noversample
+!array to hold detector array values
+allocate(pixels(xmax,ymax),wpixels(xmax,ymax))
+dxmaxp1=dble(xmax+1) !xmax+1 converted to double
+dymaxp1=dble(ymax+1) !ymax+1 converted to double
+!allocate array for convolved image
+allocate(cpixels(xmax,ymax),wcpixels(xmax,ymax))
+allocate(opixels(xout,yout)) !array for native grid output
+
+allocate(fmod_not(nmodelmax))
+fmod_not=fmod !make a copy of the star-flux input that is transit free.
+
 !!!!!! Good place to start a loop for different impact parameters
 nint=2
 do ii=1,nint
+
+   fmod=fmod_not !copy star-flux only model into fmod array.
+   pixels=0.0d0 !initialize array to zero
+   cpixels=0.0d0 !initialize array to zero
 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
    !Set up transit model (rprs -> flux)
@@ -335,39 +357,25 @@ do ii=1,nint
    !if full range is not covered, then model will be extrapolated. 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
    npt=200000 !this sets the number of spectral points when resampled
-   allocate(wv(npt),fmodbin(npt))
+   allocate(wmod_bin(npt),fmod_bin(npt))
    !resample model spectra on a uniform grid from 1000-40000 A
    dnpt=dble(npt)
    do i=1,npt
-      wv(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
+      wmod_bin(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
    !   write(0,*) i,wv(i)
    enddo
    !read(5,*)
-   fmodbin=0.0d0 !initialize array
-   !resample with equal spacing
-   call binmodel(npt,wv,nmodel,wmod,fmod,fmodbin,rv)
+   fmod_bin=0.0d0 !initialize array
+   !resample with equal spacing.  resampled model is in wmod_bin and fmod_bin
+   call binmodel(npt,wmod_bin,nmodel,wmod,fmod,fmod_bin,rv)
    !write(0,*) "Done binning model"
-   deallocate(wmod,fmod) !get rid of uneven sampled grid
-   allocate(wmod(npt),fmod(npt)) !make new array with equal spaced grid
-   nmodel=npt
-   wmod=wv !copy work arrays
-   fmod=fmodbin
-   deallocate(wv,fmodbin) !get rid of work arrays
+   !store number of binned model points in easy to read array
+   nmodel_bin=npt
+
 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
    !lets fill in pixel values
-   ! Start by initializing arrays for pixel values
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-   xmax=xout*noversample !size of over sampled detector array.
-   ymax=yout*noversample
-   !array to hold detector array values
-   allocate(pixels(xmax,ymax),wpixels(xmax,ymax))
-   pixels=0.0d0 !initialize array to zero
-   dxmaxp1=dble(xmax+1) !xmax+1 converted to double
-   dymaxp1=dble(ymax+1) !ymax+1 converted to double
-   !allocate array for convolved image
-   allocate(cpixels(xmax,ymax),wcpixels(xmax,ymax))
-   cpixels=0.0d0 !initialize array to zero
 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
    !Main loop that does drizzle and convolution for each spectral order.
@@ -378,8 +386,8 @@ do ii=1,nint
       !trace parts of array used for spectrum (speeds up convolution later)
       ybounds(1)=ymax !initalize to bad bounds for max/min search
       ybounds(2)=1
-      do i=1,nmodel
-         px=w2p(wmod(i),noversample,ntrace) !get x-pixel value
+      do i=1,nmodel_bin
+         px=w2p(wmod_bin(i),noversample,ntrace) !get x-pixel value
          !is the wavelength on the detector?
          if((px.gt.1.0d0).and.(px.lt.dxmaxp1))then
             py=ptrace(px,noversample,ntrace) !get y-pixel value
@@ -394,7 +402,7 @@ do ii=1,nint
    !           add in response.
 
    !           wmod is in A.. convert to nm for easy comparision
-               awmod=wmod(i)/10.0d0
+               awmod=wmod_bin(i)/10.0d0
                if((awmod.lt.500.0).or.(awmod.gt.5500.0))then
                   respond=0.0d0
                else
@@ -409,7 +417,7 @@ do ii=1,nint
                   end select
                endif
                !the max statement makes sure we don't add negative flux.
-               fmodres=fmod(i)*max(respond,0.0d0) !flux to add to pixel
+               fmodres=fmod_bin(i)*max(respond,0.0d0) !flux to add to pixel
                call addflux2pix(px,py,xmax,ymax,wpixels,fmodres)
             endif
          endif
@@ -428,9 +436,7 @@ do ii=1,nint
       pixels=pixels+wpixels !unconvolved image
       cpixels=cpixels+wcpixels !convolved image
    enddo
-   deallocate(wcpixels,wpixels) !work arrays no longer needed
-
-   allocate(opixels(xout,yout)) !we resample the array for output
+   
    opixels=0.0d0 !initalize the array
    dnossq=noversample*noversample
    do i=noversample,xmax,noversample
@@ -479,8 +485,10 @@ do ii=1,nint
    nover=noversample
    call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
 
-   deallocate(wmod,fmod,pixels,cpixels,opixels)
 enddo !end main loop
+
+deallocate(wcpixels,wpixels) !work arrays no longer needed
+deallocate(wmod,fmod,pixels,cpixels,opixels)
 
 deallocate(yres1,yres2,yres3) !free up memory space.
 
