@@ -332,6 +332,19 @@ dymaxp1=dble(ymax+1) !ymax+1 converted to double
 allocate(cpixels(xmax,ymax),wcpixels(xmax,ymax))
 allocate(opixels(xout,yout)) !array for native grid output
 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!Define resampled grid
+!if full range is not covered, then model will be extrapolated. 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+npt=200000 !this sets the number of spectral points when resampled
+allocate(wmod_bin(npt),fmod_bin(npt))
+!resample model spectra on a uniform grid from 1000-40000 A
+dnpt=dble(npt)
+do i=1,npt
+   wmod_bin(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
+enddo
+
+
 allocate(fmod_not(nmodelmax))
 fmod_not=fmod !make a copy of the star-flux input that is transit free.
 
@@ -356,14 +369,6 @@ do ii=1,nint
    !Resample model onto a uniform grid
    !if full range is not covered, then model will be extrapolated. 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-   npt=200000 !this sets the number of spectral points when resampled
-   allocate(wmod_bin(npt),fmod_bin(npt))
-   !resample model spectra on a uniform grid from 1000-40000 A
-   dnpt=dble(npt)
-   do i=1,npt
-      wmod_bin(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
-   !   write(0,*) i,wv(i)
-   enddo
    !read(5,*)
    fmod_bin=0.0d0 !initialize array
    !resample with equal spacing.  resampled model is in wmod_bin and fmod_bin
@@ -371,7 +376,6 @@ do ii=1,nint
    !write(0,*) "Done binning model"
    !store number of binned model points in easy to read array
    nmodel_bin=npt
-
 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
    !lets fill in pixel values
@@ -489,7 +493,7 @@ enddo !end main loop
 
 deallocate(wcpixels,wpixels) !work arrays no longer needed
 deallocate(wmod,fmod,pixels,cpixels,opixels)
-
+deallocate(wmod_bin,fmod_bin)
 deallocate(yres1,yres2,yres3) !free up memory space.
 
 !close the FITS file
