@@ -5,9 +5,10 @@ implicit none
 !import vars
 real(double) :: t,sol(6),orbmodel
 !local vars
-real(double) :: Pi,tPi,pid2
+real(double) :: Pi,tPi,pid2,G
 real(double) :: per,bs2,b,ecw,esw,eccn,w,adrs,incl,epoch,Eanom,phi0
-real(double) :: phi,Manom,kepler,Tanom,drs,x2,y2,b
+real(double) :: phi,Manom,Tanom,drs,x2,y2,b
+real(double) :: trueanomaly,distanc
 
 Pi=acos(-1.d0)!define Pi and 2*Pi
 tPi=2.0d0*Pi 
@@ -18,7 +19,7 @@ per=sol(3)        !Period (days)
 bs2=sol(4)*sol(4) !impact parameter squared
 b=sqrt(bs2)       !impact parameter
 
-ecw=sol(6)
+ecw=sol(6) 
 esw=sol(5)
 eccn=(ecw*ecw+esw*esw) !eccentricity
 
