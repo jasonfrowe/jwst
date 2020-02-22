@@ -34,6 +34,8 @@ character(80) :: modelfile
 !planet model parameters
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
+!orbital model parameters
+real(double) :: tstart,tend,itime,rhostar,T0,Per,esinw,ecosw,sol(5)
 !resampled spectral model
 integer :: npt,nmodel_bin
 real(double) :: dnpt
@@ -127,21 +129,23 @@ if(iargc().lt.3)then
    write(0,*) "   <specmodel> - Atlas-9 stellar model"
    write(0,*) " <noversample> - is new sampling for Kernel (must be > 0)"
    write(0,*) " <planetmodel> - name of planet model (A, rprs)"
-   write(0,*) "           [b] - impact parameter - optional (must be > 0)"
    stop
 endif
 
-if(iargc().ge.4)then
-   call getarg(4,cline)
-   read(cline,*) b
-   if(b.lt.0.0d0)then
-      write(0,*) "b must be positive"
-      stop
-   endif
-else
-   !default impact parameter
-   b=2.0!0.3589
-endif
+tstart=-5.0 !start time of simulation (hours)
+tend=5.0    !end time of simulation (hours)
+itime=30.0  !integration time (seconds)
+
+rhostar=1.0 !mean stellar density (cgs)
+T0=0.0      !mid-transit time (days)
+Per=3.5     !orbital period (days)
+esinw=0.0
+ecosw=0.0
+sol=(/rhostar,T0,Per,esinw,ecosw/) !array that contains model parameters
+
+!set b, until orbital model is in place.
+b=0.4
+
 
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline
