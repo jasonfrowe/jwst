@@ -8,7 +8,7 @@ real(double) :: t,sol(6),orbmodel
 real(double) :: Pi,tPi,pid2,G
 real(double) :: per,bs2,b,ecw,esw,eccn,w,adrs,incl,epoch,Eanom,phi0
 real(double) :: phi,Manom,Tanom,drs,x2,y2,b
-real(double) :: trueanomaly,distanc
+real(double) :: trueanomaly,distance
 
 Pi=acos(-1.d0)!define Pi and 2*Pi
 tPi=2.0d0*Pi 
