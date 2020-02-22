@@ -135,7 +135,7 @@ if(iargc().lt.3)then
    stop
 endif
 
-tstart=-5.0   !start time of simulation (hours)
+tstart=-2.0   !start time of simulation (hours)
 tend=5.0      !end time of simulation (hours)
 exptime=30.0  !exposure time (seconds)
 deadtime=0.0  !deadtime between exposures (seconds)
@@ -206,7 +206,7 @@ firstpix=1 !initalize firstpix to 1 for all FITS files.
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !file naming - for FITS file generation
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-pid = 1 !programID
+pid = 2 !programID
 onum = 1 !observation number
 vnum = 1 !visit number
 gnum = 1 !group visit
