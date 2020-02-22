@@ -35,7 +35,8 @@ character(80) :: modelfile
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
 !orbital model parameters
-real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,sol(6),orbmodel
+real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,sol(6),orbmodel,bt, &
+   deadtime,dt,time
 !resampled spectral model
 integer :: npt,nmodel_bin
 real(double) :: dnpt
@@ -65,7 +66,7 @@ interface
      	implicit none
       integer :: funit
       character(200), dimension(3) :: fileout
-	end subroutine writefitsphdu
+   end subroutine writefitsphdu
    subroutine readmodel(nunit,nmodelmax,nmodel,wmod,fmod,iflag)
       use precision
       implicit none
@@ -134,9 +135,10 @@ if(iargc().lt.3)then
    stop
 endif
 
-tstart=-5.0 !start time of simulation (hours)
-tend=5.0    !end time of simulation (hours)
+tstart=-5.0   !start time of simulation (hours)
+tend=5.0      !end time of simulation (hours)
 exptime=30.0  !exposure time (seconds)
+deadtime=0.0  !deadtime between exposures (seconds)
 
 rhostar=1.0 !mean stellar density (cgs)
 T0=0.0      !mid-transit time (days)
@@ -146,11 +148,11 @@ esinw=0.0
 ecosw=0.0
 sol=(/rhostar,T0,Per,b,esinw,ecosw/) !array that contains model parameters
 
-!let's test the orbital model
-write(6,*) "orbmodel test"
-b1=orbmodel(0.0,sol)
-b2=orbmodel(-0.1,sol)
-write(6,*) b1,b2
+!convert all times to days
+tstart=tstart/24.0d0 !hours -> days
+tend=tend/24.0d0     !hours -> days
+exptime=exptime/86400.0   !seconds -> days
+deadtime=deadtime/86400.0 !seconds -> days
 
 
 noversample=1 !now a commandline-parameter
@@ -358,9 +360,17 @@ enddo
 allocate(fmod_not(nmodelmax))
 fmod_not=fmod !make a copy of the star-flux input that is transit free.
 
+!estimate nint
+dt=exptime+deadtime
+nint=int((tend-tstart)/dt)+1  !expected number of integrations
+time=tstart
+
+write(0,*) "NINT to be executed: ",nint
 !!!!!! Good place to start a loop for different impact parameters
-nint=2
 do ii=1,nint
+
+   bt=orbmodel(time,sol)
+   write(0,*) "Step #: ",ii,time,bt
 
    fmod=fmod_not !copy star-flux only model into fmod array.
    pixels=0.0d0 !initialize array to zero
@@ -371,8 +381,8 @@ do ii=1,nint
    ! The tmodel routine will modify fmod to include the planet transit.
    ! If there is no transit, then fmod is unmodified. 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-   if(b.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
-      call tmodel(nmodel,fmod,rprs,nll,b)
+   if(bt.lt.maxval(rprs(1:nmodel))+1.0d0)then !do a check that we have a transit
+      call tmodel(nmodel,fmod,rprs,nll,bt)
    endif
 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -498,6 +508,9 @@ do ii=1,nint
    write(0,*) "Writing oversampled convolved data"
    nover=noversample
    call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
+
+   !update time-step
+   time=time+dt
 
 enddo !end main loop
 
