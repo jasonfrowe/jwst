@@ -35,7 +35,7 @@ character(80) :: modelfile
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
 !orbital model parameters
-real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,sol(5)
+real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,sol(6),orbmodel
 !resampled spectral model
 integer :: npt,nmodel_bin
 real(double) :: dnpt
@@ -56,6 +56,8 @@ integer :: i,j,ii !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag,nover
 real(double) :: rv,b
 character(80) :: cline !used to readin commandline parameters
+!temp vars
+real(double) :: b1,b2
 
 interface
    subroutine writefitsphdu(fileout,funit)
@@ -139,12 +141,16 @@ exptime=30.0  !exposure time (seconds)
 rhostar=1.0 !mean stellar density (cgs)
 T0=0.0      !mid-transit time (days)
 Per=3.5     !orbital period (days)
+b=0.4       !impact parameter at T0
 esinw=0.0
 ecosw=0.0
-sol=(/rhostar,T0,Per,esinw,ecosw/) !array that contains model parameters
+sol=(/rhostar,T0,Per,b,esinw,ecosw/) !array that contains model parameters
 
-!set b, until orbital model is in place.
-b=0.4
+!let's test the orbital model
+write(6,*) "orbmodel test"
+b1=orbmodel(0.0,sol)
+b2=orbmodel(-0.1,sol)
+write(6,*) b1,b2
 
 
 noversample=1 !now a commandline-parameter
