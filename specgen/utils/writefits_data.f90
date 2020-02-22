@@ -48,7 +48,7 @@ if(firstpix+npixels.le.maxpixels)then !check for potential overflows
       firstpix=firstpix+npixels
    enddo
 else
-   write(0,*) 'Error: Too many pixels to write. (firstpix+npixels>maxpixels)'
+   write(0,*) 'Error: Too many pixels to write. (firstpix+npixels>maxpixels)',firstpix,npixels,maxpixels
 endif
 
 return
