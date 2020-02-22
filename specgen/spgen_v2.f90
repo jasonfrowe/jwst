@@ -35,7 +35,7 @@ character(80) :: modelfile
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
 !orbital model parameters
-real(double) :: tstart,tend,itime,rhostar,T0,Per,esinw,ecosw,sol(5)
+real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,sol(5)
 !resampled spectral model
 integer :: npt,nmodel_bin
 real(double) :: dnpt
@@ -134,7 +134,7 @@ endif
 
 tstart=-5.0 !start time of simulation (hours)
 tend=5.0    !end time of simulation (hours)
-itime=30.0  !integration time (seconds)
+exptime=30.0  !exposure time (seconds)
 
 rhostar=1.0 !mean stellar density (cgs)
 T0=0.0      !mid-transit time (days)
