@@ -377,7 +377,7 @@ jj=1 !counts number of nint in current buffer
 jjos=1
 nint1=min(nint,maxnint)
 nint1os=min(nint,maxnintos)
-write(0,*) "NINT to be executed: ",nint
+write(0,*) "NINT to be executed: ",nint,nint1,nint1os
 !!!!!! Good place to start a loop for different impact parameters
 do ii=1,nint
 
@@ -387,6 +387,7 @@ do ii=1,nint
       call closefits(funit(1))
       call closefits(funit(2))
       enum=enum+1
+      write(0,*) "New FITS enum =", enum
    endif
 
    if(jjos.gt.maxnintos)then !need to make new FITS file for oversampled sims
@@ -394,6 +395,7 @@ do ii=1,nint
       nint1os=min(maxnintos,nint-ii+1)
       call closefits(funit(3))
       enumos=enumos+1
+      write(0,*) "New FITS enum =", enumos
    endif
 
 
