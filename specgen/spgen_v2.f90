@@ -47,7 +47,7 @@ integer :: npx,npy
 real(double) :: dxmaxp1,dymaxp1,px,py,awmod,respond,fmodres
 real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
 !results that go into FITS files
-integer :: xout, yout, ngroup, nint, maxnint
+integer :: xout, yout, ngroup, nint, maxnint,maxnintos
 real(double) :: dnossq
 real(double), dimension(:,:), allocatable :: opixels
 !displayfits
@@ -361,7 +361,18 @@ firstpix=1 !initalize firstpix to 1 for all FITS files.
 
 !determine if we need to create new 
 maxnint=int(dble(maxint)/(dble(xout)*dble(yout)*dble(ngroup)))
-write(0,*) 'maxnint: ',maxnint
+maxnintos=int(dble(maxint)/(dble(noversample*xout)*dble(noversample*yout)*dble(ngroup)))
+if (maxnint.le.0) then
+   write(0,*) "Error: Image dimensions are too large for kind=4 arrays"
+   stop
+endif
+if (maxnint.le.0) then
+   write(0,*) "Error: Image dimensions are too large for kind=4 arrays"
+   write(0,*) "Oversampling must be less than: ",int(sqrt(dble(maxint)/(dble(xout)*dble(yout)*dble(ngroup))))
+   stop
+endif
+
+write(0,*) 'maxnint: ',maxnint,maxnintos
 
 write(0,*) "NINT to be executed: ",nint
 !!!!!! Good place to start a loop for different impact parameters
