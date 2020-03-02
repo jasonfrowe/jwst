@@ -47,7 +47,7 @@ integer :: npx,npy
 real(double) :: dxmaxp1,dymaxp1,px,py,awmod,respond,fmodres
 real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
 !results that go into FITS files
-integer :: xout, yout, ngroup, nint
+integer :: xout, yout, ngroup, nint, maxnint
 real(double) :: dnossq
 real(double), dimension(:,:), allocatable :: opixels
 !displayfits
@@ -156,7 +156,7 @@ deadtime=deadtime/86400.0 !seconds -> days
 
 !dealing with limits on FITSIO for buffered output with kind=4 integers
 maxint=huge(firstpix(1))
-write(0,*) "Largest Integer ",maxint
+!write(0,*) "Largest Integer ",maxint
 
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline
@@ -204,7 +204,6 @@ nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
 
 !ngroup, gives the number of samples up the ramp.
 ngroup=10
-firstpix=1 !initalize firstpix to 1 for all FITS files. 
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !file naming - for FITS file generation
@@ -324,17 +323,6 @@ call readpmodel(nunit,nmodel,wmod,rprs)
 close(nunit)
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!create FITS files and insert primary HDU for each output data product. 
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-! 1 - simulation with no convolution,  Native resolution
-! 2 - simulation with convolution, native resolution
-! 3 - simulation with convolution, over-sampled resolution
-call writefitsphdu(fileout(1),funit(1))
-call writefitsphdu(fileout(2),funit(2))
-call writefitsphdu(fileout(3),funit(3))
-
-
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !initializing arrays for pixel values
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 xmax=xout*noversample !size of over sampled detector array.
@@ -368,9 +356,28 @@ dt=exptime+deadtime
 nint=int((tend-tstart)/dt)+1  !expected number of integrations
 time=tstart
 
+!initialize firstpix to 1.
+firstpix=1 !initalize firstpix to 1 for all FITS files. 
+
+!determine if we need to create new 
+maxnint=int(dble(maxint)/(dble(xout)*dble(yout)*dble(ngroup)))
+write(0,*) 'maxnint: ',maxnint
+
 write(0,*) "NINT to be executed: ",nint
 !!!!!! Good place to start a loop for different impact parameters
 do ii=1,nint
+
+
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   !create FITS files and insert primary HDU for each output data product. 
+   !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+   ! 1 - simulation with no convolution,  Native resolution
+   ! 2 - simulation with convolution, native resolution
+   ! 3 - simulation with convolution, over-sampled resolution
+   if (firstpix(1).eq.1) call writefitsphdu(fileout(1),funit(1))
+   if (firstpix(2).eq.1) call writefitsphdu(fileout(2),funit(2))
+   if (firstpix(3).eq.1) call writefitsphdu(fileout(3),funit(3))
+
 
    bt=orbmodel(time,sol)
    write(0,*) "Step #: ",ii,time,bt
