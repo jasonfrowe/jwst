@@ -9,7 +9,7 @@ integer, dimension(3) :: funit !number of FITS I/O
 integer, dimension(3) :: firstpix(3) !used for multiple writes to FITS
 character(200), dimension(3) :: fileout !name of FITS files
 !file name vars
-integer :: pid,onum,vnum,gnum,spseq,anumb,enum,maxint
+integer :: pid,onum,vnum,gnum,spseq,anumb,enum,enumos,maxint
 character(8) :: detectorname,prodtype
 !random number vars
 integer, dimension(3) :: now
@@ -47,13 +47,13 @@ integer :: npx,npy
 real(double) :: dxmaxp1,dymaxp1,px,py,awmod,respond,fmodres
 real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
 !results that go into FITS files
-integer :: xout, yout, ngroup, nint, maxnint,maxnintos
+integer :: xout, yout, ngroup, nint, maxnint,maxnintos,nint1,nint1os
 real(double) :: dnossq
 real(double), dimension(:,:), allocatable :: opixels
 !displayfits
 real(double) :: bpix,tavg,sigscale
 !local vars
-integer :: i,j,ii !counters
+integer :: i,j,ii,jj,jjos !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag,nover
 real(double) :: rv,b
 character(80) :: cline !used to readin commandline parameters
@@ -215,9 +215,9 @@ gnum = 1 !group visit
 spseq = 1 !parallel sequence. (1=prime, 2-5=parallel)
 anumb = 1 !activity number
 enum = 1 !exposure number
+enumos = 1 !exposure number for oversampling
 detectorname = 'NISRAPID' !convert this 
 prodtype='cal'
-call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,detectorname,prodtype,fileout)
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! Random Number Initialization
@@ -371,12 +371,30 @@ if (maxnint.le.0) then
    write(0,*) "Oversampling must be less than: ",int(sqrt(dble(maxint)/(dble(xout)*dble(yout)*dble(ngroup))))
    stop
 endif
+!write(0,*) 'maxnint: ',maxnint,maxnintos
 
-write(0,*) 'maxnint: ',maxnint,maxnintos
-
+jj=1 !counts number of nint in current buffer
+jjos=1
+nint1=min(nint,maxnint)
+nint1os=min(nint,maxnintos)
 write(0,*) "NINT to be executed: ",nint
 !!!!!! Good place to start a loop for different impact parameters
 do ii=1,nint
+
+   if(jj.gt.maxnint)then !need to make new FITS file
+      jj=1
+      nint1=min(maxnint,nint-ii+1)
+      call closefits(funit(1))
+      call closefits(funit(2))
+      enum=enum+1
+   endif
+
+   if(jjos.gt.maxnintos)then !need to make new FITS file for oversampled sims
+      jjos=1
+      nint1os=min(maxnintos,nint-ii+1)
+      call closefits(funit(3))
+      enumos=enumos+1
+   endif
 
 
    !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -385,9 +403,17 @@ do ii=1,nint
    ! 1 - simulation with no convolution,  Native resolution
    ! 2 - simulation with convolution, native resolution
    ! 3 - simulation with convolution, over-sampled resolution
-   if (firstpix(1).eq.1) call writefitsphdu(fileout(1),funit(1))
-   if (firstpix(2).eq.1) call writefitsphdu(fileout(2),funit(2))
-   if (firstpix(3).eq.1) call writefitsphdu(fileout(3),funit(3))
+   if(jj.eq.1)then
+      firstpix(1)=1
+      firstpix(2)=1
+      call getfilename(pid,onum,vnum,gnum,spseq,anumb,enum,enumos,detectorname,prodtype,fileout)
+      call writefitsphdu(fileout(1),funit(1))
+      call writefitsphdu(fileout(2),funit(2))
+   endif
+   if(jjos.eq.1)then
+      firstpix(3)=1
+      call writefitsphdu(fileout(3),funit(3))
+   endif
 
 
    bt=orbmodel(time,sol)
@@ -494,7 +520,7 @@ do ii=1,nint
    !write out unconvolved file
    write(0,*) "Writing unconvolved data"
    nover=1
-   call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint,nover,firstpix(1))
+   call writefitsdata(funit(1),xout,yout,opixels,ngroup,nint1,nover,firstpix(1))
 
    opixels=0.0d0 !reinitialize the array
    dnossq=noversample*noversample
@@ -523,15 +549,18 @@ do ii=1,nint
    !write out convolved file
    write(0,*) "Writing Convolved data"
    nover=1
-   call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint,nover,firstpix(2))
+   call writefitsdata(funit(2),xout,yout,opixels,ngroup,nint1,nover,firstpix(2))
 
    !write out oversampled grid.
    write(0,*) "Writing oversampled convolved data"
    nover=noversample
-   call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint,nover,firstpix(3))
+   call writefitsdata(funit(3),xmax,ymax,cpixels,ngroup,nint1os,nover,firstpix(3))
 
    !update time-step
    time=time+dt
+
+   jj=jj+1 !increase counter for number of nint writen for current FITS file
+   jjos=jjos+1 !increase counter for number of nint written for current FITS_os file
 
 enddo !end main loop
 
