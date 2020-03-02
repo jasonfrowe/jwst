@@ -9,7 +9,7 @@ integer, dimension(3) :: funit !number of FITS I/O
 integer, dimension(3) :: firstpix(3) !used for multiple writes to FITS
 character(200), dimension(3) :: fileout !name of FITS files
 !file name vars
-integer :: pid,onum,vnum,gnum,spseq,anumb,enum
+integer :: pid,onum,vnum,gnum,spseq,anumb,enum,maxint
 character(8) :: detectorname,prodtype
 !random number vars
 integer, dimension(3) :: now
@@ -154,6 +154,9 @@ tend=tend/24.0d0     !hours -> days
 exptime=exptime/86400.0   !seconds -> days
 deadtime=deadtime/86400.0 !seconds -> days
 
+!dealing with limits on FITSIO for buffered output with kind=4 integers
+maxint=huge(firstpix(1))
+write(0,*) "Largest Integer ",maxint
 
 noversample=1 !now a commandline-parameter
 !get oversampling from commandline
