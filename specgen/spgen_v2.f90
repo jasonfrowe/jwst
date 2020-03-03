@@ -27,16 +27,20 @@ real(double), allocatable, dimension(:) :: yres1,yres2,yres3
 integer :: nmodel !number of model points read in
 integer :: nmodelmax !guess for size of array (will be auto increased if too small)
 real(double) :: saturation !saturation of ADC.
+real(double) :: vsini !rotational broadening of spectrum
 !next line of variabiles contain wavelength, flux info
 real(double), dimension(:), allocatable :: wmod,fmod,wmod2,fmod2,fmod_not 
 real(double), dimension(:,:), allocatable :: nll,nll2 !limb-darkening co-efficients.
 character(80) :: modelfile
 !planet model parameters
+integer,parameter :: nplanetmax=9
+integer :: nplanet
 real(double), dimension(:), allocatable :: rprs
 character(80) :: pmodelfile
 !orbital model parameters
-real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,sol(6),orbmodel,bt, &
+real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,orbmodel,bt, &
    deadtime,dt,time
+real(double) :: sol(nplanetmax*8+1)
 !resampled spectral model
 integer :: npt,nmodel_bin
 real(double) :: dnpt
@@ -55,8 +59,8 @@ real(double) :: bpix,tavg,sigscale
 !local vars
 integer :: i,j,ii,jj,jjos !counters
 integer :: noversample,nunit,filestatus,nmodeltype,iargc,iflag,nover
-real(double) :: rv,b
-character(80) :: cline !used to readin commandline parameters
+real(double) :: rvstar,b
+character(80) :: cline,paramfile !used to readin commandline parameters
 !temp vars
 real(double) :: b1,b2
 
@@ -127,97 +131,34 @@ end interface
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !Command line arguments
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-if(iargc().lt.3)then
-   write(0,*) "Usage: spgen <specmodel> <noversample> <planetmodel>"
-   write(0,*) "   <specmodel> - Atlas-9 stellar model"
-   write(0,*) " <noversample> - is new sampling for Kernel (must be > 0)"
-   write(0,*) " <planetmodel> - name of planet model (A, rprs)"
+if(iargc().lt.1)then
+   write(0,*) "Usage: spgen <configfile>"
+   write(0,*) "   <configfile> - Configuration file."
    stop
 endif
 
-tstart=-2.0   !start time of simulation (hours)
-tend=2.0      !end time of simulation (hours)
-exptime=30.0  !exposure time (seconds)
-deadtime=0.0  !deadtime between exposures (seconds)
-
-rhostar=1.0 !mean stellar density (cgs)
-T0=0.0      !mid-transit time (days)
-Per=3.5     !orbital period (days)
-b=0.4       !impact parameter at T0
-esinw=0.0
-ecosw=0.0
-sol=(/rhostar,T0,Per,b,esinw,ecosw/) !array that contains model parameters
-
-!convert all times to days
-tstart=tstart/24.0d0 !hours -> days
-tend=tend/24.0d0     !hours -> days
-exptime=exptime/86400.0   !seconds -> days
-deadtime=deadtime/86400.0 !seconds -> days
-
-!dealing with limits on FITSIO for buffered output with kind=4 integers
-maxint=huge(firstpix(1))
-!write(0,*) "Largest Integer ",maxint
-
-noversample=1 !now a commandline-parameter
-!get oversampling from commandline
-call getarg(2,cline)
-read(cline,*) noversample !read in noversample
-if(noversample.le.0)then
-   write(0,*) "noversample must be greater than zero"
-   stop
-endif
-
-!read in a model spectrum
-call getarg(1,modelfile)
-nunit=11 !unit number for data spectrum
-open(unit=nunit,file=modelfile,iostat=filestatus,status='old')
-if(filestatus>0)then !trap missing file errors
-   write(0,*) "Cannot open ",modelfile
-   stop
-endif
-
-!read in a model spectrum
-call getarg(1,modelfile)
-nunit=11 !unit number for data spectrum
-open(unit=nunit,file=modelfile,iostat=filestatus,status='old')
-if(filestatus>0)then !trap missing file errors
-   write(0,*) "Cannot open ",modelfile
-   stop
-endif
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !  Model Parameters 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-!image dimensions
-xout=2048  !dimensions for output image.
-yout=256
+!open file
+call getarg(1,paramfile)
+nunit=10 !unit number for data spectrum
+open(unit=nunit,file=paramfile,iostat=filestatus,status='old')
+if(filestatus>0)then !trap missing file errors
+   write(0,*) "Cannot open ",paramfile
+   stop
+endif
+call readparameters(nunit,tstart,tend,exptime,deadtime,modelfile,nmodeltype,rvstar,vsini, &
+   pmodelfile,nplanet,nplanetmax,sol,xout,yout,noversample,saturation,ngroup, &
+   pid,onum,vnum,gnum,spseq,anumb,enum,enumos,detectorname,prodtype)
+close(nunit)
+!close file
 
-!max value for output.
-saturation=65536d0
-
-!parameters that control the simulation
-rv=0.0 !radial velocity shift (m/s)
-
-!parameter controling modeltype
-nmodeltype=2 !1=BT-Settl, 2=Atlas-9+NL limbdarkening
-
-!ngroup, gives the number of samples up the ramp.
-ngroup=10
-
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!file naming - for FITS file generation
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-pid = 2 !programID
-onum = 1 !observation number
-vnum = 1 !visit number
-gnum = 1 !group visit
-spseq = 1 !parallel sequence. (1=prime, 2-5=parallel)
-anumb = 1 !activity number
-enum = 1 !exposure number
-enumos = 1 !exposure number for oversampling
-detectorname = 'NISRAPID' !convert this 
-prodtype='cal'
+!dealing with limits on FITSIO for buffered output with kind=4 integers
+maxint=huge(firstpix(1))
+!write(0,*) "Largest Integer ",maxint
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 ! Random Number Initialization
@@ -248,14 +189,12 @@ call spline(ld,res3,nres,1.d30,1.d30,yres3)
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !read in a model spectrum
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-call getarg(1,modelfile)
 nunit=11 !unit number for data spectrum
 open(unit=nunit,file=modelfile,iostat=filestatus,status='old')
 if(filestatus>0)then !trap missing file errors
    write(0,*) "Cannot open ",modelfile
    stop
 endif
-
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !Read in spectral model for star
@@ -312,7 +251,6 @@ allocate(rprs(nmodel))
 !read in a planet model spectrum.  
 !the planet model is resampled on the stellar wavelength grid.  
 !wmod is used as input and it not changed on output. 
-call getarg(3,pmodelfile)
 nunit=11 !unit number for data spectrum
 open(unit=nunit,file=pmodelfile,iostat=filestatus,status='old')
 if(filestatus>0)then !trap missing file errors
@@ -441,7 +379,7 @@ do ii=1,nint
    !read(5,*)
    fmod_bin=0.0d0 !initialize array
    !resample with equal spacing.  resampled model is in wmod_bin and fmod_bin
-   call binmodel(npt,wmod_bin,nmodel,wmod,fmod,fmod_bin,rv)
+   call binmodel(npt,wmod_bin,nmodel,wmod,fmod,fmod_bin,rvstar)
    !write(0,*) "Done binning model"
    !store number of binned model points in easy to read array
    nmodel_bin=npt
