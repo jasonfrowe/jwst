@@ -36,7 +36,7 @@ character(80) :: modelfile
 integer,parameter :: nplanetmax=9
 integer :: nplanet
 real(double), dimension(:), allocatable :: rprs
-character(80) :: pmodelfile
+character(80) :: pmodelfile(nplanetmax)
 !orbital model parameters
 real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,orbmodel,bt, &
    deadtime,dt,time
@@ -252,7 +252,7 @@ allocate(rprs(nmodel))
 !the planet model is resampled on the stellar wavelength grid.  
 !wmod is used as input and it not changed on output. 
 nunit=11 !unit number for data spectrum
-open(unit=nunit,file=pmodelfile,iostat=filestatus,status='old')
+open(unit=nunit,file=pmodelfile(1),iostat=filestatus,status='old')
 if(filestatus>0)then !trap missing file errors
    write(0,*) "Cannot open ",modelfile
    stop

@@ -9,9 +9,9 @@ integer :: nmodeltype,nplanet,nplanetmax,xout,yout,noversample,ngroup,pid,onum, 
 real(double) :: tstart,tend,exptime,deadtime,rvstar,vsini,saturation
 real(double) :: sol(nplanetmax*8+1)
 character(8) :: detectorname,prodtype
-character(80) :: modelfile,pmodelfile
+character(80) :: modelfile,pmodelfile(nplanetmax)
 !local parameters
-integer :: i,ic,filestatus
+integer :: i,ic,filestatus,np
 real(double) :: dvalue
 character(200) :: command,keyword
 
@@ -26,7 +26,7 @@ nmodeltype=2 !stellar spectrum type. 1=BT-Settl, 2=Atlas-9+NL limbdarkening
 rvstar=0.0d0 !radial velocity of star (km/s)
 vsini=0.0d0 !projected rotation of star (km/s)
 pmodelfile='null' !file with Rp/Rs values 
-nplanet=1 !number of planets
+nplanet=0 !number of planets -- default is no planets - you will get staronly sim.
 sol(2)=0.0 !T0 (days)
 sol(3)=1.0 !period (days)
 sol(4)=0.0 !impact parameter 
@@ -50,6 +50,12 @@ enum = 1 !exposure number
 enumos = 1 !exposure number for oversampling
 detectorname = 'NISRAPID' !convert this 
 prodtype='cal'
+
+!Default is having no transiting planets.
+do i=1,nplanetmax
+   pmodelfile(i)='null'
+enddo
+nplanet=0 !count number of planets.
 
 i=1 !count line number
 !Read in parameters..
@@ -90,12 +96,19 @@ do
          read(command(ic+1:),*) dvalue
          vsini=dvalue
       case default
+         !right now, this will pick up planet parameters
          write(0,*) 'Warning: Invalid KEYWORD: ', keyword(1:ic)
       end select
 
       !handle multiplanet systems.
       if(keyword(1:ic-1).eq.'RPRSFILE')then
-
+         read(keyword(ic:ic),*) np !get planet number
+         if((np.le.9).and.(np.gt.0))then
+            nplanet=max(nplanet,np) !keep track of how many planets we have.
+            read(keyword(1:ic-1),*) pmodelfile(np)
+         else
+            write(0,*) 'Error: Planet number is Invalid ',np 
+         endif
       endif
 
    endif
@@ -118,6 +131,8 @@ tstart=tstart/24.0d0 !hours -> days
 tend=tend/24.0d0     !hours -> days
 exptime=exptime/86400.0   !seconds -> days
 deadtime=deadtime/86400.0 !seconds -> days
+
+!check if modelfile is null.  If so, exit, because there is nothing to do.
 
 return
 end

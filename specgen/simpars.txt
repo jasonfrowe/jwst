@@ -14,6 +14,8 @@
 #
 # VALUEs of STARMODEL and RPRSFILE are limited to 80 characters
 # VALUEs of DETECTOR and PRODTYPE are limited to 8 characters
+#
+# At minimum STARMODEL must be provided. Other parameters are optional.
 
 ##########################
 # Integration Parameters #
