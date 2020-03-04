@@ -89,27 +89,139 @@ do
          read(command(ic+1:),*) dvalue
          nmodeltype=int(dvalue)
          if(nmodeltype.ne.2)then
-            write(0,*) "Error: Only ATLAS-9 models are current support (STARTYPE=2)"
+            write(0,*) "Error: Only ATLAS-9 models are currently support (STARTYPE=2)"
             stop
          endif
       case('VSINI')
          read(command(ic+1:),*) dvalue
          vsini=dvalue
+      case('XOUT')
+         read(command(ic+1:),*) dvalue
+         xout=int(dvalue)
+      case('YOUT')
+         read(command(ic+1:),*) dvalue
+         yout=int(dvalue)
+      case('OVERSAMPLE')
+         read(command(ic+1:),*) dvalue
+         noversample=int(dvalue)
+      case('SATURATION')
+         read(command(ic+1:),*) dvalue
+         saturation=dvalue
+      case('NGROUP')
+         read(command(ic+1:),*) dvalue
+         ngroup=int(dvalue)
+      case('PID')
+         read(command(ic+1:),*) dvalue
+         pid=int(dvalue)
+      case('ONUM')
+         read(command(ic+1:),*) dvalue
+         onum=int(dvalue)
+      case('VNUM')
+         read(command(ic+1:),*) dvalue
+         vnum=int(dvalue)
+      case('SPSEQ')
+         read(command(ic+1:),*) dvalue
+         spseq=int(dvalue)
+      case('ANUMB')
+         read(command(ic+1:),*) dvalue
+         anumb=int(dvalue)
+      case('ENUM')
+         read(command(ic+1:),*) dvalue
+         enum=int(dvalue)
+      case('ENUMOS')
+         read(command(ic+1:),*) dvalue
+         enumos=int(dvalue)
+      case('DETECTOR')
+         read(command(ic+1:),*) detectorname
+      case('PRODTYPE')
+         read(command(ic+1:),*) prodtype
       case default
-         !right now, this will pick up planet parameters
-         write(0,*) 'Warning: Invalid KEYWORD: ', keyword(1:ic)
-      end select
-
-      !handle multiplanet systems.
-      if(keyword(1:ic-1).eq.'RPRSFILE')then
-         read(keyword(ic:ic),*) np !get planet number
-         if((np.le.9).and.(np.gt.0))then
-            nplanet=max(nplanet,np) !keep track of how many planets we have.
-            read(keyword(1:ic-1),*) pmodelfile(np)
+         !handle multiplanet systems.
+         if(keyword(1:ic-1).eq.'RPRSFILE')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               nplanet=max(nplanet,np) !keep track of how many planets we have.
+               read(keyword(1:ic-1),*) pmodelfile(np)
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'EP')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+2)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'PE')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+3)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'BB')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+4)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'ES')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+5)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'EC')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+6)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'RV')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+7)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'AL')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+8)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif (keyword(1:ic-1).eq.'EL')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               read(keyword(1:ic-1),*) dvalue
+               sol(8*(np-1)+9)=dvalue
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
          else
-            write(0,*) 'Error: Planet number is Invalid ',np 
+            write(0,*) 'Warning: Invalid KEYWORD: ', keyword(1:ic)
          endif
-      endif
+      end select
 
    endif
 
