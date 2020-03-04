@@ -36,7 +36,7 @@ character(80) :: modelfile
 integer,parameter :: nplanetmax=9
 integer :: nplanet
 real(double), dimension(:), allocatable :: rprs
-character(80) :: pmodelfile(nplanetmax)
+character(80) :: pmodelfile(nplanetmax),emisfile(nplanetmax),ttvfile(nplanetmax)
 !orbital model parameters
 real(double) :: tstart,tend,exptime,rhostar,T0,Per,esinw,ecosw,orbmodel,bt, &
    deadtime,dt,time
@@ -50,6 +50,8 @@ integer :: xmax,ymax !size of oversampled grid
 integer :: npx,npy
 real(double) :: dxmaxp1,dymaxp1,px,py,awmod,respond,fmodres
 real(double), dimension(:,:), allocatable :: pixels,wpixels,cpixels,wcpixels
+!jitter model variables
+real(double) :: xcoo,ycoo,roll,xcen,ycen,xjit,yjit,rolljit
 !results that go into FITS files
 integer :: xout, yout, ngroup, nint, maxnint,maxnintos,nint1,nint1os
 real(double) :: dnossq
@@ -150,9 +152,10 @@ if(filestatus>0)then !trap missing file errors
    write(0,*) "Cannot open ",paramfile
    stop
 endif
-call readparameters(nunit,tstart,tend,exptime,deadtime,modelfile,nmodeltype,rvstar,vsini, &
-   pmodelfile,nplanet,nplanetmax,sol,xout,yout,noversample,saturation,ngroup, &
-   pid,onum,vnum,gnum,spseq,anumb,enum,enumos,detectorname,prodtype)
+call readparameters(nunit,tstart,tend,exptime,deadtime,modelfile, &
+   nmodeltype,rvstar,vsini,pmodelfile,emisfile,ttvfile,nplanet,nplanetmax,sol,&
+   xout,yout,xcoo,ycoo,roll,xcen,ycen,xjit,yjit,rolljit,noversample,saturation,&
+   ngroup, pid,onum,vnum,gnum,spseq,anumb,enum,enumos,detectorname,prodtype)
 close(nunit)
 !close file
 

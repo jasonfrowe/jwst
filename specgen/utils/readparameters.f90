@@ -1,17 +1,18 @@
-subroutine readparameters(nunit,tstart,tend,exptime,deadtime,modelfile,nmodeltype,rvstar,vsini, &
-   pmodelfile,nplanet,nplanetmax,sol,xout,yout,noversample,saturation,ngroup, &
-   pid,onum,vnum,gnum,spseq,anumb,enum,enumos,detectorname,prodtype)
+subroutine readparameters(nunit,tstart,tend,exptime,deadtime,modelfile, &
+   nmodeltype,rvstar,vsini,pmodelfile,emisfile,ttvfile,nplanet,nplanetmax,sol,&
+   xout,yout,xcoo,ycoo,roll,xcen,ycen,xjit,yjit,rolljit,noversample,saturation,&
+   ngroup, pid,onum,vnum,gnum,spseq,anumb,enum,enumos,detectorname,prodtype)
 use precision
 implicit none
 !import vars
 integer :: nmodeltype,nplanet,nplanetmax,xout,yout,noversample,ngroup,pid,onum, &
-   vnum,gnum,spseq,anumb,enum,enumos,nunit
+   vnum,gnum,spseq,anumb,enum,enumos,nunit,xcoo,ycoo,roll,xcen,ycen,xjit,yjit,rolljit
 real(double) :: tstart,tend,exptime,deadtime,rvstar,vsini,saturation
 real(double) :: sol(nplanetmax*8+1)
 character(8) :: detectorname,prodtype
-character(80) :: modelfile,pmodelfile(nplanetmax)
+character(80) :: modelfile,pmodelfile(nplanetmax),emisfile(nplanetmax),ttvfile(nplanetmax)
 !local parameters
-integer :: i,ic,filestatus,np
+integer :: i,ic,filestatus,np,icp2,ic2
 real(double) :: dvalue
 character(200) :: command,keyword
 
@@ -64,84 +65,136 @@ do
    500 format(A200) !command much be contained within first 80 characters
    
    if((command(1:1).ne.'#').and.(command(1:1).ne.' '))then !ignore comment and blank lines
-      ic=scan(command,' ')
+      ic=scan(command,' ')-1
+      icp2=ic+2
       read(command(1:ic),*) keyword 
-      write(0,*) 'Keyword: ',keyword(1:ic)
+      !write(0,*) 'Keyword: ',keyword(1:ic)
       select case(keyword)
       case('TSTART')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          tstart=dvalue
       case('TEND')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          tend=dvalue
       case('EXPTIME')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          exptime=dvalue
       case('DEADTIME')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          deadtime=dvalue
       case('RHOSTAR')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          sol(1)=dvalue
-      case('STARMOD')
-         read(command(ic+1:),*) modelfile
+      case('STARMODEL')
+         ic2=scan(command(icp2:),' ')-1
+         read(command(icp2:icp2+ic2),'(a)') modelfile
       case('STARTYPE')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          nmodeltype=int(dvalue)
          if(nmodeltype.ne.2)then
             write(0,*) "Error: Only ATLAS-9 models are currently support (STARTYPE=2)"
             stop
          endif
       case('VSINI')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          vsini=dvalue
       case('XOUT')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          xout=int(dvalue)
       case('YOUT')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          yout=int(dvalue)
+      case('XCOO')
+         read(command(icp2:),*) dvalue
+         xcoo=dvalue
+      case('YCOO')
+         read(command(icp2:),*) dvalue
+         ycoo=dvalue
+      case('ROLL')
+         read(command(icp2:),*) dvalue
+         roll=dvalue
+      case('XCEN')
+         read(command(icp2:),*) dvalue
+         xcen=dvalue
+      case('YCEN')
+         read(command(icp2:),*) dvalue
+         ycen=dvalue
+      case('XJIT')
+         read(command(icp2:),*) dvalue
+         xjit=dvalue
+      case('YJIT')
+         read(command(icp2:),*) dvalue
+         yjit=dvalue
+      case('ROLLJIT')
+         read(command(icp2:),*) dvalue
+         rolljit=dvalue
       case('OVERSAMPLE')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          noversample=int(dvalue)
       case('SATURATION')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          saturation=dvalue
       case('NGROUP')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          ngroup=int(dvalue)
       case('PID')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          pid=int(dvalue)
       case('ONUM')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          onum=int(dvalue)
       case('VNUM')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          vnum=int(dvalue)
+      case('GNUM')
+         read(command(icp2:),*) dvalue
+         gnum=int(dvalue)
       case('SPSEQ')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          spseq=int(dvalue)
       case('ANUMB')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          anumb=int(dvalue)
       case('ENUM')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          enum=int(dvalue)
       case('ENUMOS')
-         read(command(ic+1:),*) dvalue
+         read(command(icp2:),*) dvalue
          enumos=int(dvalue)
       case('DETECTOR')
-         read(command(ic+1:),*) detectorname
+         ic2=scan(command(icp2:),' ')-1
+         read(command(icp2:icp2+ic2),'(a)') detectorname
       case('PRODTYPE')
-         read(command(ic+1:),*) prodtype
+         ic2=scan(command(icp2:),' ')-1
+         read(command(icp2:icp2+ic2),'(a)') prodtype
       case default
          !handle multiplanet systems.
          if(keyword(1:ic-1).eq.'RPRSFILE')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
                nplanet=max(nplanet,np) !keep track of how many planets we have.
-               read(keyword(1:ic-1),*) pmodelfile(np)
+               ic2=scan(command(icp2:),' ')-1
+               read(command(icp2:icp2+ic2),'(a)') pmodelfile(np)
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif(keyword(1:ic-1).eq.'EMISFILE')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               nplanet=max(nplanet,np) !keep track of how many planets we have.
+               ic2=scan(command(icp2:),' ')-1
+               read(command(icp2:icp2+ic2),'(a)') emisfile(np)
+            else
+               write(0,*) trim(command)
+               write(0,*) 'Error: Planet number is Invalid ',np 
+            endif
+         elseif(keyword(1:ic-1).eq.'TTVFILE')then
+            read(keyword(ic:ic),*) np !get planet number
+            if((np.le.9).and.(np.gt.0))then
+               nplanet=max(nplanet,np) !keep track of how many planets we have.
+               ic2=scan(command(icp2:),' ')-1
+               read(command(icp2:icp2+ic2),'(a)') ttvfile(np)
             else
                write(0,*) trim(command)
                write(0,*) 'Error: Planet number is Invalid ',np 
@@ -149,7 +202,7 @@ do
          elseif (keyword(1:ic-1).eq.'EP')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+2)=dvalue
             else
                write(0,*) trim(command)
@@ -158,7 +211,7 @@ do
          elseif (keyword(1:ic-1).eq.'PE')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+3)=dvalue
             else
                write(0,*) trim(command)
@@ -167,7 +220,7 @@ do
          elseif (keyword(1:ic-1).eq.'BB')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+4)=dvalue
             else
                write(0,*) trim(command)
@@ -176,7 +229,7 @@ do
          elseif (keyword(1:ic-1).eq.'ES')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+5)=dvalue
             else
                write(0,*) trim(command)
@@ -185,7 +238,7 @@ do
          elseif (keyword(1:ic-1).eq.'EC')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+6)=dvalue
             else
                write(0,*) trim(command)
@@ -194,7 +247,7 @@ do
          elseif (keyword(1:ic-1).eq.'RV')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+7)=dvalue
             else
                write(0,*) trim(command)
@@ -203,7 +256,7 @@ do
          elseif (keyword(1:ic-1).eq.'AL')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+8)=dvalue
             else
                write(0,*) trim(command)
@@ -212,7 +265,7 @@ do
          elseif (keyword(1:ic-1).eq.'EL')then
             read(keyword(ic:ic),*) np !get planet number
             if((np.le.9).and.(np.gt.0))then
-               read(keyword(1:ic-1),*) dvalue
+               read(command(icp2:),*) dvalue
                sol(8*(np-1)+9)=dvalue
             else
                write(0,*) trim(command)

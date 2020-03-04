@@ -5,8 +5,8 @@
 #
 # Blank lines are ignored
 #
-# Format is space separated KEYWORD and VALUE. Any input after VALUE is 
-# ignored.
+# Format is space separated KEYWORD and VALUE. Any input after VALUE
+# is ignored.
 #
 # KEYWORD entry must start on first column of line.
 #
@@ -39,6 +39,7 @@ VSINI     0.0  #Projected rotation velocity [km/s]
 # Last digit at end of keyword marks planet number.  
 # Up to 9 planets can be included.
 RPRSFILE1 pmodels/gj1214-rprs.txt  #Filename with Rp/R* spectral model.
+EMISFILE1 null #Filename for planet emission model 
 EP1       0.0  #Center of transit time [days]
 PE1       3.0  #Orbital period [days]
 BB1       0.4  #Impact parameter
@@ -46,7 +47,8 @@ ES1       0.0  #sqrt(e)sin(omega)
 EC1       0.0  #sqrt(e)cos(omega)
 RV1       0.0  #Radial velocity semi-amplitude [m/s]
 AL1       0.0  #Geometric albedo (needs emission model)
-EL1       0.0  #Ellipsoidal variations (bolometric)
+EL1       0.0  #Ellipsoidal variations (applied to star model)
+TTVFILE1  null #File with transit timing offsets (null==None) 
 
 ####################
 # Image Parameters #
