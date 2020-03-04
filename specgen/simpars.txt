@@ -5,12 +5,12 @@
 #
 # Blank lines are ignored
 #
-# Format is space seperated KEYWORD and VALUE. Any input after VALUE is 
+# Format is space separated KEYWORD and VALUE. Any input after VALUE is 
 # ignored.
 #
 # KEYWORD entry must start on first column of line.
 #
-# KEYWORDs are case sensitive. [will be updated]  
+# KEYWORDs are case insensitive. 
 #
 # VALUEs of STARMODEL and RPRSFILE are limited to 80 characters
 # VALUEs of DETECTOR and PRODTYPE are limited to 8 characters
@@ -44,9 +44,9 @@ PE1       3.0  #Orbital period [days]
 BB1       0.4  #Impact parameter
 ES1       0.0  #sqrt(e)sin(omega)
 EC1       0.0  #sqrt(e)cos(omega)
-RV1       0.0  #Radial velocity amplitude [m/s]
+RV1       0.0  #Radial velocity semi-amplitude [m/s]
 AL1       0.0  #Geometric albedo (needs emission model)
-EL1       0.0  #Ellipsodial variations (bolometric)
+EL1       0.0  #Ellipsoidal variations (bolometric)
 
 ####################
 # Image Parameters #
@@ -59,8 +59,8 @@ NGROUP         10    #Number of samples up ramp
 XCOO            0.0  #X-coordinate shift of trace [pixels]
 YCOO            0.0  #Y-coordinate shift of trace [pixels]
 ROLL            0.0  #Rotation of trace [degrees]
-XCEN         1024    #Center of detector for rotation [pixels]
-YCEN          128    #Center of detector for rotation  [pixels]
+XCEN         1024.0  #Center of detector for rotation [pixels]
+YCEN         -256.0  #Center of detector for rotation  [pixels]
 XJIT            0.01 #X-coordinate translation pointing jitter [pixels]
 YJIT            0.01 #Y-coordinate translation pointing jitter [pixels]
 ROLLJIT         1.0  #Rotation jitter [degrees]
