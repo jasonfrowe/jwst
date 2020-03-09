@@ -248,20 +248,24 @@ fmod=fmod/maxval(fmod(1:nmodel))*saturation !scale input flux
 !Read in planet model
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
+
 !Now we readin the planet model and interpolate onto the spectral model grid
 allocate(rprs(nmodel))
+rprs=0.0d0 !initialize to zero.
 
-!read in a planet model spectrum.  
-!the planet model is resampled on the stellar wavelength grid.  
-!wmod is used as input and it not changed on output. 
-nunit=11 !unit number for data spectrum
-open(unit=nunit,file=pmodelfile(1),iostat=filestatus,status='old')
-if(filestatus>0)then !trap missing file errors
-   write(0,*) "Cannot open ",modelfile
-   stop
+if(nplanet.gt.0)then
+   !read in a planet model spectrum.  
+   !the planet model is resampled on the stellar wavelength grid.  
+   !wmod is used as input and it not changed on output. 
+   nunit=11 !unit number for data spectrum
+   open(unit=nunit,file=pmodelfile(1),iostat=filestatus,status='old')
+   if(filestatus>0)then !trap missing file errors
+      write(0,*) "Cannot open ",modelfile
+      stop
+   endif
+   call readpmodel(nunit,nmodel,wmod,rprs)
+   close(nunit)
 endif
-call readpmodel(nunit,nmodel,wmod,rprs)
-close(nunit)
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !initializing arrays for pixel values
@@ -358,8 +362,11 @@ do ii=1,nint
       call writefitsphdu(fileout(3),funit(3))
    endif
 
-
-   bt=orbmodel(time,sol)
+   if(nplanet.gt.0)then
+      bt=orbmodel(time,sol)
+   else
+      bt=2.0
+   endif
    write(0,*) "Step #: ",ii,time,bt
 
    fmod=fmod_not !copy star-flux only model into fmod array.
