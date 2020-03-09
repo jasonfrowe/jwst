@@ -27,6 +27,7 @@ nmodeltype=2 !stellar spectrum type. 1=BT-Settl, 2=Atlas-9+NL limbdarkening
 rvstar=0.0d0 !radial velocity of star (km/s)
 vsini=0.0d0 !projected rotation of star (km/s)
 pmodelfile='null' !file with Rp/Rs values 
+!nplanet is tracked by pmodelfile. 
 nplanet=0 !number of planets -- default is no planets - you will get staronly sim.
 sol(2)=0.0 !T0 (days)
 sol(3)=1.0 !period (days)
@@ -179,18 +180,21 @@ do
             if(keyword(1:ic-1).eq.'RPRSFILE')then
                read(keyword(ic:ic),*) np !get planet number
                if((np.le.9).and.(np.gt.0))then
-                  nplanet=max(nplanet,np) !keep track of how many planets we have.
                   commandadj=adjustl(command(icp2:))
-                  ic2=scan(commandadj,' ')-1
-                  read(commandadj(1:ic2),'(a)') pmodelfile(np)
-               else
-                  write(0,*) trim(command)
-                  write(0,*) 'Error: Planet number is Invalid ',np 
+                  if(commandadj.ne.'null')then
+                     nplanet=max(nplanet,np) !keep track of how many planets we have.
+                     ic2=scan(commandadj,' ')-1
+                     read(commandadj(1:ic2),'(a)') pmodelfile(np)
+                  else
+                     write(0,*) 'Skipping pmodelfile entry'
+                  endif
+               !else
+               !   write(0,*) trim(command)
+               !   write(0,*) 'Error: Planet number is Invalid ',np 
                endif
             elseif(keyword(1:ic-1).eq.'EMISFILE')then
                read(keyword(ic:ic),*) np !get planet number
                if((np.le.9).and.(np.gt.0))then
-                  nplanet=max(nplanet,np) !keep track of how many planets we have.
                   commandadj=adjustl(command(icp2:))
                   ic2=scan(commandadj,' ')-1
                   read(commandadj(1:ic2),'(a)') emisfile(np)
@@ -201,7 +205,6 @@ do
             elseif(keyword(1:ic-1).eq.'TTVFILE')then
                read(keyword(ic:ic),*) np !get planet number
                if((np.le.9).and.(np.gt.0))then
-                  nplanet=max(nplanet,np) !keep track of how many planets we have.
                   commandadj=adjustl(command(icp2:))
                   ic2=scan(commandadj,' ')-1
                   read(commandadj(1:ic2),'(a)') ttvfile(np)

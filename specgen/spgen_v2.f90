@@ -260,7 +260,7 @@ if(nplanet.gt.0)then
    nunit=11 !unit number for data spectrum
    open(unit=nunit,file=pmodelfile(1),iostat=filestatus,status='old')
    if(filestatus>0)then !trap missing file errors
-      write(0,*) "Cannot open ",modelfile
+      write(0,*) "Cannot open ",pmodelfile(1)
       stop
    endif
    call readpmodel(nunit,nmodel,wmod,rprs)
