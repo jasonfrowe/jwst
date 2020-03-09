@@ -14,7 +14,7 @@ character(80) :: modelfile,pmodelfile(nplanetmax),emisfile(nplanetmax),ttvfile(n
 !local parameters
 integer :: i,ic,filestatus,np,icp2,ic2
 real(double) :: dvalue
-character(200) :: command,keyword,commandadj
+character(200) :: command,keyword,commandadj,to_upper
 
 !default parameters -- these will cause the program to end quickly
 tstart=0.0d0 !start time (hours)
@@ -70,7 +70,8 @@ do
       if((command(1:1).ne.'#').and.(command(1:1).ne.' '))then !ignore comment and blank lines
          ic=scan(command,' ')-1
          icp2=ic+2
-         read(command(1:ic),*) keyword 
+         read(command(1:ic),*) keyword
+         keyword=to_upper(keyword) !convert keyword to CAPS
          !write(0,*) 'Keyword: ',keyword(1:ic)
          select case(keyword)
          case('TSTART')
@@ -185,12 +186,12 @@ do
                      nplanet=max(nplanet,np) !keep track of how many planets we have.
                      ic2=scan(commandadj,' ')-1
                      read(commandadj(1:ic2),'(a)') pmodelfile(np)
-                  else
-                     write(0,*) 'Skipping pmodelfile entry'
+                  !else
+                  !   write(0,*) 'Skipping pmodelfile entry'
                   endif
-               !else
-               !   write(0,*) trim(command)
-               !   write(0,*) 'Error: Planet number is Invalid ',np 
+               else
+                  write(0,*) trim(command)
+                  write(0,*) 'Error: Planet number is Invalid ',np 
                endif
             elseif(keyword(1:ic-1).eq.'EMISFILE')then
                read(keyword(ic:ic),*) np !get planet number
