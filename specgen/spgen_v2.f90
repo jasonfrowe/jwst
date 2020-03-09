@@ -28,6 +28,7 @@ integer :: nmodel !number of model points read in
 integer :: nmodelmax !guess for size of array (will be auto increased if too small)
 real(double) :: saturation !saturation of ADC.
 real(double) :: vsini !rotational broadening of spectrum
+real(double) :: drizzlefac,w1,w2
 !next line of variabiles contain wavelength, flux info
 real(double), dimension(:), allocatable :: wmod,fmod,wmod2,fmod2,fmod_not 
 real(double), dimension(:,:), allocatable :: nll,nll2 !limb-darkening co-efficients.
@@ -292,6 +293,13 @@ do i=1,npt
    wmod_bin(i)=1000.0+(40000.0-1000.0)/dnpt*dble(i) !make a wavelength grid
 enddo
 
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+! Scale stellar flux to get approx 2e16 counts after drizzle
+!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+w1=p2w(1,1,1)
+w2=p2w(xmax,1,1)
+drizzlefac=dble(npt)/39000.0*abs(w2-w1)
+write(0,*) 'drizzlefac: ',drizzlefac
 
 allocate(fmod_not(nmodelmax))
 fmod_not=fmod !make a copy of the star-flux input that is transit free.
